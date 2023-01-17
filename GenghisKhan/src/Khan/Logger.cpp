@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "Logger.h"
 
 #include <chrono>
@@ -5,8 +6,7 @@
 #include <Windows.h>
 #include <time.h>
 
-namespace Khan {
-	enum class ConsoleColor
+enum class ConsoleColor
 	{
 		BLACK,
 		BLUE,
@@ -17,7 +17,6 @@ namespace Khan {
 		YELLOW,
 		WHITE,
 		GRAY,
-		LIGHT_BLACK,
 		LIGHT_BLUE,
 		LIGHT_GREEN,
 		LIGHT_AQUA,
@@ -26,6 +25,8 @@ namespace Khan {
 		LIGHT_YELLOW,
 		BRIGHT_WHITE,
 	};
+
+namespace Khan {
 
     std::string Logger::CurrentDate()
     {
@@ -41,14 +42,14 @@ namespace Khan {
 	void Logger::Info(const std::string_view message)
 	{
 		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-		SetConsoleTextAttribute(hConsole, static_cast<int>(ConsoleColor::GREEN));
-		std::cout << "LOG: " << CurrentDate() << " - " << message << "\n";
+		SetConsoleTextAttribute(hConsole, static_cast<int>(ConsoleColor::LIGHT_GREEN));
+		std::cout << "INFO: " << CurrentDate() << " - " << message << "\n";
 		SetConsoleTextAttribute(hConsole, static_cast<int>(ConsoleColor::WHITE));
 	}
 	void Logger::Error(const std::string_view message, std::source_location location)
 	{
 		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-		SetConsoleTextAttribute(hConsole, static_cast<int>(ConsoleColor::RED));
+		SetConsoleTextAttribute(hConsole, static_cast<int>(ConsoleColor::LIGHT_RED));
 		std::cout << "ERROR:" << CurrentDate() << " - " << message 
 			<< " FILE:" << location.file_name() << " FUNC:" << location.function_name() 
 			<< " LINE:" <<location.line() << "\n";

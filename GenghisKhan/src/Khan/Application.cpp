@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "Application.h"
 
 namespace Khan {
@@ -8,12 +9,8 @@ namespace Khan {
 	Application::~Application()
 	{
 	}
-	void Application::Run()
+
+	void Application::Update()
 	{
-		
-		for (int i{}; i < 10; ++i)
-		{
-			Update();
-		}
 	}
 }

@@ -5,10 +5,9 @@ namespace Khan {
 	{
 	public:
 		Application();
-		virtual ~Application();
+		~Application();
 
-		void Run();
-		virtual void Update() abstract;
+		void Update();
 	};
 
 	// To be defined in CLIENT

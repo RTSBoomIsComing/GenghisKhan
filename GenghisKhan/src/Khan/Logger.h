@@ -17,4 +17,6 @@ namespace Khan {
 		static void Error(const std::string_view message, std::source_location location = std::source_location::current());
 	};
 }
- 
+
+#define KHAN_ERROR(...) Khan::Logger::Error(__VA_ARGS__)
+#define KHAN_INFO(...) Khan::Logger::Info(__VA_ARGS__)
