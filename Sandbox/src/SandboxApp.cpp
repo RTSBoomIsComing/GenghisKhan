@@ -5,18 +5,20 @@ class Sandbox : public Khan::Application
 public:
 	Sandbox()
 	{
-
 	}
 	~Sandbox()
-	{
-
+	{ 
 	}
-
+	void Update()
+	{
+		Khan::Logger::Info("Updated");
+	}
 };
-#include <memory>
-int main()
-{
-	auto sandbox = std::make_unique<Sandbox>();
-	sandbox->Run();
-	return 0;
+
+namespace Khan {
+	std::unique_ptr<Application> CreateApplication()
+	{
+		auto sandbox = std::make_unique<Sandbox>();
+		return std::move(sandbox);
+	}
 }

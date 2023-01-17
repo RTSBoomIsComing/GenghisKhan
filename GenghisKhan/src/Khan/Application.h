@@ -1,15 +1,17 @@
 #pragma once
 
-#include "Core.h"
-
 namespace Khan {
-	class KHAN_API Application
+	class Application
 	{
 	public:
 		Application();
 		virtual ~Application();
 
 		void Run();
+		virtual void Update() abstract;
 	};
+
+	// To be defined in CLIENT
+	// Application* CreateApplication();
 }
 

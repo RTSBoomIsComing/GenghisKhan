@@ -10,7 +10,10 @@ namespace Khan {
 	}
 	void Application::Run()
 	{
-		while (true)
-		{ }
+		
+		for (int i{}; i < 10; ++i)
+		{
+			Update();
+		}
 	}
 }
