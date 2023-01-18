@@ -6,7 +6,7 @@ namespace Khan {
 	class Window
 	{
 	public:
-		Window(int width, int height, std::wstring name = L"d3d11game");
+		Window(int width, int height, std::wstring name = L"Genghis Khan");
 		~Window() noexcept;
 
 	private:

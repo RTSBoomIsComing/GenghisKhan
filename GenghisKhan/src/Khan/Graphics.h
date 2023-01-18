@@ -3,18 +3,17 @@
 #include <Windows.h>
 #include <wrl/client.h>
 using Microsoft::WRL::ComPtr;
-// TODO: class RenderSystem; // move core members to rendersystem, then core is including rendersystem.
 
 namespace Khan
 {
-	class DxCore
+	class Graphics
 	{
 	public:
-		DxCore(HWND hwnd, int  width, int  height) noexcept;
+		Graphics(HWND hwnd, int  width, int  height) noexcept;
 	public:
 		void RenderStart() noexcept;
 		void RenderEnd() noexcept;
-		void OnResizeWindow(UINT width, UINT height) noexcept;
+		void ResizeBackBuffers(UINT width, UINT height) noexcept;
 	private:
 		ComPtr<ID3D11Device> m_device;
 		ComPtr<IDXGISwapChain> m_swapChain;

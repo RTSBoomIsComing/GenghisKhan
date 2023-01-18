@@ -16,7 +16,7 @@ namespace Khan {
 		wc.lpfnWndProc = DefWindowProc;
 		if (RegisterClassExW(&wc) == 0)
 		{
-			MessageBoxW(nullptr, L"failed to register window class", L"Failed", 0u);
+			KHAN_ERROR("failed to register window class");
 			throw GetLastError();
 		}
 

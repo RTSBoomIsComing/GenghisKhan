@@ -18,7 +18,7 @@
     <ClInclude Include="src\Khan\Application.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Khan\DxCore.h">
+    <ClInclude Include="src\Khan\Graphics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Khan.h">
@@ -47,7 +47,7 @@
     <ClCompile Include="src\Khan\Common\pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Khan\DxCore.cpp">
+    <ClCompile Include="src\Khan\Graphics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Khan\Window\Window.cpp">

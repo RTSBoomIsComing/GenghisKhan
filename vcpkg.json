@@ -2,6 +2,11 @@
   "name": "genghis-khan",
   "version": "0.0.1",
   "dependencies": [
-    "imgui"
+    {
+      "name": "imgui",
+      "default-features": false,
+      "features": [ "win32-binding", "dx11-binding" ]
+    },
+    "directxtk"
   ]
 }
