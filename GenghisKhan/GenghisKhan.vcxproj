@@ -15,12 +15,13 @@
     <ClInclude Include="src\Khan\Logger.h" />
     <ClInclude Include="src\Khan.h" />
     <ClInclude Include="src\Khan\Application.h" />
-    <ClInclude Include="src\Khan\Graphics.h" />
+    <ClInclude Include="src\Khan\Renderer.h" />
     <ClInclude Include="src\Khan\Common\pch.h" />
+    <ClInclude Include="src\Khan\Window\ImGuiManager.h" />
     <ClInclude Include="src\Khan\Window\Window.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Khan\Graphics.cpp" />
+    <ClCompile Include="src\Khan\Renderer.cpp" />
     <ClCompile Include="src\Khan\Logger.cpp" />
     <ClCompile Include="src\Khan\Application.cpp" />
     <ClCompile Include="src\Khan\Common\pch.cpp">

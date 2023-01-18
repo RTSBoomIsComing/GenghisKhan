@@ -6,10 +6,10 @@ using Microsoft::WRL::ComPtr;
 
 namespace Khan
 {
-	class Graphics
+	class Renderer
 	{
 	public:
-		Graphics(HWND hwnd, int  width, int  height) noexcept;
+		Renderer(HWND hwnd, int  width, int  height) noexcept;
 	public:
 		void RenderStart() noexcept;
 		void RenderEnd() noexcept;

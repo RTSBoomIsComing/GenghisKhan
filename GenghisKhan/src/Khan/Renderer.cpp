@@ -1,9 +1,9 @@
 #include "pch.h"
-#include "Graphics.h"
+#include "Renderer.h"
 #include "DxUtility.h"
 #include <chrono>
 namespace Khan {
-	Khan::Graphics::Graphics(HWND hwnd, int width, int height) noexcept
+	Khan::Renderer::Renderer(HWND hwnd, int width, int height) noexcept
 	{
 		CreateDeviceAndSwapChain(hwnd, width, height);
 		CreateRenderTargetView();
@@ -12,7 +12,7 @@ namespace Khan {
 		// bind depth stencil view to OM
 		m_context->OMSetRenderTargets(1U, m_RTV.GetAddressOf(), m_DSV.Get());
 	}
-	void Graphics::RenderStart() noexcept
+	void Renderer::RenderStart() noexcept
 	{
 		using namespace std::chrono;
 		float bg_color[]{ 0.f, 0.f, 0.f, 1.f };
@@ -20,23 +20,23 @@ namespace Khan {
 		{
 			steady_clock::time_point current = steady_clock::now();
 			duration<float> elapsed_time = current - start;
-			float c = 0.5f + 0.5 * sin(elapsed_time.count());
+			float c = 0.5f + 0.5f * sin(elapsed_time.count());
 			bg_color[1] = c;
 			bg_color[2] = c;
 		}
 		m_context->ClearRenderTargetView(m_RTV.Get(), bg_color);
 		m_context->ClearDepthStencilView(m_DSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 	}
-	void Graphics::RenderEnd() noexcept
+	void Renderer::RenderEnd() noexcept
 	{
 		m_swapChain->Present(0u, 0u);
 	}
-	void Graphics::ResizeBackBuffers(UINT width, UINT height) noexcept
+	void Renderer::ResizeBackBuffers(UINT width, UINT height) noexcept
 	{
 		m_swapChain->ResizeBuffers(0u, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 0u);
 		CreateRenderTargetView();
 	}
-	void Graphics::CreateDeviceAndSwapChain(HWND hwnd, int window_width, int window_height)
+	void Renderer::CreateDeviceAndSwapChain(HWND hwnd, int window_width, int window_height)
 	{
 		DXGI_SWAP_CHAIN_DESC sc_desc{};
 		{
@@ -85,7 +85,7 @@ namespace Khan {
 				&m_context),
 			"failed to create device and swapchain");
 	}
-	void Graphics::CreateRenderTargetView()
+	void Renderer::CreateRenderTargetView()
 	{
 		// gain access to texture subresource in swap chain (back buffer)
 		ComPtr<ID3D11Resource> backBuffer;
@@ -97,7 +97,7 @@ namespace Khan {
 			m_device->CreateRenderTargetView(backBuffer.Get(), nullptr, &m_RTV),
 			"failed to create back buffer");
 	}
-	void Graphics::CreateDepthStencilView(int window_width, int window_height)
+	void Renderer::CreateDepthStencilView(int window_width, int window_height)
 	{
 		// create depth stencil state
 		ComPtr<ID3D11DepthStencilState> ds_state;

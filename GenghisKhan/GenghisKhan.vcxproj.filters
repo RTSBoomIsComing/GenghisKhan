@@ -18,7 +18,7 @@
     <ClInclude Include="src\Khan\Application.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Khan\Graphics.h">
+    <ClInclude Include="src\Khan\Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Khan.h">
@@ -36,6 +36,9 @@
     <ClInclude Include="src\Khan\Window\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Khan\Window\ImGuiManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Khan\Application.cpp">
@@ -47,7 +50,7 @@
     <ClCompile Include="src\Khan\Common\pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Khan\Graphics.cpp">
+    <ClCompile Include="src\Khan\Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Khan\Window\Window.cpp">

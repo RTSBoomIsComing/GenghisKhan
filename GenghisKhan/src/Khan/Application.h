@@ -17,13 +17,11 @@ namespace Khan {
 		void Update();
 		int Run();
 	private:
-		void InitializeImGui();
-		void UpdateImGui();
 		void Render();
 		void OnResizeWindow(UINT width, UINT height);
 	private:
 		std::unique_ptr<class Window> m_window;
-		std::unique_ptr<class Graphics> m_graphics;
+		std::unique_ptr<class Renderer> m_renderer;
 		std::unique_ptr<DirectX::Keyboard> m_keyboard;
 		std::unique_ptr<DirectX::Mouse> m_mouse;
 
