@@ -16,6 +16,6 @@ public:
 		// 1. use InputManager; or 2. process input on systems;
 		// 1) if (inputmanager.GetKeyboard('w') {...};
 		// 2) on some Systems, do 1);
-		UnitControlSystem::UnitSelect();
+		// UnitControlSystem::UnitSelect();
 	}
 };

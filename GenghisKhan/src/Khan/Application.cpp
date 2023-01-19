@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Application.h"
 
+#include "Common/Logger.h"
 #include "Window/Window.h"
 #include "Window/ImGuiManager.h"
 #include "Renderer.h"
@@ -12,7 +13,7 @@ using namespace Khan;
 
 Application::Application(int window_width, int window_height, std::wstring window_name)
 {
-	m_window = std::make_unique<Window>(1024, 768, std::move(window_name));
+	m_window = std::make_unique<Window>(window_width, window_height, std::move(window_name));
 
 	SetWindowLongPtr(m_window->GetHWnd(), GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 	SetWindowLongPtr(m_window->GetHWnd(), GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
@@ -67,24 +68,30 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM,
 LRESULT CALLBACK Application::WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
-		return true;
+		return 1u;
 
 	switch (msg)
 	{
+	case WM_GETMINMAXINFO:
+	{
+		reinterpret_cast<MINMAXINFO*>(lparam)->ptMinTrackSize.x = 170;
+		reinterpret_cast<MINMAXINFO*>(lparam)->ptMinTrackSize.y = 200;
+		return 0u;
+	}
 	case WM_SIZE:
 		if (wparam != SIZE_MINIMIZED)
 		{
 			auto app = reinterpret_cast<Application*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 			app->OnResizeWindow((UINT)LOWORD(lparam), (UINT)HIWORD(lparam));
 		}
-		break;
+		return 0u;
 	case WM_CLOSE:
 		PostQuitMessage(0);
-		break;
+		return 0u;
 	case WM_ACTIVATEAPP:
 		DirectX::Keyboard::ProcessMessage(msg, wparam, lparam);
 		DirectX::Mouse::ProcessMessage(msg, wparam, lparam);
-		break;
+		return 0u;
 	case WM_MOUSEACTIVATE:
 		// When you click activate the window, we want Mouse to ignore it.
 		return MA_ACTIVATEANDEAT;
@@ -102,21 +109,18 @@ LRESULT CALLBACK Application::WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM
 	case WM_XBUTTONUP:
 	case WM_MOUSEHOVER:
 		DirectX::Mouse::ProcessMessage(msg, wparam, lparam);
-		break;
+		return 0u;
 	case WM_KEYDOWN:
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
 		DirectX::Keyboard::ProcessMessage(msg, wparam, lparam);
-		break;
+		return 0u;
 	case WM_SYSKEYDOWN:
 		DirectX::Keyboard::ProcessMessage(msg, wparam, lparam);
 		if (wparam == VK_RETURN && (lparam & 0x60000000) == 0x20000000)
 		{
 		}
-		break;
-
-	default:
-		return DefWindowProc(hwnd, msg, wparam, lparam);
+		return 0u;	
 	}
-	return 0u;
+	return DefWindowProc(hwnd, msg, wparam, lparam);
 }

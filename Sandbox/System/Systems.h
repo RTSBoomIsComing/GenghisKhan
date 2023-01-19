@@ -1,5 +1,5 @@
 #pragma once
-#include <Khan/Logger.h>
+#include <Khan/Common/Logger.h>
 // #include <entt/entity/fwd.hpp>
 class UnitControlSystem
 {

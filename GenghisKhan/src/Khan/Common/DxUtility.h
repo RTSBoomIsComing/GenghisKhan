@@ -5,11 +5,13 @@
 #include <string_view>
 #include "Logger.h"
 
-inline void ThrowIfFailed(HRESULT hr, std::string_view message = "")
-{
-	if (FAILED(hr))
+namespace Khan {
+	inline void ThrowIfFailed(HRESULT hr, std::string_view message = "", std::source_location location = std::source_location::current())
 	{
-		KHAN_ERROR(message);
-		throw hr;
+		if (FAILED(hr))
+		{
+			KHAN_ERROR(message, location);
+			throw hr;
+		}
 	}
 }

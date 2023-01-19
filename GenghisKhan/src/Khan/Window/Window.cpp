@@ -2,45 +2,43 @@
 #include "Window.h"
 #include "Common/DxUtility.h"
 
-namespace Khan {
-	Window::Window(int width, int height, std::wstring name)
-		:
-		m_width(width), m_height(height), m_name(std::move(name)),
-		m_hinstance(GetModuleHandle(nullptr))
+using namespace Khan;
+
+Window::Window(int width, int height, std::wstring name)
+	:
+	m_width(width), m_height(height), m_name(std::move(name))
+{
+	WNDCLASSEXW wc{};
+	wc.cbSize = sizeof(WNDCLASSEXW);
+	wc.lpfnWndProc = DefWindowProc;
+	wc.hInstance = GetModuleHandle(nullptr);
+	wc.lpszClassName = m_class_name.data();
+	if (!RegisterClassExW(&wc))
 	{
-		WNDCLASSEXW wc{};
-		wc.cbClsExtra = 0;
-		wc.cbSize = sizeof(WNDCLASSEXW);
-		wc.cbWndExtra = 0;
-		wc.lpszClassName = m_class_name.data();
-		wc.lpfnWndProc = DefWindowProc;
-		if (RegisterClassExW(&wc) == 0)
-		{
-			KHAN_ERROR("failed to register window class");
-			throw GetLastError();
-		}
+		KHAN_ERROR("failed to register window class");
+		throw GetLastError();
+	}
+	
+	RECT rect{ 0, 0, width, height };
+	AdjustWindowRectEx(&rect, WS_OVERLAPPEDWINDOW, false, WS_EX_OVERLAPPEDWINDOW);
 
-		RECT rect{ 0, 0, m_width, m_height };
-		AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
+	m_hwnd = CreateWindowExW(WS_EX_OVERLAPPEDWINDOW, m_class_name.data(), m_name.data(),
+		WS_OVERLAPPEDWINDOW, 100, 20,
+		rect.right - rect.left, rect.bottom - rect.top,
+		nullptr, nullptr, wc.hInstance, nullptr);
 
-		m_hwnd = CreateWindowExW(WS_EX_OVERLAPPEDWINDOW, m_class_name.data(), m_name.data(),
-			WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
-			rect.right - rect.left, rect.bottom - rect.top,
-			nullptr, nullptr, m_hinstance, nullptr);
-
-		if (!m_hwnd)
-		{
-			KHAN_ERROR("failed to create window");
-			throw GetLastError();
-		}
-
-		ShowWindow(m_hwnd, SW_SHOW);
-		UpdateWindow(m_hwnd);
+	if (!m_hwnd)
+	{
+		KHAN_ERROR("failed to create window");
+		throw GetLastError();
 	}
 
-	Window::~Window() noexcept
-	{
-		DestroyWindow(m_hwnd);
-		UnregisterClass(m_class_name.data(), m_hinstance);
-	}
+	ShowWindow(m_hwnd, SW_SHOWDEFAULT);
+	UpdateWindow(m_hwnd);
+}
+
+Window::~Window() noexcept
+{
+	DestroyWindow(m_hwnd);
+	UnregisterClass(m_class_name.data(), nullptr);
 }

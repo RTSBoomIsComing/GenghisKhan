@@ -24,7 +24,7 @@
     <ClInclude Include="src\Khan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Khan\Logger.h">
+    <ClInclude Include="src\Khan\Common\Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Khan\pch.h">
@@ -44,7 +44,7 @@
     <ClCompile Include="src\Khan\Application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Khan\Logger.cpp">
+    <ClCompile Include="src\Khan\Common\Logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Khan\pch.cpp">
