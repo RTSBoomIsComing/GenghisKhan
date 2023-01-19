@@ -8,9 +8,6 @@ Khan::Renderer::Renderer(HWND hwnd, int width, int height) noexcept
 	CreateDeviceAndSwapChain(hwnd, width, height);
 	CreateRenderTargetView();
 	CreateDepthStencilView(width, height);
-
-	// bind depth stencil view to OM
-	m_context->OMSetRenderTargets(1u, m_RTV.GetAddressOf(), m_DSV.Get());
 }
 void Renderer::Render() noexcept
 {

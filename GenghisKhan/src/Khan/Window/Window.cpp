@@ -22,9 +22,11 @@ Window::Window(int width, int height, std::wstring name)
 	RECT rect{ 0, 0, width, height };
 	AdjustWindowRectEx(&rect, WS_OVERLAPPEDWINDOW, false, WS_EX_OVERLAPPEDWINDOW);
 
+	int adjusted_width{ rect.right - rect.left };
+	int adjusted_height{ rect.bottom - rect.top };
 	m_hwnd = CreateWindowExW(WS_EX_OVERLAPPEDWINDOW, m_class_name.data(), m_name.data(),
-		WS_OVERLAPPEDWINDOW, 100, 20,
-		rect.right - rect.left, rect.bottom - rect.top,
+		WS_OVERLAPPEDWINDOW, 300, 20,
+		adjusted_width, adjusted_height,
 		nullptr, nullptr, wc.hInstance, nullptr);
 
 	if (!m_hwnd)

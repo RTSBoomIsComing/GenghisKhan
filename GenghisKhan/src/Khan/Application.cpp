@@ -1,22 +1,25 @@
 #include "pch.h"
 #include "Application.h"
 
-#include "Common/Logger.h"
-#include "Window/Window.h"
-#include "Window/ImGuiManager.h"
-#include "Renderer.h"
-
 #include <directxtk/Keyboard.h>
 #include <directxtk/Mouse.h>
 
+#include "Common/Logger.h"
+#include "Window/Window.h"
+#include "Renderer.h"
+#include "IGame.h"
+#include "IImGui.h"
+
 using namespace Khan;
 
-Application::Application(int window_width, int window_height, std::wstring window_name)
+Application::Application(pWnd& wnd, pGame& game, pImgui& imgui)
+	:
+	m_window(std::move(wnd)),
+	m_game(std::move(game)),
+	m_imgui(std::move(imgui))
 {
-	m_window = std::make_unique<Window>(window_width, window_height, std::move(window_name));
-
-	SetWindowLongPtr(m_window->GetHWnd(), GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-	SetWindowLongPtr(m_window->GetHWnd(), GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
+	SetWindowLongPtrW(m_window->GetHWnd(), GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+	SetWindowLongPtrW(m_window->GetHWnd(), GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
 
 	m_keyboard = std::make_unique<DirectX::Keyboard>();
 	m_mouse = std::make_unique<DirectX::Mouse>();
@@ -25,12 +28,13 @@ Application::Application(int window_width, int window_height, std::wstring windo
 	m_renderer = std::make_unique<Renderer>(m_window->GetHWnd(),
 		m_window->GetWidth(), m_window->GetHeight());
 
-	ImGuiManager::Initialize(m_window->GetHWnd(), m_renderer->GetDevice().Get(), m_renderer->GetContext().Get());
+	ImGui_ImplWin32_Init(m_window->GetHWnd());
+	ImGui_ImplDX11_Init(m_renderer->GetDevice().Get(), m_renderer->GetContext().Get());
 }
 
 Application::~Application()
 {
-	ImGuiManager::Destroy();
+
 }
 
 int Application::Run()
@@ -45,9 +49,9 @@ int Application::Run()
 		}
 		else
 		{
-			GameLogic();
+			m_game->Logic();
 
-			ImGuiManager::Render();
+			m_imgui->Draw();
 			m_renderer->Render();
 			ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 			m_renderer->Present();

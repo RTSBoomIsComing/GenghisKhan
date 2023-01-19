@@ -15,9 +15,11 @@
     <ClInclude Include="src\Khan\Common\Logger.h" />
     <ClInclude Include="src\Khan.h" />
     <ClInclude Include="src\Khan\Application.h" />
+    <ClInclude Include="src\Khan\IGame.h" />
+    <ClInclude Include="src\Khan\IImGui.h" />
+    <ClInclude Include="src\Khan\ITest.h" />
     <ClInclude Include="src\Khan\Renderer.h" />
     <ClInclude Include="src\Khan\pch.h" />
-    <ClInclude Include="src\Khan\Window\ImGuiManager.h" />
     <ClInclude Include="src\Khan\Window\Window.h" />
   </ItemGroup>
   <ItemGroup>
@@ -28,7 +30,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\Khan\Window\ImGuiManager.cpp" />
     <ClCompile Include="src\Khan\Window\Window.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
