@@ -19,8 +19,8 @@ namespace Khan {
 		HWND m_hwnd{};
 		HINSTANCE m_hinstance{};
 	public:
-		inline HWND GetHWnd() const noexcept { return m_hwnd; }
-		inline int GetWidth() const noexcept { return m_width; }
-		inline int GetHeight() const noexcept { return m_height; }
+		HWND GetHWnd() const noexcept { return m_hwnd; }
+		int GetWidth() const noexcept { return m_width; }
+		int GetHeight() const noexcept { return m_height; }
 	};
 }

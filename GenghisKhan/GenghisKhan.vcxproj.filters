@@ -27,7 +27,7 @@
     <ClInclude Include="src\Khan\Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Khan\Common\pch.h">
+    <ClInclude Include="src\Khan\pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Khan\Common\DxUtility.h">
@@ -47,13 +47,16 @@
     <ClCompile Include="src\Khan\Logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Khan\Common\pch.cpp">
+    <ClCompile Include="src\Khan\pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Khan\Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Khan\Window\Window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Khan\Window\ImGuiManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

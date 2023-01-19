@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Renderer.h"
-#include "DxUtility.h"
+#include "Common/DxUtility.h"
 #include <chrono>
 namespace Khan {
 	Khan::Renderer::Renderer(HWND hwnd, int width, int height) noexcept
@@ -12,7 +12,7 @@ namespace Khan {
 		// bind depth stencil view to OM
 		m_context->OMSetRenderTargets(1U, m_RTV.GetAddressOf(), m_DSV.Get());
 	}
-	void Renderer::RenderStart() noexcept
+	void Renderer::Render() noexcept
 	{
 		using namespace std::chrono;
 		float bg_color[]{ 0.f, 0.f, 0.f, 1.f };
@@ -27,9 +27,9 @@ namespace Khan {
 		m_context->ClearRenderTargetView(m_RTV.Get(), bg_color);
 		m_context->ClearDepthStencilView(m_DSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 	}
-	void Renderer::RenderEnd() noexcept
+	void Renderer::Present() noexcept
 	{
-		m_swapChain->Present(0u, 0u);
+		m_swapChain->Present(1u, 0u);
 	}
 	void Renderer::ResizeBackBuffers(UINT width, UINT height) noexcept
 	{

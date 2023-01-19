@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Window.h"
-#include "DxUtility.h"
+#include "Common/DxUtility.h"
 
 namespace Khan {
 	Window::Window(int width, int height, std::wstring name)

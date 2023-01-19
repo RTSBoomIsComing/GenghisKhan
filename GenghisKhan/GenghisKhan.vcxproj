@@ -16,7 +16,7 @@
     <ClInclude Include="src\Khan.h" />
     <ClInclude Include="src\Khan\Application.h" />
     <ClInclude Include="src\Khan\Renderer.h" />
-    <ClInclude Include="src\Khan\Common\pch.h" />
+    <ClInclude Include="src\Khan\pch.h" />
     <ClInclude Include="src\Khan\Window\ImGuiManager.h" />
     <ClInclude Include="src\Khan\Window\Window.h" />
   </ItemGroup>
@@ -24,10 +24,11 @@
     <ClCompile Include="src\Khan\Renderer.cpp" />
     <ClCompile Include="src\Khan\Logger.cpp" />
     <ClCompile Include="src\Khan\Application.cpp" />
-    <ClCompile Include="src\Khan\Common\pch.cpp">
+    <ClCompile Include="src\Khan\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\Khan\Window\ImGuiManager.cpp" />
     <ClCompile Include="src\Khan\Window\Window.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -83,7 +84,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)src\Khan\;$(ProjectDir)src\Khan\Common\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src\Khan\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -101,7 +102,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)src\Khan\;$(ProjectDir)src\Khan\Common\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src\Khan\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

@@ -11,8 +11,8 @@ namespace Khan
 	public:
 		Renderer(HWND hwnd, int  width, int  height) noexcept;
 	public:
-		void RenderStart() noexcept;
-		void RenderEnd() noexcept;
+		void Render() noexcept;
+		void Present() noexcept;
 		void ResizeBackBuffers(UINT width, UINT height) noexcept;
 	private:
 		ComPtr<ID3D11Device> m_device;
