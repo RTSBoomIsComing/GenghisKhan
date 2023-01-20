@@ -109,10 +109,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DebugGui.h" />
-    <ClInclude Include="Game.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="System\Systems.h" />
     <ClInclude Include="src\System\System.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

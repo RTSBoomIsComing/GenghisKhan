@@ -7,26 +7,22 @@ namespace DirectX { // from DirectXTK, forward declaration.
 	class Mouse;
 }
 
+using std::unique_ptr;
+
 namespace Khan {
-	using pImgui = std::unique_ptr<class IImGui>;
-	using pGame = std::unique_ptr<class IGame>;
-	using pWnd = std::unique_ptr<class Window>;
+	class Window;
+	class Renderer;
 
 	class Application
 	{
 	public:
-		Application(pWnd& wnd, pGame& game, pImgui& imgui);
+		Application(unique_ptr<Window>& wnd);
 		~Application() noexcept;
-
+	public:
 		int Run();
-
-
 	protected:
-		std::unique_ptr<class IGame> m_game;
-		std::unique_ptr<class IImGui> m_imgui;
-		std::unique_ptr<class Window> m_window;
-
-		std::unique_ptr<class Renderer> m_renderer;
+		std::unique_ptr<Window> m_window;
+		std::unique_ptr<Renderer> m_renderer;
 		std::unique_ptr<DirectX::Keyboard> m_keyboard;
 		std::unique_ptr<DirectX::Mouse> m_mouse;
 

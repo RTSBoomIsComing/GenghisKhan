@@ -36,13 +36,19 @@
     <ClInclude Include="src\Khan\Window\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Khan\IGame.h">
+    <ClInclude Include="src\Khan\Game.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Khan\IImGui.h">
+    <ClInclude Include="src\Khan\ImGuiManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Khan\ITest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Khan\EntryPoint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Khan\System\Systems.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

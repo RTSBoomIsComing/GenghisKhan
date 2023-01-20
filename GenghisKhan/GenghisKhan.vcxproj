@@ -15,11 +15,13 @@
     <ClInclude Include="src\Khan\Common\Logger.h" />
     <ClInclude Include="src\Khan.h" />
     <ClInclude Include="src\Khan\Application.h" />
-    <ClInclude Include="src\Khan\IGame.h" />
-    <ClInclude Include="src\Khan\IImGui.h" />
+    <ClInclude Include="src\Khan\EntryPoint.h" />
+    <ClInclude Include="src\Khan\Game.h" />
+    <ClInclude Include="src\Khan\ImGuiManager.h" />
     <ClInclude Include="src\Khan\ITest.h" />
     <ClInclude Include="src\Khan\Renderer.h" />
     <ClInclude Include="src\Khan\pch.h" />
+    <ClInclude Include="src\Khan\System\Systems.h" />
     <ClInclude Include="src\Khan\Window\Window.h" />
   </ItemGroup>
   <ItemGroup>
