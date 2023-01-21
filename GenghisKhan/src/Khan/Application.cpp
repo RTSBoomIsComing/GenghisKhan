@@ -1,13 +1,7 @@
 #include "pch.h"
 #include "Application.h"
 
-#include <directxtk/Keyboard.h>
-#include <directxtk/Mouse.h>
-
 #include "Common/Logger.h"
-#include "Window/Window.h"
-#include "Renderer.h"
-#include "Game.h"
 #include "ImGuiManager.h"
 
 
@@ -16,9 +10,9 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM,
 
 namespace Khan {
 
-	Application::Application(unique_ptr<Window>& wnd)
+	Application::Application(int width, int height, std::wstring name)
 		:
-		m_window(std::move(wnd))
+		m_window(std::make_unique<Window>(width, height, name))
 	{
 		SetWindowLongPtrW(m_window->GetHWnd(), GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 		SetWindowLongPtrW(m_window->GetHWnd(), GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
@@ -31,15 +25,12 @@ namespace Khan {
 			m_window->GetWidth(), m_window->GetHeight());
 	}
 
-	Application::~Application()
-	{
-
-	}
-
 	int Application::Run()
 	{
-		ImGuiManager imgui{ m_window->GetHWnd(), m_renderer->GetDevice().Get(), m_renderer->GetContext().Get() };
-		Game game;
+		ImGuiManager imgui(m_window->GetHWnd(), m_renderer->GetDevice().Get(), 
+			m_renderer->GetContext().Get());
+
+		imgui.BindDrawFunc(this, &Application::ImGuiDraw);
 
 		MSG msg{};
 		while (msg.message != WM_QUIT)
@@ -51,12 +42,12 @@ namespace Khan {
 			}
 			else
 			{
-				game.Logic();
-
+				Logic();
+				m_renderer->Render(); // need fix, or rename to renderbegin or newframe
+				Render();
 				imgui.DrawFrame();
-				m_renderer->Render();
-				ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-				m_renderer->Present();
+				
+				m_renderer->SwapBuffers();
 			}
 		}
 

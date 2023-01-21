@@ -1,6 +1,5 @@
 #pragma once
 
-
 int main(int, char* [])
 {
 	//KHAN_INFO("Run Genghis Khan");

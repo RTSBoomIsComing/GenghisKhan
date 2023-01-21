@@ -1,7 +1,8 @@
 #pragma once
 #include <d3d11.h>
-#include <Windows.h>
 #include <wrl/client.h>
+#include <windef.h>
+
 using Microsoft::WRL::ComPtr;
 
 namespace Khan
@@ -10,16 +11,16 @@ namespace Khan
 	{
 	public:
 		Renderer(HWND hwnd, int  width, int  height) noexcept;
-	public:
+	public: 
 		void Render() noexcept;
-		void Present() noexcept;
+		void SwapBuffers() noexcept;
 		void ResizeBackBuffers(UINT width, UINT height) noexcept;
 	private:
 		ComPtr<ID3D11Device> m_device;
 		ComPtr<IDXGISwapChain> m_swapChain;
 		ComPtr<ID3D11DeviceContext> m_context;
-		ComPtr<ID3D11RenderTargetView> m_RTV;
-		ComPtr<ID3D11DepthStencilView> m_DSV;
+		ComPtr<ID3D11RenderTargetView> m_rtv;
+		ComPtr<ID3D11DepthStencilView> m_dsv;
 
 		D3D_FEATURE_LEVEL m_feature_level;
 	private:

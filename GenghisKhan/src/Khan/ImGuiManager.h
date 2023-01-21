@@ -3,7 +3,7 @@
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
-
+#include <functional>
 namespace Khan
 {
 	class ImGuiManager
@@ -36,10 +36,18 @@ namespace Khan
 			::ImGui_ImplDX11_NewFrame();
 			::ImGui_ImplWin32_NewFrame();
 			::ImGui::NewFrame();
-			this->DrawFrame_Impl();
+			this->DrawFrame_Impl(pApp);
 			::ImGui::Render();
+			::ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+		}
+		void BindDrawFunc(class Application* pApp, std::function<void(Application*)> fn)
+		{
+			this->DrawFrame_Impl = fn;
+			this->pApp = pApp;
 		}
 
-		void DrawFrame_Impl(); // It would be implemented by Client.
+	private:
+		std::function<void(Application*)> DrawFrame_Impl;
+		Application* pApp;
 	};
 }
