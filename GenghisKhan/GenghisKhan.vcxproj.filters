@@ -36,7 +36,7 @@
     <ClInclude Include="src\Khan\Window\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Khan\ImGuiManager.h">
+    <ClInclude Include="src\Khan\ImGuiHandle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Khan\Core\DxCore.h">

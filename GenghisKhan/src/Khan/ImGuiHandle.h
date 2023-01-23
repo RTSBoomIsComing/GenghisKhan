@@ -12,10 +12,10 @@ template<typename T> concept have_ImGuiRender_Impl = requires(T m)
 };
 
 template<typename T> requires have_ImGuiRender_Impl<T>
-class ImGuiManager
+class ImGuiHandle
 {
 public:
-	ImGuiManager(void* hwnd, ID3D11Device* device, ID3D11DeviceContext* device_context, T* pOwner)
+	ImGuiHandle(void* hwnd, ID3D11Device* device, ID3D11DeviceContext* device_context, T* pOwner)
 	{
 		// Setup Dear ImGui context
 		::IMGUI_CHECKVERSION();
@@ -31,7 +31,7 @@ public:
 		this->pOwner = pOwner;
 	}
 
-	~ImGuiManager() noexcept
+	~ImGuiHandle() noexcept
 	{
 		::ImGui_ImplDX11_Shutdown();
 		::ImGui_ImplWin32_Shutdown();
@@ -44,18 +44,11 @@ public:
 		::ImGui_ImplDX11_NewFrame();
 		::ImGui_ImplWin32_NewFrame();
 		::ImGui::NewFrame();
-		//this->DrawFrame_Impl(pApp);
 		pOwner->ImGuiRender_Impl();
 		::ImGui::Render();
 		::ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 	}
-	/*void BindDrawFunc(T* pApp, std::function<void(T*)> fn)
-	{
-		this->DrawFrame_Impl = fn;
-		this->pApp = pApp;
-	}*/
 
 private:
-	//std::function<void(T*)> DrawFrame_Impl;
 	T* pOwner{};
 };

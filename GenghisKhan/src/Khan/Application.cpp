@@ -2,7 +2,7 @@
 #include "Application.h"
 
 #include "Common/Logger.h"
-#include "ImGuiManager.h"
+#include "ImGuiHandle.h"
 
 
 // Forward declare message handler from imgui_impl_win32.cpp
@@ -27,7 +27,7 @@ namespace Khan {
 
 	int Application::Run()
 	{
-		ImGuiManager<Application> imgui(m_window->GetHWnd(), m_renderer->GetDevice().Get(),
+		ImGuiHandle<Application> imgui(m_window->GetHWnd(), m_renderer->GetDevice().Get(),
 			m_renderer->GetContext().Get(), this);
 
 		MSG msg{};
