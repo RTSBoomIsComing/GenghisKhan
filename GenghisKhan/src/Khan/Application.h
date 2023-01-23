@@ -26,7 +26,7 @@ namespace Khan {
 		int Run();
 		virtual void Logic() abstract;
 		virtual void Render() abstract;
-		virtual void ImGuiDraw() abstract;
+		virtual void ImGuiRender_Impl() abstract;
 	protected:
 		unique_ptr<Window> m_window;
 		unique_ptr<Renderer> m_renderer;

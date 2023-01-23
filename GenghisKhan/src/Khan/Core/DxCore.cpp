@@ -1,9 +1,9 @@
 #include "pch.h"
-#include "Graphics.h"
+#include "DxCore.h"
 #include "Common/DxUtility.h"
 namespace Khan
 {
-	Graphics::Graphics(HWND hwnd, int width, int height) noexcept
+	DxCore::DxCore(HWND hwnd, int width, int height) noexcept
 	{
 		DXGI_SWAP_CHAIN_DESC sc_desc{};
 		{
@@ -44,11 +44,11 @@ namespace Khan
 			"failed to create device and swapchain");
 	}
 
-	Graphics::~Graphics() noexcept
+	DxCore::~DxCore() noexcept
 	{
 	}
 
-	void Graphics::SwapBuffers() noexcept
+	void DxCore::SwapBuffers() noexcept
 	{
 		m_swapChain->Present(1u, 0u);
 	}

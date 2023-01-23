@@ -27,10 +27,8 @@ namespace Khan {
 
 	int Application::Run()
 	{
-		ImGuiManager imgui(m_window->GetHWnd(), m_renderer->GetDevice().Get(), 
-			m_renderer->GetContext().Get());
-
-		imgui.BindDrawFunc(this, &Application::ImGuiDraw);
+		ImGuiManager<Application> imgui(m_window->GetHWnd(), m_renderer->GetDevice().Get(),
+			m_renderer->GetContext().Get(), this);
 
 		MSG msg{};
 		while (msg.message != WM_QUIT)
@@ -45,7 +43,7 @@ namespace Khan {
 				Logic();
 				m_renderer->Render(); // need fix, or rename to renderbegin or newframe
 				Render();
-				imgui.DrawFrame();
+				imgui.Render();
 				
 				m_renderer->SwapBuffers();
 			}

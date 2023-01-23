@@ -39,10 +39,7 @@
     <ClInclude Include="src\Khan\ImGuiManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Khan\EntryPoint.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Khan\Core\Graphics.h">
+    <ClInclude Include="src\Khan\Core\DxCore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -62,7 +59,7 @@
     <ClCompile Include="src\Khan\Window\Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Khan\Core\Graphics.cpp">
+    <ClCompile Include="src\Khan\Core\DxCore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

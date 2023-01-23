@@ -7,11 +7,11 @@ using Microsoft::WRL::ComPtr;
 
 namespace Khan
 {
-	class Graphics
+	class DxCore
 	{
 	public:
-		Graphics(HWND hwnd, int width, int height) noexcept;
-		~Graphics() noexcept;
+		DxCore(HWND hwnd, int width, int height) noexcept;
+		~DxCore() noexcept;
 		void SwapBuffers() noexcept;
 	public:
 

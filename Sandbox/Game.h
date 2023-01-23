@@ -13,7 +13,7 @@ private:
 public:
 	void Logic() override;
 	void Render() override;
-	void ImGuiDraw() override;
+	void ImGuiRender_Impl() override;
 };
 
 

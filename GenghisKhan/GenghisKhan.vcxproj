@@ -11,19 +11,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Khan\Core\Graphics.h" />
+    <ClInclude Include="src\Khan\Core\DxCore.h" />
     <ClInclude Include="src\Khan\Common\DxUtility.h" />
     <ClInclude Include="src\Khan\Common\Logger.h" />
     <ClInclude Include="src\Khan.h" />
     <ClInclude Include="src\Khan\Application.h" />
-    <ClInclude Include="src\Khan\EntryPoint.h" />
     <ClInclude Include="src\Khan\ImGuiManager.h" />
     <ClInclude Include="src\Khan\Renderer.h" />
     <ClInclude Include="src\Khan\pch.h" />
     <ClInclude Include="src\Khan\Window\Window.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Khan\Core\Graphics.cpp" />
+    <ClCompile Include="src\Khan\Core\DxCore.cpp" />
     <ClCompile Include="src\Khan\Renderer.cpp" />
     <ClCompile Include="src\Khan\Common\Logger.cpp" />
     <ClCompile Include="src\Khan\Application.cpp" />
