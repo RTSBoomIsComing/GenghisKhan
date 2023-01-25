@@ -1,11 +1,11 @@
 #include "pch.h"
 #include "Game.h"
-
+#include "System/Render.h"
 Game::Game() noexcept
 {
 
 }
-void Game::Logic()
+void Game::Update()
 {
 	UnitControlSystem::UnitSelect(this->reg);
 	// ...System...(reg);
@@ -15,7 +15,7 @@ void Game::Logic()
 }
 void Game::Render()
 {
-	// RenderBackbuffer();
+	Render::Clear();
 	// RenderTriangle();
 	// RenderCube();
 	// RenderTree();

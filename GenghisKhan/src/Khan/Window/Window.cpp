@@ -1,12 +1,12 @@
 #include "pch.h"
 #include "Window.h"
-#include "Common/DxUtility.h"
+#include "Dx/DxUtility.h"
 
 using namespace Khan;
 
 Window::Window(int width, int height, std::wstring name)
 	:
-	m_width(width), m_height(height), m_name(std::move(name))
+	m_window_width(width), m_window_height(height), m_name(std::move(name))
 {
 	WNDCLASSEXW wc{};
 	wc.cbSize = sizeof(WNDCLASSEXW);
@@ -24,23 +24,23 @@ Window::Window(int width, int height, std::wstring name)
 
 	int adjusted_width{ rect.right - rect.left };
 	int adjusted_height{ rect.bottom - rect.top };
-	m_hwnd = CreateWindowExW(WS_EX_OVERLAPPEDWINDOW, m_class_name.data(), m_name.data(),
+	m_window_handle = CreateWindowExW(WS_EX_OVERLAPPEDWINDOW, m_class_name.data(), m_name.data(),
 		WS_OVERLAPPEDWINDOW, 300, 20,
 		adjusted_width, adjusted_height,
 		nullptr, nullptr, wc.hInstance, nullptr);
 
-	if (!m_hwnd)
+	if (!m_window_handle)
 	{
 		KHAN_ERROR("failed to create window");
 		throw GetLastError();
 	}
 
-	ShowWindow(m_hwnd, SW_SHOWDEFAULT);
-	UpdateWindow(m_hwnd);
+	ShowWindow(m_window_handle, SW_SHOWDEFAULT);
+	UpdateWindow(m_window_handle);
 }
 
 Window::~Window() noexcept
 {
-	DestroyWindow(m_hwnd);
+	DestroyWindow(m_window_handle);
 	UnregisterClass(m_class_name.data(), nullptr);
 }

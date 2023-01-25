@@ -3,7 +3,7 @@
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
-#include <functional>
+#include "DxCore.h"
 
 
 template<typename T> concept have_ImGuiRender_Impl = requires(T m)
@@ -15,7 +15,7 @@ template<typename T> requires have_ImGuiRender_Impl<T>
 class ImGuiHandle
 {
 public:
-	ImGuiHandle(void* hwnd, ID3D11Device* device, ID3D11DeviceContext* device_context, T* pOwner)
+	ImGuiHandle(void* hwnd, T* pOwner)
 	{
 		// Setup Dear ImGui context
 		::IMGUI_CHECKVERSION();
@@ -26,7 +26,7 @@ public:
 		::ImGui::StyleColorsDark(); // Setup Dear ImGui style
 
 		::ImGui_ImplWin32_Init(hwnd);
-		::ImGui_ImplDX11_Init(device, device_context);
+		::ImGui_ImplDX11_Init(dx_device.Get(), dx_context.Get());
 
 		this->pOwner = pOwner;
 	}
@@ -40,7 +40,6 @@ public:
 
 	void Render()
 	{
-		// Start the Dear ImGui frame
 		::ImGui_ImplDX11_NewFrame();
 		::ImGui_ImplWin32_NewFrame();
 		::ImGui::NewFrame();

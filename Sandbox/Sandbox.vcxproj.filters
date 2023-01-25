@@ -21,7 +21,7 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System\RenderSystem.cpp">
+    <ClCompile Include="System\Render.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="System\Systems.cpp">
@@ -41,7 +41,7 @@
     <ClInclude Include="Game.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\RenderSystem.h">
+    <ClInclude Include="System\Render.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="System\Systems.h">

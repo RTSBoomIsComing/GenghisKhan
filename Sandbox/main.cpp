@@ -7,8 +7,9 @@
 int main(int, char* [])
 {
 	KHAN_INFO("Run Genghis Khan");
-	int result{};
+	
 
+	int result{};
 	std::unique_ptr<Khan::Application> game = std::make_unique<Game>() ;
 	result = game->Run();
 

@@ -3,6 +3,8 @@
 
 #include "Common/Logger.h"
 #include "ImGuiHandle.h"
+#include "DxCore.h"
+
 
 
 // Forward declare message handler from imgui_impl_win32.cpp
@@ -12,23 +14,26 @@ namespace Khan {
 
 	Application::Application(int width, int height, std::wstring name)
 		:
-		m_window(std::make_unique<Window>(width, height, name))
+		Window(width, height, name)
 	{
-		SetWindowLongPtrW(m_window->GetHWnd(), GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-		SetWindowLongPtrW(m_window->GetHWnd(), GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
+		SetWindowLongPtrW(m_window_handle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+		SetWindowLongPtrW(m_window_handle, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
 
 		m_keyboard = std::make_unique<DirectX::Keyboard>();
 		m_mouse = std::make_unique<DirectX::Mouse>();
-		m_mouse->SetWindow(m_window->GetHWnd());
+		m_mouse->SetWindow(m_window_handle);
 
-		m_renderer = std::make_unique<Renderer>(m_window->GetHWnd(),
-			m_window->GetWidth(), m_window->GetHeight());
+		DxCore::Initialize(m_window_handle, m_window_width, m_window_height);
+	}
+
+	Application::~Application() noexcept
+	{
+		dxcore = nullptr;
 	}
 
 	int Application::Run()
 	{
-		ImGuiHandle<Application> imgui(m_window->GetHWnd(), m_renderer->GetDevice().Get(),
-			m_renderer->GetContext().Get(), this);
+		ImGuiHandle imgui(m_window_handle, this);
 
 		MSG msg{};
 		while (msg.message != WM_QUIT)
@@ -40,12 +45,12 @@ namespace Khan {
 			}
 			else
 			{
-				Logic();
-				m_renderer->Render(); // need fix, or rename to renderbegin or newframe
-				Render();
+				this->Update();
+	
+				this->Render();
 				imgui.Render();
 				
-				m_renderer->SwapBuffers();
+				dxcore->SwapBuffers();
 			}
 		}
 
@@ -54,7 +59,9 @@ namespace Khan {
 
 	void Application::OnResizeWindow(UINT width, UINT height)
 	{
-		m_renderer->ResizeBackBuffers(width, height);
+		m_window_width = width;
+		m_window_height = height;
+		dxcore->ResizeBackBuffers(width, height);
 	}
 
 	LRESULT CALLBACK Application::WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)

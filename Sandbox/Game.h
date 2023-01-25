@@ -11,7 +11,7 @@ public:
 private:
 	entt::registry reg;
 public:
-	void Logic() override;
+	void Update() override;
 	void Render() override;
 	void ImGuiRender_Impl() override;
 };
