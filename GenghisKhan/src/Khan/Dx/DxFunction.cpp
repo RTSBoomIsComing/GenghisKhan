@@ -4,48 +4,112 @@
 #include "DxCore.h"
 namespace Khan
 {
-	void CreateDSView(int width, int height, ID3D11DepthStencilView** ppDsview)
+	ComPtr<ID3D11Buffer> CreateVertexBuffer(const void* pSysMem, UINT byteWidth) noexcept
 	{
-		// create depth stencil state
-		ComPtr<ID3D11DepthStencilState> ds_state;
-		D3D11_DEPTH_STENCIL_DESC ds_desc{};
-		{
-			ds_desc.DepthEnable = true;
-			ds_desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-			ds_desc.DepthFunc = D3D11_COMPARISON_LESS;
-		}
+		// Fill in the subresource data.
+		D3D11_SUBRESOURCE_DATA InitVertexData{};
+		InitVertexData.pSysMem = pSysMem;
+		InitVertexData.SysMemPitch = 0u; // not used 
+		InitVertexData.SysMemSlicePitch = 0u; // not used
 
-		Khan::ThrowIfFailed(
-			dx_device->CreateDepthStencilState(&ds_desc, &ds_state),
-			"failed to create depth stencil state");
+		// Fill in a buffer description.
+		D3D11_BUFFER_DESC vertexbufferDesc{};
+		vertexbufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		vertexbufferDesc.ByteWidth = byteWidth;
+		vertexbufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		vertexbufferDesc.CPUAccessFlags = 0u;
+		vertexbufferDesc.MiscFlags = 0u;
 
-		dx_context->OMSetDepthStencilState(ds_state.Get(), 1u);
+		ComPtr<ID3D11Buffer> vertexBuffer;
+		Khan::ThrowIfFailed(dx_device->CreateBuffer(&vertexbufferDesc, &InitVertexData, &vertexBuffer),
+			"failed to create vertex buffer");
 
-		ComPtr<ID3D11Texture2D> ds_texture;
-		D3D11_TEXTURE2D_DESC texture_desc{};
-		{
-			texture_desc.Width = width;
-			texture_desc.Height = height;
-			texture_desc.MipLevels = 1u;
-			texture_desc.ArraySize = 1u;
-			texture_desc.Format = DXGI_FORMAT_D32_FLOAT; //about D32, D := depth, special format for depth
-			texture_desc.SampleDesc.Count = 1u;
-			texture_desc.SampleDesc.Quality = 0u;
-			texture_desc.Usage = D3D11_USAGE_DEFAULT;
-			texture_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-		}
-		Khan::ThrowIfFailed(
-			dx_device->CreateTexture2D(&texture_desc, nullptr, &ds_texture),
-			"failed to create texture of depth stencil");
-
-		D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc{};
-		{
-			dsv_desc.Format = DXGI_FORMAT_D32_FLOAT;
-			dsv_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-			dsv_desc.Texture2D.MipSlice = 0u;
-		}
-		Khan::ThrowIfFailed(
-			dx_device->CreateDepthStencilView(ds_texture.Get(), &dsv_desc, ppDsview),
-			"failed to create depth stencil view");
+		return vertexBuffer;
 	}
+	ComPtr<ID3D11Buffer> CreateIndexBuffer(const void* pSysMem, UINT byteWidth) noexcept
+	{
+		// Fill in the subresource data.
+		D3D11_SUBRESOURCE_DATA InitIndexData{};
+		InitIndexData.pSysMem = pSysMem;
+		InitIndexData.SysMemPitch = 0u;
+		InitIndexData.SysMemSlicePitch = 0u;
+
+		D3D11_BUFFER_DESC indexbufferDesc{};
+		indexbufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		indexbufferDesc.ByteWidth = byteWidth;
+		indexbufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		indexbufferDesc.CPUAccessFlags = 0u;
+		indexbufferDesc.MiscFlags = 0u;
+
+		ComPtr<ID3D11Buffer> indexBuffer;
+		Khan::ThrowIfFailed(dx_device->CreateBuffer(&indexbufferDesc, &InitIndexData, &indexBuffer),
+			"failed to create index buffer");
+		return indexBuffer;
+	}
+    ComPtr<ID3D11PixelShader> CreatePixelShader(std::string_view fileName)
+    {
+#if defined(DEBUG) || defined(_DEBUG)
+		std::wstring fullFileName{ L"..\\bin\\Debug-x64\\Sandbox\\"};
+#else
+		std::wstring fullFileName{ L"..\\bin\\Release-x64\\Sandbox\\" };
+#endif
+		fullFileName += std::wstring(fileName.begin(), fileName.end());
+
+		ComPtr<ID3DBlob> pixelShader_blob; 
+		Khan::ThrowIfFailed(::D3DReadFileToBlob(
+			fullFileName.data(), &pixelShader_blob),
+			std::string{ "failed to read file: " } + std::string{ fileName });
+
+		ComPtr<ID3D11PixelShader> pixelShader;
+		Khan::ThrowIfFailed(dx_device->CreatePixelShader(
+			pixelShader_blob->GetBufferPointer(), pixelShader_blob->GetBufferSize(),
+			nullptr, &pixelShader),
+			"failed to create pixel shader");
+        return pixelShader;
+    }
+	//void CreateDSView(int width, int height, ID3D11DepthStencilView** ppDsview)
+	//{
+	//	// create depth stencil state
+	//	ComPtr<ID3D11DepthStencilState> ds_state;
+	//	D3D11_DEPTH_STENCIL_DESC ds_desc{};
+	//	{
+	//		ds_desc.DepthEnable = true;
+	//		ds_desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	//		ds_desc.DepthFunc = D3D11_COMPARISON_LESS;
+	//	}
+
+	//	Khan::ThrowIfFailed(
+	//		dx_device->CreateDepthStencilState(&ds_desc, &ds_state),
+	//		"failed to create depth stencil state");
+
+	//	dx_context->OMSetDepthStencilState(ds_state.Get(), 1u);
+
+	//	ComPtr<ID3D11Texture2D> ds_texture;
+	//	D3D11_TEXTURE2D_DESC texture_desc{};
+	//	{
+	//		texture_desc.Width = width;
+	//		texture_desc.Height = height;
+	//		texture_desc.MipLevels = 1u;
+	//		texture_desc.ArraySize = 1u;
+	//		texture_desc.Format = DXGI_FORMAT_D32_FLOAT; //about D32, D := depth, special format for depth
+	//		texture_desc.SampleDesc.Count = 1u;
+	//		texture_desc.SampleDesc.Quality = 0u;
+	//		texture_desc.Usage = D3D11_USAGE_DEFAULT;
+	//		texture_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	//	}
+	//	Khan::ThrowIfFailed(
+	//		dx_device->CreateTexture2D(&texture_desc, nullptr, &ds_texture),
+	//		"failed to create texture of depth stencil");
+
+	//	D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc{};
+	//	{
+	//		dsv_desc.Format = DXGI_FORMAT_D32_FLOAT;
+	//		dsv_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	//		dsv_desc.Texture2D.MipSlice = 0u;
+	//	}
+	//	Khan::ThrowIfFailed(
+	//		dx_device->CreateDepthStencilView(ds_texture.Get(), &dsv_desc, ppDsview),
+	//		"failed to create depth stencil view");
+	//}
+
 }

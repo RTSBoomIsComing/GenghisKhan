@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Khan\Dx\DxComponent.h" />
+    <ClInclude Include="src\Khan\Dx\RSState_WireFrame.h" />
     <ClInclude Include="src\Khan\Dx\Renderer.h" />
     <ClInclude Include="src\Khan\Dx\DxFunction.h" />
     <ClInclude Include="src\Khan\DxCore.h" />
@@ -22,9 +22,10 @@
     <ClInclude Include="src\Khan\ImGuiHandle.h" />
     <ClInclude Include="src\Khan\pch.h" />
     <ClInclude Include="src\Khan\Window\Window.h" />
+    <ClInclude Include="src\Khan\Dx\VertexBuffer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Khan\Dx\DxComponent.cpp" />
+    <ClCompile Include="src\Khan\Dx\RSState_WireFrame.cpp" />
     <ClCompile Include="src\Khan\Dx\DxFunction.cpp" />
     <ClCompile Include="src\Khan\DxCore.cpp" />
     <ClCompile Include="src\Khan\Common\Logger.cpp" />
@@ -35,6 +36,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\Khan\Window\Window.cpp" />
+    <ClCompile Include="src\Khan\Dx\VertexBuffer.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

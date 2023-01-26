@@ -3,7 +3,6 @@
 #include <wrl/client.h>
 #include <windef.h>
 #include <memory>
-#include "Window/Window.h"
 #include <cassert>
 
 using Microsoft::WRL::ComPtr;
