@@ -5,6 +5,8 @@
 
 namespace Khan
 {
+	std::unique_ptr<DxCore> dxcore{ nullptr };
+
 	DxCore::DxCore(HWND hwnd, int width, int height) noexcept
 	{
 		UINT createDeviceFlags{};

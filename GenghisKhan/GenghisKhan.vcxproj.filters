@@ -45,6 +45,9 @@
     <ClInclude Include="src\Khan\Dx\Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Khan\Dx\DxComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Khan\Application.cpp">
@@ -63,6 +66,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Khan\Dx\DxFunction.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Khan\Dx\DxComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Khan\Dx\DxUtility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -12,8 +12,8 @@ namespace Khan
 {
 	class DxCore
 	{
-		DxCore(HWND hwnd, int width, int height) noexcept;
 	public:
+		DxCore(HWND hwnd, int width, int height) noexcept;
 		void SwapBuffers() noexcept;
 		void ResizeBackBuffers(UINT width, UINT height) noexcept;
 
@@ -41,26 +41,15 @@ namespace Khan
 	// Make Singleton
 	private:
 		static inline std::unique_ptr<DxCore> m_instance{};
-	
-	public:
-		static void Initialize(HWND hwnd, int width, int height)
-		{
-			assert(!m_instance&& "dxcore already initialized");
-			m_instance = std::unique_ptr<DxCore>(new DxCore(hwnd, width, height));
-		}
-		static std::unique_ptr<Khan::DxCore>& GetInstance()
-		{
-			assert(m_instance && "need to initialize");
-			return m_instance;
-		}
 	};
+
+	extern std::unique_ptr<DxCore> dxcore;
 }
 
-#define dxcore		Khan::DxCore::GetInstance()
-#define dx_device	dxcore->GetDevice()
-#define dx_context	dxcore->GetContext()
-#define dx_rtv		dxcore->GetRTView()
-#define dx_dsv		dxcore->GetDSView()
-#define dx_dsstate	dxcore->GetDSState()
+#define dx_device	Khan::dxcore->GetDevice()
+#define dx_context	Khan::dxcore->GetContext()
+#define dx_rtv		Khan::dxcore->GetRTView()
+#define dx_dsv		Khan::dxcore->GetDSView()
+#define dx_dsstate	Khan::dxcore->GetDSState()
 //#define dx_swapchain dxcore->swapchain
 

@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Window.h"
-#include "Dx/DxUtility.h"
+#include "Common/Logger.h"
 
 using namespace Khan;
 

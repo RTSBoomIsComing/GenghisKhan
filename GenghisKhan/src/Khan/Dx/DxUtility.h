@@ -3,15 +3,8 @@
 #include <winnt.h>
 #include <winerror.h>
 #include <string_view>
-#include "Common/Logger.h"
+#include <source_location>
 
 namespace Khan {
-	inline void ThrowIfFailed(HRESULT hr, std::string_view message = "", std::source_location location = std::source_location::current())
-	{
-		if (FAILED(hr))
-		{
-			KHAN_ERROR(message, location);
-			throw hr;
-		}
-	}
+	void ThrowIfFailed(HRESULT hr, std::string_view message = "", std::source_location location = std::source_location::current());
 }

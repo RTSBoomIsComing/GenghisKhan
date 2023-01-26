@@ -13,9 +13,13 @@
 #include <wrl/client.h>
 using Microsoft::WRL::ComPtr;
 
+#include <d3d11.h>
+
 #include <limits> // std::numeric_limits<T>
 #include <memory>
 #include <iostream>
 
 #include <directxtk/Keyboard.h>
 #include <directxtk/Mouse.h>
+
+#include "Dx/DxUtility.h"

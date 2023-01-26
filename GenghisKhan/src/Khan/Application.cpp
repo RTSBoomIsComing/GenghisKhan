@@ -23,12 +23,13 @@ namespace Khan {
 		m_mouse = std::make_unique<DirectX::Mouse>();
 		m_mouse->SetWindow(m_window_handle);
 
-		DxCore::Initialize(m_window_handle, m_window_width, m_window_height);
+		dxcore = std::make_unique<DxCore>(m_window_handle, m_window_width, m_window_height);
 	}
 
 	Application::~Application() noexcept
 	{
-		dxcore = nullptr;
+		dxcore.reset();
+		//dxcore = nullptr;
 	}
 
 	int Application::Run()
