@@ -19,6 +19,7 @@ using Microsoft::WRL::ComPtr;
 #include <limits> // std::numeric_limits<T>
 #include <memory>
 #include <iostream>
+#include <cassert>
 
 #include <directxtk/Keyboard.h>
 #include <directxtk/Mouse.h>

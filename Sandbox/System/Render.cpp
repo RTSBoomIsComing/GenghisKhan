@@ -5,6 +5,8 @@
 #include <Khan/Dx/RSState_WireFrame.h>
 #include <Khan/Dx/DxFunction.h>
 #include <Khan/Dx/DxUtility.h>
+#include <Khan/Dx/VertexShader.h>
+#include <Khan/Dx/DynamicCBuffer.h>
 
 void Render::Clear() noexcept
 {
@@ -20,12 +22,11 @@ void Render::Triangle(entt::registry& reg) noexcept
 	using namespace DirectX;
 	Khan::rsstate_wireframe->Bind();
 
-
 	struct Vertex
 	{
 		XMFLOAT3 pos;
 	};
-	static Vertex vertices[]
+	static constexpr Vertex vertices[]
 	{
 		XMFLOAT3{ -1.f, -1.f,  0.f },
 		XMFLOAT3{  1.f,  1.f,  0.f },
@@ -48,36 +49,98 @@ void Render::Triangle(entt::registry& reg) noexcept
 	static ComPtr<ID3D11PixelShader> pixelShader = Khan::CreatePixelShader("PixelShader.cso");
 	dx_context->PSSetShader(pixelShader.Get(), nullptr, 0u);
 
-	ComPtr<ID3DBlob> vertexShader_blob;
-	Khan::ThrowIfFailed(::D3DReadFileToBlob(
-		L"..\\bin\\Debug-x64\\Sandbox\\VertexShader.cso", &vertexShader_blob),
-		"failed to read file, VertexShader.cso");
-
-	ComPtr<ID3D11VertexShader> vertexShader;
-	Khan::ThrowIfFailed(dx_device->CreateVertexShader(
-		vertexShader_blob->GetBufferPointer(), vertexShader_blob->GetBufferSize(),
-		nullptr, &vertexShader),
-		"failed to create vertex shader");
-
-	dx_context->VSSetShader(vertexShader.Get(), nullptr, 0u);
-
-	ComPtr<ID3D11InputLayout> inputLayout;
-
-	const D3D11_INPUT_ELEMENT_DESC elementDescs[]
+	static const D3D11_INPUT_ELEMENT_DESC elementDescs[]
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,                            D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		//	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		//	{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	Khan::ThrowIfFailed(
-		dx_device->CreateInputLayout(
-			elementDescs, ARRAYSIZE(elementDescs),
-			vertexShader_blob->GetBufferPointer(), vertexShader_blob->GetBufferSize(), &inputLayout),
-		"failed to create input layout");
+	static Khan::VertexShader vertexShader{ "VertexShader.cso", elementDescs, ARRAYSIZE(elementDescs) };
+	vertexShader.Bind();
 
-	dx_context->IASetInputLayout(inputLayout.Get());
 	dx_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	dx_context->DrawIndexed(ARRAYSIZE(indices), 0u, 0u);
+}
+
+void Render::SelectionRect(float pos_x, float pos_y, float width, float height) noexcept
+{
+	using namespace DirectX;
+	dx_context->RSSetState(dx_rsstate.Get());
+	//Khan::rsstate_wireframe->Bind();
+
+	struct Vertex
+	{
+		XMFLOAT3 pos;
+		XMFLOAT2 tex;
+	};
+	static constexpr Vertex vertices[]
+	{
+		XMFLOAT3{  0.0f, -1.0f,  0.5f },	XMFLOAT2{ 0.0f, 1.0f },
+		XMFLOAT3{  0.0f,  0.0f,  0.5f },	XMFLOAT2{ 0.0f, 0.0f },
+		XMFLOAT3{  1.0f,  0.0f,  0.5f },	XMFLOAT2{ 1.0f, 0.0f },
+		XMFLOAT3{  1.0f, -1.0f,  0.5f },	XMFLOAT2{ 1.0f, 1.0f },
+	};
+	UINT Stride = sizeof(Vertex);
+	UINT offset{};
+
+	static ComPtr<ID3D11Buffer> vertexBuffer = Khan::CreateVertexBuffer(vertices, sizeof(vertices));
+	dx_context->IASetVertexBuffers(0u, 1u, vertexBuffer.GetAddressOf(), &Stride, &offset);
+
+	static constexpr UINT indices[]
+	{
+		0, 1, 2,
+		0, 2, 3,
+	};
+
+	static ComPtr<ID3D11Buffer> indexBuffer = Khan::CreateIndexBuffer(indices, sizeof(indices));
+	dx_context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0u);
+
+	static ComPtr<ID3D11PixelShader> pixelShader = Khan::CreatePixelShader("PixelShader.cso");
+	dx_context->PSSetShader(pixelShader.Get(), nullptr, 0u);
+
+	static const D3D11_INPUT_ELEMENT_DESC elementDescs[]
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,                            D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		//	{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	static Khan::VertexShader vertexShader{ "VertexShader.cso", elementDescs, ARRAYSIZE(elementDescs) };
+	vertexShader.Bind();
+
+
+
+
+	XMFLOAT4X4 rectTransform // lefthand -> transpose -> righthand
+	{
+		width, 0.0f,   0.0f,  pos_x,
+		0.0f,  height, 0.0f,  pos_y,
+		0.0f,  0.0f,   1.0f,  0.0f,
+		0.0f,  0.0f,   0.0f,  1.0f,
+	};
+	
+	static ComPtr<ID3D11Buffer> vsDynamicCBuffer = Khan::CreateDynamicCBuffer<XMFLOAT4X4, 1u>();
+	D3D11_MAPPED_SUBRESOURCE mappedResource{};
+	
+	dx_context->Map(vsDynamicCBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	::memcpy(mappedResource.pData, &rectTransform, sizeof(rectTransform));
+	dx_context->Unmap(vsDynamicCBuffer.Get(), 0u);
+
+	dx_context->VSSetConstantBuffers(0u, 1u, vsDynamicCBuffer.GetAddressOf());
+
+	XMFLOAT4 rectSize{ width, height, 0.f, 0.f };
+	
+	static ComPtr<ID3D11Buffer> psDynamicCBuffer = Khan::CreateDynamicCBuffer<XMFLOAT4, 1u>();
+	D3D11_MAPPED_SUBRESOURCE mappedResource_ps{};
+
+	dx_context->Map(psDynamicCBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedResource_ps);
+	::memcpy(mappedResource_ps.pData, &rectSize, sizeof(rectSize));
+	dx_context->Unmap(psDynamicCBuffer.Get(), 0u);
+
+	dx_context->PSSetConstantBuffers(0u, 1u, psDynamicCBuffer.GetAddressOf());
+
+	dx_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	dx_context->DrawIndexed(ARRAYSIZE(indices), 0u, 0u);
 }

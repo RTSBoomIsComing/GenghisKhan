@@ -46,8 +46,8 @@ namespace Khan
 			"failed to create index buffer");
 		return indexBuffer;
 	}
-    ComPtr<ID3D11PixelShader> CreatePixelShader(std::string_view fileName)
-    {
+	ComPtr<ID3DBlob> CreateShaderBlob(std::string_view fileName)
+	{
 #if defined(DEBUG) || defined(_DEBUG)
 		std::wstring fullFileName{ L"..\\bin\\Debug-x64\\Sandbox\\"};
 #else
@@ -55,10 +55,16 @@ namespace Khan
 #endif
 		fullFileName += std::wstring(fileName.begin(), fileName.end());
 
-		ComPtr<ID3DBlob> pixelShader_blob; 
-		Khan::ThrowIfFailed(::D3DReadFileToBlob(
-			fullFileName.data(), &pixelShader_blob),
+		ComPtr<ID3DBlob> ShaderBlob; 
+		Khan::ThrowIfFailed(
+			::D3DReadFileToBlob(fullFileName.data(), &ShaderBlob),
 			std::string{ "failed to read file: " } + std::string{ fileName });
+
+		return ShaderBlob;
+	}
+	ComPtr<ID3D11PixelShader> CreatePixelShader(std::string_view fileName)
+    {
+		ComPtr<ID3DBlob> pixelShader_blob = CreateShaderBlob(fileName);
 
 		ComPtr<ID3D11PixelShader> pixelShader;
 		Khan::ThrowIfFailed(dx_device->CreatePixelShader(

@@ -44,6 +44,7 @@ namespace Khan
 		this->InitializeRenderTarget();
 		this->InitializeDepthStencil(width, height);
 		this->InitializeViewport(static_cast<float>(width), static_cast<float>(height));
+		this->InitializeRSState();
 	}
 
 	void DxCore::InitializeDepthStencil(UINT width, UINT height) noexcept
@@ -95,6 +96,16 @@ namespace Khan
 		viewport.TopLeftX = 0.0f;
 		viewport.TopLeftY = 0.0f;
 		m_context->RSSetViewports(1u, &viewport);
+	}
+
+	void DxCore::InitializeRSState() noexcept
+	{
+		D3D11_RASTERIZER_DESC desc{};
+		desc.FillMode = D3D11_FILL_SOLID;
+		desc.CullMode = D3D11_CULL_BACK;
+
+		Khan::ThrowIfFailed(m_device->CreateRasterizerState(&desc, &m_rsstate),
+			"failed to create RS state");
 	}
 
 	void DxCore::SwapBuffers() noexcept

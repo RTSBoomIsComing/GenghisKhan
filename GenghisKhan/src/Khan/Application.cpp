@@ -16,8 +16,8 @@ namespace Khan {
 		:
 		Window(width, height, name)
 	{
-		SetWindowLongPtrW(m_window_handle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-		SetWindowLongPtrW(m_window_handle, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
+		::SetWindowLongPtrW(m_window_handle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+		::SetWindowLongPtrW(m_window_handle, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc));
 
 		m_keyboard = std::make_unique<DirectX::Keyboard>();
 		m_mouse = std::make_unique<DirectX::Mouse>();

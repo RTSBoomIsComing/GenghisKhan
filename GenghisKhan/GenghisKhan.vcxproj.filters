@@ -48,7 +48,10 @@
     <ClInclude Include="src\Khan\Dx\RSState_WireFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Khan\Dx\VertexBuffer.h">
+    <ClInclude Include="src\Khan\Dx\VertexShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Khan\Dx\DynamicCBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -77,7 +80,10 @@
     <ClCompile Include="src\Khan\Dx\DxUtility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Khan\Dx\VertexBuffer.cpp">
+    <ClCompile Include="src\Khan\Dx\VertexShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Khan\Dx\DynamicCBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

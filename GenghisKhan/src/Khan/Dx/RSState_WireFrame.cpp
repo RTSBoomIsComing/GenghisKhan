@@ -8,6 +8,8 @@ namespace Khan
 {
 	RSState_WireFrame::RSState_WireFrame() noexcept
 	{
+		assert(dxcore && "dxcore has to be initialized.");
+
 		D3D11_RASTERIZER_DESC desc{};
 		desc.FillMode = D3D11_FILL_WIREFRAME;	//D3D11_FILL_SOLID;	// D3D11_FILL_WIREFRAME;
 		desc.CullMode = D3D11_CULL_NONE;		// D3D11_CULL_BACK;

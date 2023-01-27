@@ -16,7 +16,8 @@ void Game::Update()
 void Game::Render()
 {
 	Render::Clear();
-	Render::Triangle(this->reg);
+	//Render::Triangle(this->reg);
+	Render::SelectionRect();
 	// RenderCube();
 	// RenderTree();
 	// RenderCasle();
