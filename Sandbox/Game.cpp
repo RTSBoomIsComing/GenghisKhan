@@ -17,7 +17,9 @@ void Game::Render()
 {
 	Render::Clear();
 	//Render::Triangle(this->reg);
-	Render::SelectionRect();
+	auto mouse = m_mouse->GetState();
+
+	Render::SelectionRect(m_window_width, m_window_height, m_window_width/4, m_window_height/4, mouse.x, mouse.y);
 	// RenderCube();
 	// RenderTree();
 	// RenderCasle();

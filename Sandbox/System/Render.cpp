@@ -64,8 +64,13 @@ void Render::Triangle(entt::registry& reg) noexcept
 	dx_context->DrawIndexed(ARRAYSIZE(indices), 0u, 0u);
 }
 
-void Render::SelectionRect(float pos_x, float pos_y, float width, float height) noexcept
+void Render::SelectionRect(int screen_width, int screen_height, int x1, int y1, int x2, int y2) noexcept
 {
+	if (x1 == x2 || y1 == y2)
+	{
+		return;
+	}
+
 	using namespace DirectX;
 	dx_context->RSSetState(dx_rsstate.Get());
 	//Khan::rsstate_wireframe->Bind();
@@ -110,28 +115,45 @@ void Render::SelectionRect(float pos_x, float pos_y, float width, float height) 
 	static Khan::VertexShader vertexShader{ "VertexShader.cso", elementDescs, ARRAYSIZE(elementDescs) };
 	vertexShader.Bind();
 
+	
+	if (x1 > x2)
+	{
+		std::swap(x1, x2);
+	}
 
+	if (y1 > y2)
+	{
+		std::swap(y1, y2);
+	}
 
+	float rect_w = static_cast<float>(x2 - x1);
+	float rect_h = static_cast<float>(y2 - y1);
+
+	XMFLOAT4 rectSize{ rect_w, rect_h, 0.f, 0.f };
+
+	rect_w = rect_w * 2 / screen_width;
+	rect_h = rect_h * 2 / screen_height;
+	float pos_x = float(x1) * 2 / screen_width - 1.0f;
+	float pos_y = 1.0f - float(y1) * 2 / screen_height;
 
 	XMFLOAT4X4 rectTransform // lefthand -> transpose -> righthand
 	{
-		width, 0.0f,   0.0f,  pos_x,
-		0.0f,  height, 0.0f,  pos_y,
-		0.0f,  0.0f,   1.0f,  0.0f,
-		0.0f,  0.0f,   0.0f,  1.0f,
+		rect_w, 0.0f,   0.0f,  pos_x,
+		0.0f,   rect_h, 0.0f,  pos_y,
+		0.0f,   0.0f,   1.0f,  0.0f,
+		0.0f,   0.0f,   0.0f,  1.0f,
 	};
-	
+
 	static ComPtr<ID3D11Buffer> vsDynamicCBuffer = Khan::CreateDynamicCBuffer<XMFLOAT4X4, 1u>();
 	D3D11_MAPPED_SUBRESOURCE mappedResource{};
-	
+
 	dx_context->Map(vsDynamicCBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	::memcpy(mappedResource.pData, &rectTransform, sizeof(rectTransform));
 	dx_context->Unmap(vsDynamicCBuffer.Get(), 0u);
 
 	dx_context->VSSetConstantBuffers(0u, 1u, vsDynamicCBuffer.GetAddressOf());
 
-	XMFLOAT4 rectSize{ width, height, 0.f, 0.f };
-	
+
 	static ComPtr<ID3D11Buffer> psDynamicCBuffer = Khan::CreateDynamicCBuffer<XMFLOAT4, 1u>();
 	D3D11_MAPPED_SUBRESOURCE mappedResource_ps{};
 
