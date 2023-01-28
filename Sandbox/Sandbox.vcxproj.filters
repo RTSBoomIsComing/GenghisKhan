@@ -51,5 +51,7 @@
   <ItemGroup>
     <FxCompile Include="Shader\VertexShader.hlsl" />
     <FxCompile Include="Shader\PixelShader.hlsl" />
+    <FxCompile Include="Shader\VS_IndexedInstanced.hlsl" />
+    <FxCompile Include="Shader\PS_IndexedInstanced.hlsl" />
   </ItemGroup>
 </Project>

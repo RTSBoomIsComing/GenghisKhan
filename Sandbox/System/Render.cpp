@@ -10,7 +10,7 @@
 
 void Render::Clear() noexcept
 {
-	float bg_color[]{ 0.f, 1.f, 1.f, 1.f };
+	float bg_color[]{ 0.f, 0.f, 0.f, 1.f };
 
 	dx_context->OMSetRenderTargets(1u, dx_rtv.GetAddressOf(), dx_dsv.Get());
 	dx_context->ClearRenderTargetView(dx_rtv.Get(), bg_color);
@@ -20,17 +20,19 @@ void Render::Clear() noexcept
 void Render::Triangle(entt::registry& reg) noexcept
 {
 	using namespace DirectX;
-	Khan::rsstate_wireframe->Bind();
+	dx_context->RSSetState(dx_rsstate.Get());
+	//Khan::rsstate_wireframe->Bind();
 
 	struct Vertex
 	{
 		XMFLOAT3 pos;
+		XMFLOAT2 tex;
 	};
 	static constexpr Vertex vertices[]
 	{
-		XMFLOAT3{ -1.f, -1.f,  0.f },
-		XMFLOAT3{  1.f,  1.f,  0.f },
-		XMFLOAT3{  1.f, -1.f,  0.f },
+		XMFLOAT3{ -1.f, -1.f,  0.1f }, XMFLOAT2{0.0f, 1.0f},
+		XMFLOAT3{  0.f,  1.f,  0.1f }, XMFLOAT2{0.5f, 0.0f},
+		XMFLOAT3{  1.f, -1.f,  0.1f }, XMFLOAT2{1.0f, 1.0f},
 	};
 	UINT Stride = sizeof(Vertex);
 	UINT offset{};
@@ -46,17 +48,17 @@ void Render::Triangle(entt::registry& reg) noexcept
 	static ComPtr<ID3D11Buffer> indexBuffer = Khan::CreateIndexBuffer(indices, sizeof(indices));
 	dx_context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0u);
 
-	static ComPtr<ID3D11PixelShader> pixelShader = Khan::CreatePixelShader("PixelShader.cso");
+	static ComPtr<ID3D11PixelShader> pixelShader = Khan::CreatePixelShader("PS_IndexedInstanced.cso");
 	dx_context->PSSetShader(pixelShader.Get(), nullptr, 0u);
 
 	static const D3D11_INPUT_ELEMENT_DESC elementDescs[]
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,                            D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		//	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		//	{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	static Khan::VertexShader vertexShader{ "VertexShader.cso", elementDescs, ARRAYSIZE(elementDescs) };
+	static Khan::VertexShader vertexShader{ "VS_IndexedInstanced.cso", elementDescs, ARRAYSIZE(elementDescs) };
 	vertexShader.Bind();
 
 	dx_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -82,10 +84,10 @@ void Render::SelectionRect(int screen_width, int screen_height, int x1, int y1, 
 	};
 	static constexpr Vertex vertices[]
 	{
-		XMFLOAT3{  0.0f, -1.0f,  0.5f },	XMFLOAT2{ 0.0f, 1.0f },
-		XMFLOAT3{  0.0f,  0.0f,  0.5f },	XMFLOAT2{ 0.0f, 0.0f },
-		XMFLOAT3{  1.0f,  0.0f,  0.5f },	XMFLOAT2{ 1.0f, 0.0f },
-		XMFLOAT3{  1.0f, -1.0f,  0.5f },	XMFLOAT2{ 1.0f, 1.0f },
+		XMFLOAT3{  0.0f, -1.0f,  0.0f },	XMFLOAT2{ 0.0f, 1.0f },
+		XMFLOAT3{  0.0f,  0.0f,  0.0f },	XMFLOAT2{ 0.0f, 0.0f },
+		XMFLOAT3{  1.0f,  0.0f,  0.0f },	XMFLOAT2{ 1.0f, 0.0f },
+		XMFLOAT3{  1.0f, -1.0f,  0.0f },	XMFLOAT2{ 1.0f, 1.0f },
 	};
 	UINT Stride = sizeof(Vertex);
 	UINT offset{};
@@ -164,5 +166,28 @@ void Render::SelectionRect(int screen_width, int screen_height, int x1, int y1, 
 	dx_context->PSSetConstantBuffers(0u, 1u, psDynamicCBuffer.GetAddressOf());
 
 	dx_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+
+	ComPtr<ID3D11BlendState> blendState;
+	D3D11_BLEND_DESC blendDesc{};
+	blendDesc.RenderTarget[0].BlendEnable = true;
+	blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blendDesc.RenderTarget[0].RenderTargetWriteMask = 0x0f;
+
+	// how to disable alpha blend
+	//blendDesc.RenderTarget[0].BlendEnable = FALSE;
+	//blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	dx_device->CreateBlendState(&blendDesc, &blendState);
+
+	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	UINT sampleMask = 0xffffffff;
+
+	dx_context->OMSetBlendState(blendState.Get(), blendFactor, sampleMask);
+
 	dx_context->DrawIndexed(ARRAYSIZE(indices), 0u, 0u);
 }
