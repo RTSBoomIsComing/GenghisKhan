@@ -5,8 +5,6 @@
 #include <Khan/Dx/RSState_WireFrame.h>
 #include <Khan/Dx/DxFunction.h>
 #include <Khan/Dx/DxUtility.h>
-#include <Khan/Dx/VertexShader.h>
-#include <Khan/Dx/DynamicCBuffer.h>
 
 void Render::Clear() noexcept
 {
@@ -47,6 +45,7 @@ void Render::Triangle(entt::registry& reg) noexcept
 
 	static ComPtr<ID3D11Buffer> indexBuffer = Khan::CreateIndexBuffer(indices, sizeof(indices));
 	dx_context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0u);
+	dx_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	static ComPtr<ID3D11PixelShader> pixelShader = Khan::CreatePixelShader("PS_IndexedInstanced.cso");
 	dx_context->PSSetShader(pixelShader.Get(), nullptr, 0u);
@@ -55,13 +54,13 @@ void Render::Triangle(entt::registry& reg) noexcept
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,                            D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		//	{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	static Khan::VertexShader vertexShader{ "VS_IndexedInstanced.cso", elementDescs, ARRAYSIZE(elementDescs) };
-	vertexShader.Bind();
-
-	dx_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	static ComPtr<ID3DBlob> shaderBlob = Khan::CreateShaderBlob("VS_IndexedInstanced.cso");
+	static ComPtr<ID3D11VertexShader> vertexShader = Khan::CreateVertexShader(shaderBlob.Get());
+	static ComPtr<ID3D11InputLayout> inputLayout = Khan::CreateInputLayout(shaderBlob.Get(), elementDescs, ARRAYSIZE(elementDescs));
+	dx_context->IASetInputLayout(inputLayout.Get());
+	dx_context->VSSetShader(vertexShader.Get(), nullptr, 0u);
 
 	dx_context->DrawIndexed(ARRAYSIZE(indices), 0u, 0u);
 }
@@ -114,10 +113,14 @@ void Render::SelectionRect(int screen_width, int screen_height, int x1, int y1, 
 		//	{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	static Khan::VertexShader vertexShader{ "VertexShader.cso", elementDescs, ARRAYSIZE(elementDescs) };
-	vertexShader.Bind();
+	static ComPtr<ID3DBlob> shaderBlob = Khan::CreateShaderBlob("VertexShader.cso");
+	static ComPtr<ID3D11VertexShader> vertexShader = Khan::CreateVertexShader(shaderBlob.Get());
+	static ComPtr<ID3D11InputLayout> inputLayout = Khan::CreateInputLayout(shaderBlob.Get(), elementDescs, ARRAYSIZE(elementDescs));
 
-	
+	dx_context->IASetInputLayout(inputLayout.Get());
+	dx_context->VSSetShader(vertexShader.Get(), nullptr, 0u);
+
+
 	if (x1 > x2)
 	{
 		std::swap(x1, x2);
@@ -168,26 +171,141 @@ void Render::SelectionRect(int screen_width, int screen_height, int x1, int y1, 
 	dx_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 
-	ComPtr<ID3D11BlendState> blendState;
-	D3D11_BLEND_DESC blendDesc{};
-	blendDesc.RenderTarget[0].BlendEnable = true;
-	blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-	blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-	blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	blendDesc.RenderTarget[0].RenderTargetWriteMask = 0x0f;
+	ComPtr<ID3D11BlendState> blendState_alpha = Khan::CreateBlendState_Alpha_Static();
+	dx_context->OMSetBlendState(blendState_alpha.Get(), nullptr, 0xffffffff);
 
-	// how to disable alpha blend
-	//blendDesc.RenderTarget[0].BlendEnable = FALSE;
-	//blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	dx_device->CreateBlendState(&blendDesc, &blendState);
+	dx_context->DrawIndexed(ARRAYSIZE(indices), 0u, 0u);
+}
 
-	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	UINT sampleMask = 0xffffffff;
+void Render::Cube(entt::registry& reg) noexcept
+{
+	using namespace DirectX;
+	dx_context->RSSetState(dx_rsstate.Get());
 
-	dx_context->OMSetBlendState(blendState.Get(), blendFactor, sampleMask);
+	struct Vertex
+	{
+		XMFLOAT3 pos;
+		XMFLOAT2 tex;
+		XMFLOAT3 normal;
+	};
+	static constexpr Vertex vertices[]
+	{
+		// Front Face
+		XMFLOAT3{-1.0f, -1.0f, -1.0f}, XMFLOAT2{0.0f, 1.0f}, XMFLOAT3{-1.0f, -1.0f, -1.0f},
+		XMFLOAT3{-1.0f,  1.0f, -1.0f}, XMFLOAT2{0.0f, 0.0f}, XMFLOAT3{-1.0f,  1.0f, -1.0f},
+		XMFLOAT3{ 1.0f,  1.0f, -1.0f}, XMFLOAT2{1.0f, 0.0f}, XMFLOAT3{ 1.0f,  1.0f, -1.0f},
+		XMFLOAT3{ 1.0f, -1.0f, -1.0f}, XMFLOAT2{1.0f, 1.0f}, XMFLOAT3{ 1.0f, -1.0f, -1.0f},
+
+		// Back Face										 
+		XMFLOAT3{-1.0f, -1.0f,  1.0f}, XMFLOAT2{1.0f, 1.0f}, XMFLOAT3{-1.0f, -1.0f,  1.0f},
+		XMFLOAT3{ 1.0f, -1.0f,  1.0f}, XMFLOAT2{0.0f, 1.0f}, XMFLOAT3{ 1.0f, -1.0f,  1.0f},
+		XMFLOAT3{ 1.0f,  1.0f,  1.0f}, XMFLOAT2{0.0f, 0.0f}, XMFLOAT3{ 1.0f,  1.0f,  1.0f},
+		XMFLOAT3{-1.0f,  1.0f,  1.0f}, XMFLOAT2{1.0f, 0.0f}, XMFLOAT3{-1.0f,  1.0f,  1.0f},
+
+		// Top Face											 
+		XMFLOAT3{-1.0f,  1.0f, -1.0f}, XMFLOAT2{0.0f, 1.0f}, XMFLOAT3{-1.0f, 1.0f, -1.0f},
+		XMFLOAT3{-1.0f,  1.0f,  1.0f}, XMFLOAT2{0.0f, 0.0f}, XMFLOAT3{-1.0f, 1.0f,  1.0f},
+		XMFLOAT3{ 1.0f,  1.0f,  1.0f}, XMFLOAT2{1.0f, 0.0f}, XMFLOAT3{ 1.0f, 1.0f,  1.0f},
+		XMFLOAT3{ 1.0f,  1.0f, -1.0f}, XMFLOAT2{1.0f, 1.0f}, XMFLOAT3{ 1.0f, 1.0f, -1.0f},
+
+		// Bottom Face										
+		XMFLOAT3{-1.0f, -1.0f, -1.0f}, XMFLOAT2{1.0f, 1.0f}, XMFLOAT3{-1.0f, -1.0f, -1.0f},
+		XMFLOAT3{ 1.0f, -1.0f, -1.0f}, XMFLOAT2{0.0f, 1.0f}, XMFLOAT3{ 1.0f, -1.0f, -1.0f},
+		XMFLOAT3{ 1.0f, -1.0f,  1.0f}, XMFLOAT2{0.0f, 0.0f}, XMFLOAT3{ 1.0f, -1.0f,  1.0f},
+		XMFLOAT3{-1.0f, -1.0f,  1.0f}, XMFLOAT2{1.0f, 0.0f}, XMFLOAT3{-1.0f, -1.0f,  1.0f},
+
+		// Left Face										 
+		XMFLOAT3{-1.0f, -1.0f,  1.0f}, XMFLOAT2{0.0f, 1.0f}, XMFLOAT3{-1.0f, -1.0f,  1.0f},
+		XMFLOAT3{-1.0f,  1.0f,  1.0f}, XMFLOAT2{0.0f, 0.0f}, XMFLOAT3{-1.0f,  1.0f,  1.0f},
+		XMFLOAT3{-1.0f,  1.0f, -1.0f}, XMFLOAT2{1.0f, 0.0f}, XMFLOAT3{-1.0f,  1.0f, -1.0f},
+		XMFLOAT3{-1.0f, -1.0f, -1.0f}, XMFLOAT2{1.0f, 1.0f}, XMFLOAT3{-1.0f, -1.0f, -1.0f},
+
+		// Right Face										 
+		XMFLOAT3{1.0f, -1.0f, -1.0f},  XMFLOAT2{0.0f,  1.0f},XMFLOAT3{ 1.0f, -1.0f, -1.0f},
+		XMFLOAT3{1.0f,  1.0f, -1.0f},  XMFLOAT2{0.0f,  0.0f},XMFLOAT3{ 1.0f,  1.0f, -1.0f},
+		XMFLOAT3{1.0f,  1.0f,  1.0f},  XMFLOAT2{1.0f,  0.0f},XMFLOAT3{ 1.0f,  1.0f,  1.0f},
+		XMFLOAT3{1.0f, -1.0f,  1.0f},  XMFLOAT2{1.0f,  1.0f},XMFLOAT3{ 1.0f, -1.0f,  1.0f},
+	};
+	UINT Stride = sizeof(Vertex);
+	UINT offset{};
+
+	static ComPtr<ID3D11Buffer> vertexBuffer = Khan::CreateVertexBuffer(vertices, sizeof(vertices));
+	dx_context->IASetVertexBuffers(0u, 1u, vertexBuffer.GetAddressOf(), &Stride, &offset);
+	dx_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	static constexpr UINT indices[]
+	{
+		// Front Face
+		0,  1,  2,
+		0,  2,  3,
+
+		// Back Face
+		4,  5,  6,
+		4,  6,  7,
+
+		// Top Face
+		8,  9, 10,
+		8, 10, 11,
+
+		// Bottom Face
+		12, 13, 14,
+		12, 14, 15,
+
+		// Left Face
+		16, 17, 18,
+		16, 18, 19,
+
+		// Right Face
+		20, 21, 22,
+		20, 22, 23
+	};
+
+	static ComPtr<ID3D11Buffer> indexBuffer = Khan::CreateIndexBuffer(indices, sizeof(indices));
+	dx_context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0u);
+
+
+	static ComPtr<ID3D11PixelShader> pixelShader = Khan::CreatePixelShader("PS_BasicGeometry3d.cso");
+	dx_context->PSSetShader(pixelShader.Get(), nullptr, 0u);
+
+	static const D3D11_INPUT_ELEMENT_DESC elementDescs[]
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,                            D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	static ComPtr<ID3DBlob> shaderBlob = Khan::CreateShaderBlob("VS_BasicGeometry3d.cso");
+	static ComPtr<ID3D11VertexShader> vertexShader = Khan::CreateVertexShader(shaderBlob.Get());
+	static ComPtr<ID3D11InputLayout> inputLayout = Khan::CreateInputLayout(shaderBlob.Get(), elementDescs, ARRAYSIZE(elementDescs));
+
+	dx_context->IASetInputLayout(inputLayout.Get());
+	dx_context->VSSetShader(vertexShader.Get(), nullptr, 0u);
+
+	XMFLOAT4X4 WorldViewProjMatrix{};
+	//XMMatrixRotationZ
+	//XMMatrixRotationX
+	//XMMatrixRotationY
+	//XMMatrixTranslation
+	static float angle_temp{};
+	angle_temp += 0.02f;
+	XMStoreFloat4x4(&WorldViewProjMatrix,
+		XMMatrixTranspose(
+			XMMatrixRotationY(angle_temp)
+			* XMMatrixTranslation(angle_temp, 0.0f, 0.0f)
+			* XMMatrixLookAtLH({ 0.0f, 0.0f, -10.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f })
+			* XMMatrixPerspectiveFovLH(3.14 / 4.f, 4.0f / 3.0f, 1.0f, 100.0f)));
+
+	static ComPtr<ID3D11Buffer> vsDynamicCBuffer = Khan::CreateDynamicCBuffer<XMFLOAT4X4, 1u>();
+	D3D11_MAPPED_SUBRESOURCE mappedResource{};
+
+	dx_context->Map(vsDynamicCBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	::memcpy(mappedResource.pData, &WorldViewProjMatrix, sizeof(WorldViewProjMatrix));
+	dx_context->Unmap(vsDynamicCBuffer.Get(), 0u);
+
+	dx_context->VSSetConstantBuffers(0u, 1u, vsDynamicCBuffer.GetAddressOf());
+
+	ComPtr<ID3D11BlendState> blendState_alpha = Khan::CreateBlendState_Alpha_Static();
+	dx_context->OMSetBlendState(blendState_alpha.Get(), nullptr, 0xffffffff);
 
 	dx_context->DrawIndexed(ARRAYSIZE(indices), 0u, 0u);
 }

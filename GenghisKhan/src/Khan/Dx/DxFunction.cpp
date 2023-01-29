@@ -73,6 +73,44 @@ namespace Khan
 			"failed to create pixel shader");
         return pixelShader;
     }
+	ComPtr<ID3D11VertexShader> CreateVertexShader(ID3DBlob* pShaderBlob) noexcept
+	{
+		ComPtr<ID3D11VertexShader> vertexShader;
+		Khan::ThrowIfFailed(dx_device->CreateVertexShader(
+			pShaderBlob->GetBufferPointer(), pShaderBlob->GetBufferSize(),
+			nullptr, &vertexShader),
+			"failed to create pixel shader");
+		return vertexShader;
+	}
+	ComPtr<ID3D11InputLayout> CreateInputLayout(ID3DBlob* pShaderBlob, const D3D11_INPUT_ELEMENT_DESC* elementDescs, UINT numElements) noexcept
+	{
+		ComPtr<ID3D11InputLayout> inputLayout;
+		Khan::ThrowIfFailed(
+			dx_device->CreateInputLayout(
+				elementDescs, numElements,
+				pShaderBlob->GetBufferPointer(), pShaderBlob->GetBufferSize(), &inputLayout),
+			"failed to create input layout");
+
+		return inputLayout;
+	}
+	ComPtr<ID3D11BlendState> CreateBlendState_Alpha_Static() noexcept
+	{
+		static ComPtr<ID3D11BlendState> blendState;
+		if (blendState) return blendState;
+
+		D3D11_BLEND_DESC blendDesc{};
+		blendDesc.RenderTarget[0].BlendEnable = true;
+		blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+		blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		blendDesc.RenderTarget[0].RenderTargetWriteMask = 0x0f;
+
+		dx_device->CreateBlendState(&blendDesc, &blendState);
+		return blendState;
+	}
 	//void CreateDSView(int width, int height, ID3D11DepthStencilView** ppDsview)
 	//{
 	//	// create depth stencil state

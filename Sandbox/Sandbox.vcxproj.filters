@@ -53,5 +53,7 @@
     <FxCompile Include="Shader\PixelShader.hlsl" />
     <FxCompile Include="Shader\VS_IndexedInstanced.hlsl" />
     <FxCompile Include="Shader\PS_IndexedInstanced.hlsl" />
+    <FxCompile Include="Shader\VS_BasicGeometry3d.hlsl" />
+    <FxCompile Include="Shader\PS_BasicGeometry3d.hlsl" />
   </ItemGroup>
 </Project>
