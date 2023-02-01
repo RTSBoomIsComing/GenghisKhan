@@ -33,7 +33,7 @@ void Game::Render()
 #include "imgui_impl_dx11.h"
 void Game::ImGuiRender_Impl()
 {
-	static bool show_demo_window = true;
+	static bool show_demo_window = false;
 	static bool show_another_window = false;
 
 	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).

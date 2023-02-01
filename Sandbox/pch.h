@@ -12,6 +12,7 @@ using Microsoft::WRL::ComPtr;
 #include <limits> // std::numeric_limits<T>
 #include <memory>
 #include <iostream>
+#include <format>
 
 #include <d3d11.h>
 #include <d3dcompiler.h>

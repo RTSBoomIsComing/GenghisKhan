@@ -181,7 +181,7 @@ void Render::Cube(entt::registry& reg) noexcept
 {
 	using namespace DirectX;
 	dx_context->RSSetState(dx_rsstate.Get());
-
+	Khan::rsstate_wireframe->Bind();
 	struct Vertex
 	{
 		XMFLOAT3 pos;
@@ -288,12 +288,13 @@ void Render::Cube(entt::registry& reg) noexcept
 	//XMMatrixTranslation
 	static float angle_temp{};
 	angle_temp += 0.02f;
+	if (angle_temp > 10.f) angle_temp = 0.0f;
 	XMStoreFloat4x4(&WorldViewProjMatrix,
 		XMMatrixTranspose(
 			XMMatrixRotationY(angle_temp)
 			* XMMatrixTranslation(angle_temp, 0.0f, 0.0f)
 			* XMMatrixLookAtLH({ 0.0f, 0.0f, -10.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f })
-			* XMMatrixPerspectiveFovLH(3.14 / 4.f, 4.0f / 3.0f, 1.0f, 100.0f)));
+			* XMMatrixPerspectiveFovLH(3.14f / 4.f, 4.0f / 3.0f, 1.0f, 100.0f)));
 
 	static ComPtr<ID3D11Buffer> vsDynamicCBuffer = Khan::CreateDynamicCBuffer<XMFLOAT4X4, 1u>();
 	D3D11_MAPPED_SUBRESOURCE mappedResource{};

@@ -14,7 +14,7 @@ namespace Khan {
 	class Application abstract : public Window
 	{
 	public:
-		Application(int width = 1024, int height = 768, std::wstring name = L"genghis khan");
+		Application(int width = 1024, int height = 768, std::wstring name = L"Genghis Khan");
 		virtual ~Application() noexcept;
 	
 		virtual void ImGuiRender_Impl() abstract;

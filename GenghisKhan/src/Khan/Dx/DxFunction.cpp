@@ -49,9 +49,9 @@ namespace Khan
 	ComPtr<ID3DBlob> CreateShaderBlob(std::string_view fileName)
 	{
 #if defined(DEBUG) || defined(_DEBUG)
-		std::wstring fullFileName{ L"..\\bin\\Debug-x64\\Sandbox\\"};
+		std::wstring fullFileName{ L"..\\bin\\Debug-x64\\"};
 #else
-		std::wstring fullFileName{ L"..\\bin\\Release-x64\\Sandbox\\" };
+		std::wstring fullFileName{ L"..\\bin\\Release-x64\\" };
 #endif
 		fullFileName += std::wstring(fileName.begin(), fileName.end());
 

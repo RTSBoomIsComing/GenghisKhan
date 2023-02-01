@@ -37,10 +37,6 @@ namespace Khan
 		ComPtr<ID3D11DepthStencilView>& GetDSView() noexcept { return m_dsview; }
 		ComPtr<ID3D11DepthStencilState>& GetDSState() noexcept { return m_dsstate; }
 		ComPtr<ID3D11RasterizerState>& GetRSState() noexcept { return m_rsstate; }
-
-	// Make Singleton
-	private:
-		static inline std::unique_ptr<DxCore> m_instance{};
 	};
 
 	extern std::unique_ptr<DxCore> dxcore;
