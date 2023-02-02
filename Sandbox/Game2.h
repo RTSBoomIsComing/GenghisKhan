@@ -22,6 +22,7 @@ public:
 	int x2{};
 	int y1{};
 	int y2{};
+	bool bIsSelectionRectDrawing{};
 protected:
 	std::shared_ptr<KhanRender::RenderingHub> m_renderingHub;
 

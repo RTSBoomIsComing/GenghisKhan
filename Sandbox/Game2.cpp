@@ -13,31 +13,37 @@ Game2::Game2()
 		KHAN_INFO(std::format("LBD: {:d}, {:d}", x, y));
 		x1 = x;
 		y1 = y;
-	};
-	m_input.mouse.OnRightButtonDown.DefaultFn = [&](int x, int y) {
-		KHAN_INFO(std::format("RBD: {:d}, {:d}", x, y));
+		bIsSelectionRectDrawing = true;
 	};
 	m_input.mouse.OnLeftButtonUp.DefaultFn = [&](int x, int y) {
 		KHAN_INFO(std::format("LBU: {:d}, {:d}", x, y));
-		x2 = x;
-		y2 = y;
+		bIsSelectionRectDrawing = false;
+	};
+	m_input.mouse.OnRightButtonDown.DefaultFn = [&](int x, int y) {
+		KHAN_INFO(std::format("RBD: {:d}, {:d}", x, y));
 	};
 	m_input.mouse.OnRightButtonUp.DefaultFn = [&](int x, int y) {
 		KHAN_INFO(std::format("RBU: {:d}, {:d}", x, y));
 	};
 	m_input.mouse.OnLeftButtonDown.InstantFn = [&](int x, int y) {
 		KHAN_ERROR(std::format("LBD: {:d}, {:d}", x, y));
+		m_input.mouse.OnLeftButtonDown.InstantFn = nullptr;
 	};
 	m_input.mouse.OnRightButtonDown.InstantFn = [&](int x, int y) {
 		KHAN_ERROR(std::format("RBD: {:d}, {:d}", x, y));
+		m_input.mouse.OnRightButtonDown.InstantFn = nullptr;
 	};
 	m_input.mouse.OnLeftButtonUp.InstantFn = [&](int x, int y) {
 		KHAN_ERROR(std::format("LBU: {:d}, {:d}", x, y));
+		m_input.mouse.OnLeftButtonUp.InstantFn = nullptr;
 	};
 	m_input.mouse.OnRightButtonUp.InstantFn = [&](int x, int y) {
 		KHAN_ERROR(std::format("RBU: {:d}, {:d}", x, y));
+		m_input.mouse.OnRightButtonUp.InstantFn = nullptr;
 	};
 	m_input.mouse.OnMouseMove.DefaultFn = [&](int x, int y) {
+		x2 = x;
+		y2 = y;
 		if (x == 0 || x == (m_window_width - 1) || y == 0 || y == (m_window_height - 1))
 		{
 			bIsMouseOnEdge = true;
@@ -57,7 +63,8 @@ void Game2::Run()
 {
 	m_renderingHub->RenderBegin();
 	static auto SelectionRect = KhanRender::SelectionRectRenderer(m_renderingHub);
-	SelectionRect.Render(x1, y1, x2, y2);
+	if (bIsSelectionRectDrawing)
+		SelectionRect.Render(x1, y1, x2, y2);
 	
 	m_renderingHub->RenderEnd();
 }

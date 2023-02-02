@@ -94,5 +94,5 @@ void KhanRender::RenderingHub::RenderBegin() noexcept
 
 void KhanRender::RenderingHub::RenderEnd() noexcept
 {
-	m_swapchain->Present(0U, 0U);
+	m_swapchain->Present(1U, 0U);
 }

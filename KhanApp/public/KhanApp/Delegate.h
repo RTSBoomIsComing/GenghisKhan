@@ -13,7 +13,6 @@ namespace KhanApp
 			if (InstantFn)
 			{
 				InstantFn(args...);
-				InstantFn = nullptr;
 			}
 			else if (DefaultFn)
 			{
