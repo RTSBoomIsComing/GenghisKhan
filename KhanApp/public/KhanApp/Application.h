@@ -2,8 +2,6 @@
 #include "Window.h"
 #include "InputManager.h"
 
-//extern LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
-
 namespace KhanApp
 {
 	class Application : public Window
@@ -11,7 +9,9 @@ namespace KhanApp
 	public:
 		Application();
 		virtual ~Application() noexcept;
-		void OnResizeWindow(UINT width, UINT height) noexcept;
+
+		// when override this function, have to call this function in overrided function.
+		virtual void OnResizeWindow(UINT width, UINT height) noexcept;
 
 		InputManager m_input;
 	};

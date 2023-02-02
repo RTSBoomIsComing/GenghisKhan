@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="private\pch.h" />
+    <ClInclude Include="private\framework.h" />
+    <ClInclude Include="public\KhanRender\Renderer.h" />
+    <ClInclude Include="public\KhanRender\RenderingHub.h" />
+    <ClInclude Include="private\KhanDx\KhanDxUtils.h" />
+    <ClInclude Include="private\KhanDx\KhanDxFactories.h" />
+    <ClInclude Include="private\KhanDx\KhanDxComponents.h" />
+    <ClInclude Include="public\KhanRender\SelectionRectRenderer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="private\pch.cpp" />
+    <ClCompile Include="public\KhanRender\RenderingHub.cpp" />
+    <ClCompile Include="private\KhanDx\KhanDxUtils.cpp" />
+    <ClCompile Include="private\KhanDx\KhanDxFactories.cpp" />
+    <ClCompile Include="private\KhanDx\KhanDxComponents.cpp" />
+    <ClCompile Include="public\KhanRender\SelectionRectRenderer.cpp" />
+  </ItemGroup>
+</Project>

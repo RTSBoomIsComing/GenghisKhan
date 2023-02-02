@@ -23,7 +23,6 @@ void KhanApp::Application::OnResizeWindow(UINT width, UINT height) noexcept
 {
 	m_window_width = width;
 	m_window_height = height;
-	//dxcore->ResizeBackBuffers(width, height);
 }
 
 // extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);

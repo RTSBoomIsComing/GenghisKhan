@@ -17,6 +17,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KhanApp", "KhanApp\ghApplic
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KhanTools", "KhanTools\KhanTools.vcxproj", "{70481BED-E53E-4927-9B11-12F75B01BC44}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KhanRender", "KhanRender\KhanRender.vcxproj", "{AC35F234-8E70-46F3-B1DA-DA2CFBE9AFE7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -39,6 +41,10 @@ Global
 		{70481BED-E53E-4927-9B11-12F75B01BC44}.Debug|x64.Build.0 = Debug|x64
 		{70481BED-E53E-4927-9B11-12F75B01BC44}.Release|x64.ActiveCfg = Release|x64
 		{70481BED-E53E-4927-9B11-12F75B01BC44}.Release|x64.Build.0 = Release|x64
+		{AC35F234-8E70-46F3-B1DA-DA2CFBE9AFE7}.Debug|x64.ActiveCfg = Debug|x64
+		{AC35F234-8E70-46F3-B1DA-DA2CFBE9AFE7}.Debug|x64.Build.0 = Debug|x64
+		{AC35F234-8E70-46F3-B1DA-DA2CFBE9AFE7}.Release|x64.ActiveCfg = Release|x64
+		{AC35F234-8E70-46F3-B1DA-DA2CFBE9AFE7}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

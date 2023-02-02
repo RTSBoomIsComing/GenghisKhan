@@ -1,6 +1,6 @@
 #pragma once
 #include "pch.h"
-#include <Khan.h>
+//#include <Khan.h>
 #include <format>
 #include "Game2.h"
 
@@ -15,7 +15,7 @@ int main(int, char* [])
 	//std::unique_ptr<Khan::Application> game = std::make_unique<Game>() ;
 	//result = game->Run();
 	//return result;
-	Game2 app;
+	Game2 game;
 
 	MSG msg{};
 	while (msg.message != WM_QUIT)
@@ -27,6 +27,7 @@ int main(int, char* [])
 		}
 		else
 		{
+			game.Run();
 		}
 	}
 

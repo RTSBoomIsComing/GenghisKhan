@@ -10,7 +10,6 @@ namespace Khan
 	ComPtr<ID3D11Buffer> CreateIndexBuffer(const void* pSysMem, UINT byteWidth) noexcept;
 	ComPtr<ID3DBlob> CreateShaderBlob(std::string_view fileName);
 	ComPtr<ID3D11PixelShader> CreatePixelShader(std::string_view fileName);
-	//void CreateDSView(int width, int height, ID3D11DepthStencilView** ppDsview);
 	ComPtr<ID3D11VertexShader> CreateVertexShader(ID3DBlob* pShaderBlob) noexcept;
 	ComPtr<ID3D11InputLayout> CreateInputLayout(ID3DBlob* pShaderBlob, const D3D11_INPUT_ELEMENT_DESC* elementDescs, UINT numElements) noexcept;
 	ComPtr<ID3D11BlendState> CreateBlendState_Alpha_Static() noexcept;
