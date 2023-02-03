@@ -18,6 +18,8 @@ namespace KhanRender
 		ComPtr<ID3D11PixelShader> m_pixelShader;
 		ComPtr<ID3D11VertexShader> m_vertexShader;
 		ComPtr<ID3D11InputLayout> m_inputLayout;
+		ComPtr<ID3D11Buffer> m_PSDynamicCBuffer;
+		ComPtr<ID3D11Buffer> m_VSDynamicCBuffer;
 	private:
 		struct Vertex
 		{
