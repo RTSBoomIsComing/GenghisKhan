@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "Application.h"
 #include <KhanTools/Log.h>
-#include "imgui_impl_win32.h"
 #include <Windowsx.h>
+#include "imgui_impl_win32.h"
 
 LRESULT CALLBACK KhanApp::WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -16,7 +16,6 @@ KhanApp::Application::Application()
 
 KhanApp::Application::~Application() noexcept
 {
-	// imgui reset
 }
 
 void KhanApp::Application::OnResizeWindow(UINT width, UINT height) noexcept
@@ -25,14 +24,14 @@ void KhanApp::Application::OnResizeWindow(UINT width, UINT height) noexcept
 	m_window_height = height;
 }
 
-// extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
 
 namespace KhanApp 
 {
 	LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	{
-		//if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
-		//	return 1u;
+		if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
+			return 1u;
 		auto app = reinterpret_cast<KhanApp::Application*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 		assert(app && "app is nullptr");
 
@@ -55,10 +54,6 @@ namespace KhanApp
 			return 0u;
 		case WM_KILLFOCUS:	// I think it would be better than using WM_ACTIVATE
 			app->DisableMouseLockToWindow();
-			//app->m_input.mouse.OnLeftButtonDown.InstantFn = [&](int x, int y) {
-			//	app->EnableMouseLockToWindow(true);
-			//	app->m_input.mouse.OnLeftButtonDown.DefaultFn(x, y);
-			//};
 			return 0u;
 
 		//case WM_SETFOCUS:

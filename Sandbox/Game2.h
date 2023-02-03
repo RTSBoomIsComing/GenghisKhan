@@ -17,6 +17,8 @@ public:
 public:
 	void Run();
 	void OnResizeWindow(UINT width,UINT height) noexcept override;
+	void OnImGuiRender();
+
 
 	int x1{};
 	int x2{};

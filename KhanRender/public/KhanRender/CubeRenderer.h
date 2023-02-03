@@ -26,7 +26,7 @@ namespace KhanRender
 		{
 			Vertex(float x, float y, float z, float u, float v, float nx, float ny, float nz)
 				:
-				pos(x, y, z), tex(u, v), normal(nx, ny, nz){}
+				pos(x, y, z), tex(u, v), normal(nx, ny, nz) {}
 
 			DirectX::XMFLOAT3 pos;
 			DirectX::XMFLOAT2 tex;
@@ -101,7 +101,7 @@ namespace KhanRender
 
 		const D3D11_INPUT_ELEMENT_DESC elementDescs[3]
 		{
-			{ "POSITION", 0U, DXGI_FORMAT_R32G32B32_FLOAT, 0U, 0U,                            D3D11_INPUT_PER_VERTEX_DATA, 0U },
+			{ "POSITION", 0U, DXGI_FORMAT_R32G32B32_FLOAT, 0U, 0U,                           D3D11_INPUT_PER_VERTEX_DATA, 0U },
 			{ "TEXCOORD", 0U, DXGI_FORMAT_R32G32_FLOAT,    0U, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0U },
 			{ "NORMAL",   0U, DXGI_FORMAT_R32G32B32_FLOAT, 0U, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0U },
 		};

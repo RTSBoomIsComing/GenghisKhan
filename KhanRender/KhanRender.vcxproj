@@ -104,6 +104,7 @@
     <ClInclude Include="private\KhanDx\KhanDxUtils.h" />
     <ClInclude Include="private\framework.h" />
     <ClInclude Include="private\pch.h" />
+    <ClInclude Include="public\KhanRender\ImGuiRenderer.h" />
     <ClInclude Include="public\KhanRender\Renderer.h" />
     <ClInclude Include="public\KhanRender\RenderingHub.h" />
     <ClInclude Include="public\KhanRender\SelectionRectRenderer.h" />

@@ -10,6 +10,7 @@
     <ClInclude Include="private\KhanDx\KhanDxComponents.h" />
     <ClInclude Include="public\KhanRender\SelectionRectRenderer.h" />
     <ClInclude Include="public\KhanRender\CubeRenderer.h" />
+    <ClInclude Include="public\KhanRender\ImGuiRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="private\pch.cpp" />
