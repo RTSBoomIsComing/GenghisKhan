@@ -17,6 +17,8 @@ using Microsoft::WRL::ComPtr;
 #include <dxgi.h>
 #include <d3dcompiler.h>
 
+#include <tuple>
+
 
 
 #endif //PCH_H

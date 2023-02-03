@@ -2,7 +2,7 @@
 #include "KhanDxComponents.h"
 #include "KhanDx/KhanDxUtils.h"
 
-ComPtr<ID3D11RasterizerState> KhanDx::GetRSState_Solid(ID3D11Device* d3d_device) noexcept
+ComPtr<ID3D11RasterizerState> KhanDx::CreateRSState_Solid(ID3D11Device* d3d_device) noexcept
 {
 	ComPtr<ID3D11RasterizerState> rsstate;
 	D3D11_RASTERIZER_DESC desc{};
@@ -15,7 +15,20 @@ ComPtr<ID3D11RasterizerState> KhanDx::GetRSState_Solid(ID3D11Device* d3d_device)
 	return rsstate;
 }
 
-ComPtr<ID3D11RasterizerState> KhanDx::GetRSState_WireFrame(ID3D11Device* d3d_device) noexcept
+ComPtr<ID3D11RasterizerState> KhanDx::CreateRSState_Solid_NoCulling(ID3D11Device* d3d_device) noexcept
+{
+	ComPtr<ID3D11RasterizerState> rsstate;
+	D3D11_RASTERIZER_DESC desc{};
+	desc.FillMode = D3D11_FILL_SOLID;
+	desc.CullMode = D3D11_CULL_NONE;
+
+	ThrowIfFailed(d3d_device->CreateRasterizerState(&desc, &rsstate),
+		"failed to create RS state");
+
+	return rsstate;
+}
+
+ComPtr<ID3D11RasterizerState> KhanDx::CreateRSState_WireFrame(ID3D11Device* d3d_device) noexcept
 {
 	ComPtr<ID3D11RasterizerState> rsstate;
 	D3D11_RASTERIZER_DESC desc{};
@@ -26,6 +39,17 @@ ComPtr<ID3D11RasterizerState> KhanDx::GetRSState_WireFrame(ID3D11Device* d3d_dev
 		"Failed to Create Rasterizer State");
 
 	return rsstate;
+}
+
+ComPtr<ID3D11DepthStencilState> KhanDx::CreateDSState_Default(ID3D11Device* d3d_device) noexcept
+{
+	ComPtr<ID3D11DepthStencilState> dsstate;
+	D3D11_DEPTH_STENCIL_DESC dsDesc = CD3D11_DEPTH_STENCIL_DESC(D3D11_DEFAULT);
+	ThrowIfFailed(
+		d3d_device->CreateDepthStencilState(&dsDesc, &dsstate),
+		"Failed to create depth stencil state");
+
+	return dsstate;
 }
 
 ComPtr<ID3D11Buffer> KhanDx::CreateVertexBuffer(ID3D11Device* d3d_device, const void* pSysMem, UINT byteWidth) noexcept

@@ -7,8 +7,10 @@ using Microsoft::WRL::ComPtr;
 
 namespace KhanDx
 {
-	ComPtr<ID3D11RasterizerState> GetRSState_Solid(ID3D11Device* d3d_device) noexcept;
-	ComPtr<ID3D11RasterizerState> GetRSState_WireFrame(ID3D11Device* d3d_device) noexcept;
+	ComPtr<ID3D11RasterizerState> CreateRSState_Solid(ID3D11Device* d3d_device) noexcept;
+	ComPtr<ID3D11RasterizerState> CreateRSState_Solid_NoCulling(ID3D11Device* d3d_device) noexcept;
+	ComPtr<ID3D11RasterizerState> CreateRSState_WireFrame(ID3D11Device* d3d_device) noexcept;
+	ComPtr<ID3D11DepthStencilState> CreateDSState_Default(ID3D11Device* d3d_device) noexcept;
 	ComPtr<ID3D11Buffer> CreateVertexBuffer(ID3D11Device* d3d_device, const void* pSysMem, UINT byteWidth) noexcept;
 	ComPtr<ID3D11Buffer> CreateIndexBuffer(ID3D11Device* d3d_device, const void* pSysMem, UINT byteWidth) noexcept;
 	ComPtr<ID3D11BlendState> CreateBlendState_Alpha(ID3D11Device* d3d_device) noexcept;

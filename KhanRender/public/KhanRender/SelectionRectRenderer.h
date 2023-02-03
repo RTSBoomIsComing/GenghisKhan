@@ -20,6 +20,7 @@ namespace KhanRender
 		ComPtr<ID3D11InputLayout> m_inputLayout;
 		ComPtr<ID3D11Buffer> m_PSDynamicCBuffer;
 		ComPtr<ID3D11Buffer> m_VSDynamicCBuffer;
+		ComPtr<ID3D11DepthStencilState> m_dsstate;
 	private:
 		struct Vertex
 		{
@@ -29,9 +30,9 @@ namespace KhanRender
 
 		const Vertex vertices[4]
 		{
-			DirectX::XMFLOAT3{  0.0f, -1.0f,  0.0f },	DirectX::XMFLOAT2{ 0.0f, 1.0f },
 			DirectX::XMFLOAT3{  0.0f,  0.0f,  0.0f },	DirectX::XMFLOAT2{ 0.0f, 0.0f },
 			DirectX::XMFLOAT3{  1.0f,  0.0f,  0.0f },	DirectX::XMFLOAT2{ 1.0f, 0.0f },
+			DirectX::XMFLOAT3{  0.0f, -1.0f,  0.0f },	DirectX::XMFLOAT2{ 0.0f, 1.0f },
 			DirectX::XMFLOAT3{  1.0f, -1.0f,  0.0f },	DirectX::XMFLOAT2{ 1.0f, 1.0f },
 		};
 
