@@ -2,7 +2,7 @@
 #include "KhanDxFactories.h"
 #include <KhanDx/KhanDxUtils.h>
 
-ComPtr<ID3D11RenderTargetView> KhanDx::CreateRenderTarget(ID3D11Device* d3d_device, IDXGISwapChain* swapchain, UINT width, UINT height)
+ComPtr<ID3D11RenderTargetView> KhanDx::CreateRenderTargetView(ID3D11Device* d3d_device, IDXGISwapChain* swapchain, UINT width, UINT height)
 {
 	ComPtr<ID3D11Resource> backBuffer;
 	ThrowIfFailed(

@@ -5,7 +5,7 @@
 
 KhanRender::SelectionRectRenderer::SelectionRectRenderer(std::shared_ptr<RenderingHub> core)
 	:
-	Renderer(std::move(core))
+	Renderer(core)
 {
 	m_rsstate = KhanDx::GetRSState_Solid(m_core->d3d_device.Get());
 	m_vertexBuffer = KhanDx::CreateVertexBuffer(m_core->d3d_device.Get(), vertices, sizeof(vertices));
@@ -40,7 +40,8 @@ void KhanRender::SelectionRectRenderer::Render(int x1, int y1, int x2, int y2)
 	{
 		std::swap(y1, y2);
 	}
-	
+
+
 	m_core->d3d_context->RSSetState(m_rsstate.Get());
 
 	UINT Stride = sizeof(Vertex);
@@ -53,18 +54,21 @@ void KhanRender::SelectionRectRenderer::Render(int x1, int y1, int x2, int y2)
 	m_core->d3d_context->VSSetShader(m_vertexShader.Get(), nullptr, 0u);
 	m_core->d3d_context->PSSetShader(m_pixelShader.Get(), nullptr, 0u);
 
-	float rect_w = static_cast<float>(x2 - x1);
-	float rect_h = static_cast<float>(y2 - y1);
+	// max value of (x2 - x1) is (screen width - 1), so adjust to have max value of screen width
+	float rect_w = static_cast<float>(x2 - x1) * m_core->rt_width / (m_core->rt_width - 1);
 
-	XMFLOAT4 rectSize{ rect_w, rect_h, 0.f, 0.f };
+	// max value of (y2 - y1) is (screen height - 1), so adjust to have max value of screen height
+	float rect_h = static_cast<float>(y2 - y1) * m_core->rt_height / (m_core->rt_height - 1);
+
+	XMFLOAT4 rectSize{ rect_w, rect_h, 0.f, 0.f };	// data to pixel shader constant buffer.
 
 	rect_w = rect_w * 2 / m_core->rt_width;
 	rect_h = rect_h * 2 / m_core->rt_height;
-	float pos_x = float(x1) * 2 / m_core->rt_width - 1.0f;
+	float pos_x = float(x1) * 2 / m_core->rt_width - 1.0F;
 	float pos_y = 1.0f - float(y1) * 2 / m_core->rt_height;
 
-	XMFLOAT4X4 rectTransform // row major matrix transposed, because hlsl use column major matrix.
-	{
+	XMFLOAT4X4 rectTransform	// row major matrix transposed, because hlsl use column major matrix.
+	{							// data to vertex shader constant buffer.
 		rect_w, 0.0f,   0.0f,  pos_x,
 		0.0f,   rect_h, 0.0f,  pos_y,
 		0.0f,   0.0f,   1.0f,  0.0f,
@@ -84,8 +88,6 @@ void KhanRender::SelectionRectRenderer::Render(int x1, int y1, int x2, int y2)
 	::memcpy(mappedResource_ps.pData, &rectSize, sizeof(rectSize));
 	m_core->d3d_context->Unmap(m_PSDynamicCBuffer.Get(), 0U);
 	m_core->d3d_context->PSSetConstantBuffers(0U, 1U, m_PSDynamicCBuffer.GetAddressOf());
-
-	
 
 	m_core->d3d_context->OMSetBlendState(m_blendState.Get(), nullptr, 0xffffffff);
 

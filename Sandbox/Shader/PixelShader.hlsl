@@ -14,9 +14,13 @@ float4 main(PS_INPUT input) : SV_TARGET
 {
 	float dx = 1.0f / size.x;
 	float dy = 1.0f / size.y;
-	if (input.uv.x < dx || input.uv.x > 1.0f - dx || input.uv.y < dy || input.uv.y > 1.0f - dy)
+	
+	float x1 = input.uv.x;
+	float y1 = input.uv.y;
+	
+	if (x1 < dx || x1 > 1.0F - dx || y1 < dy || y1 > 1.0F - dy)
 	{
-		return float4(0.0f, 0.0f, 1.0f, 1.0f);
+		return float4(0.0f, 1.0f, 1.0f, 1.0f);
 	}
 	else
 	{

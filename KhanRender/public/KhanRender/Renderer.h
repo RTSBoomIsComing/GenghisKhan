@@ -14,7 +14,7 @@ namespace KhanRender
 	public:
 		Renderer(std::shared_ptr<RenderingHub> core)
 			:
-			m_core(std::move(core)) {}
+			m_core(core) {}
 		//virtual void Render() abstract;
 
 	protected:

@@ -33,16 +33,16 @@ ComPtr<ID3D11Buffer> KhanDx::CreateVertexBuffer(ID3D11Device* d3d_device, const 
 	// Fill in the subresource data.
 	D3D11_SUBRESOURCE_DATA InitVertexData{};
 	InitVertexData.pSysMem = pSysMem;
-	InitVertexData.SysMemPitch = 0u; // not used 
-	InitVertexData.SysMemSlicePitch = 0u; // not used
+	InitVertexData.SysMemPitch = 0U; // not used 
+	InitVertexData.SysMemSlicePitch = 0U; // not used
 
 	// Fill in a buffer description.
 	D3D11_BUFFER_DESC vertexbufferDesc{};
 	vertexbufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vertexbufferDesc.ByteWidth = byteWidth;
 	vertexbufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexbufferDesc.CPUAccessFlags = 0u;
-	vertexbufferDesc.MiscFlags = 0u;
+	vertexbufferDesc.CPUAccessFlags = 0U;
+	vertexbufferDesc.MiscFlags = 0U;
 
 	ComPtr<ID3D11Buffer> vertexBuffer;
 	ThrowIfFailed(d3d_device->CreateBuffer(&vertexbufferDesc, &InitVertexData, &vertexBuffer),

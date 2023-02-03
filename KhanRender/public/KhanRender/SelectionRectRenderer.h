@@ -1,5 +1,5 @@
 #pragma once
-#include "Renderer.h"
+#include "KhanRender/Renderer.h"
 #include <DirectXMath.h>
 
 namespace KhanRender
