@@ -11,16 +11,16 @@ namespace KhanRender
 		void Render(int x1, int y1, int x2, int y2);
 
 	private:
-		ComPtr<ID3D11RasterizerState> m_rsstate;
-		ComPtr<ID3D11Buffer> m_vertexBuffer;
-		ComPtr<ID3D11Buffer> m_indexBuffer;
-		ComPtr<ID3D11BlendState> m_blendState;
-		ComPtr<ID3D11PixelShader> m_pixelShader;
-		ComPtr<ID3D11VertexShader> m_vertexShader;
-		ComPtr<ID3D11InputLayout> m_inputLayout;
-		ComPtr<ID3D11Buffer> m_PSDynamicCBuffer;
-		ComPtr<ID3D11Buffer> m_VSDynamicCBuffer;
+		ComPtr<ID3D11Buffer>		    m_vertexBuffer;
+		//ComPtr<ID3D11Buffer>		    m_indexBuffer;
+		ComPtr<ID3D11PixelShader>	    m_pixelShader;
+		ComPtr<ID3D11VertexShader>	    m_vertexShader;
+		ComPtr<ID3D11InputLayout>	    m_inputLayout;
+		ComPtr<ID3D11Buffer>		    m_PSDynamicCBuffer;
+		ComPtr<ID3D11Buffer>		    m_VSDynamicCBuffer;
+		ComPtr<ID3D11RasterizerState>   m_rsstate;
 		ComPtr<ID3D11DepthStencilState> m_dsstate;
+		ComPtr<ID3D11BlendState>	    m_blendState;
 	private:
 		struct Vertex
 		{
@@ -34,12 +34,6 @@ namespace KhanRender
 			DirectX::XMFLOAT3{  1.0f,  0.0f,  0.0f },	DirectX::XMFLOAT2{ 1.0f, 0.0f },
 			DirectX::XMFLOAT3{  0.0f, -1.0f,  0.0f },	DirectX::XMFLOAT2{ 0.0f, 1.0f },
 			DirectX::XMFLOAT3{  1.0f, -1.0f,  0.0f },	DirectX::XMFLOAT2{ 1.0f, 1.0f },
-		};
-
-		const UINT indices[6]
-		{
-			0, 1, 2,
-			0, 2, 3,
 		};
 
 		const D3D11_INPUT_ELEMENT_DESC elementDescs[2]

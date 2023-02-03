@@ -8,10 +8,7 @@ KhanRender::SelectionRectRenderer::SelectionRectRenderer(std::shared_ptr<Renderi
 	Renderer(core)
 {
 	m_vertexBuffer = KhanDx::CreateVertexBuffer(m_core->GetDevice(), vertices, sizeof(vertices));
-	m_indexBuffer  = KhanDx::CreateIndexBuffer(m_core->GetDevice(), indices, sizeof(indices));
-	m_rsstate	   = KhanDx::CreateRSState_Solid(m_core->GetDevice());
-	m_blendState   = KhanDx::CreateBlendState_Alpha(m_core->GetDevice());
-	m_dsstate	   = KhanDx::CreateDSState_Default(m_core->GetDevice());
+	//m_indexBuffer  = KhanDx::CreateIndexBuffer(m_core->GetDevice(), indices, sizeof(indices));
 	m_pixelShader  = KhanDx::CreatePixelShader(m_core->GetDevice(), "PixelShader.cso");
 
 	ComPtr<ID3DBlob> shaderBlob = KhanDx::CreateShaderBlob("VertexShader.cso");
@@ -20,6 +17,10 @@ KhanRender::SelectionRectRenderer::SelectionRectRenderer(std::shared_ptr<Renderi
 
 	m_PSDynamicCBuffer = KhanDx::CreateDynamicCBuffer<DirectX::XMFLOAT4, 1U>(m_core->GetDevice());
 	m_VSDynamicCBuffer = KhanDx::CreateDynamicCBuffer<DirectX::XMFLOAT4X4, 1U>(m_core->GetDevice());
+
+	m_rsstate	   = KhanDx::CreateRSState_Solid(m_core->GetDevice());
+	m_dsstate	   = KhanDx::CreateDSState_Default(m_core->GetDevice());
+	m_blendState   = KhanDx::CreateBlendState_Alpha(m_core->GetDevice());
 }
 
 void KhanRender::SelectionRectRenderer::Render(int x1, int y1, int x2, int y2)
@@ -42,12 +43,10 @@ void KhanRender::SelectionRectRenderer::Render(int x1, int y1, int x2, int y2)
 		std::swap(y1, y2);
 	}
 
-	m_core->GetContext()->RSSetState(m_rsstate.Get());
 
 	UINT Stride = sizeof(Vertex);
 	UINT offset{};
 	m_core->GetContext()->IASetVertexBuffers(0U, 1U, m_vertexBuffer.GetAddressOf(), &Stride, &offset);
-	//m_core->GetContext()->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0u);
 	m_core->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	m_core->GetContext()->IASetInputLayout(m_inputLayout.Get());
 
@@ -80,10 +79,10 @@ void KhanRender::SelectionRectRenderer::Render(int x1, int y1, int x2, int y2)
 
 	// Update vertex shader dynamic constant buffer.
 	D3D11_MAPPED_SUBRESOURCE mappedResource_vs{};
-	m_core->GetContext()->Map(m_VSDynamicCBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource_vs);
+	m_core->GetContext()->Map(m_VSDynamicCBuffer.Get(), 0U, D3D11_MAP_WRITE_DISCARD, 0U, &mappedResource_vs);
 	::memcpy(mappedResource_vs.pData, &rectTransform, sizeof(rectTransform));
-	m_core->GetContext()->Unmap(m_VSDynamicCBuffer.Get(), 0u);
-	m_core->GetContext()->VSSetConstantBuffers(0u, 1u, m_VSDynamicCBuffer.GetAddressOf());
+	m_core->GetContext()->Unmap(m_VSDynamicCBuffer.Get(), 0U);
+	m_core->GetContext()->VSSetConstantBuffers(0U, 1U, m_VSDynamicCBuffer.GetAddressOf());
 
 	// Update pixel shader dynamic constant buffer.
 	D3D11_MAPPED_SUBRESOURCE mappedResource_ps{};
@@ -92,9 +91,8 @@ void KhanRender::SelectionRectRenderer::Render(int x1, int y1, int x2, int y2)
 	m_core->GetContext()->Unmap(m_PSDynamicCBuffer.Get(), 0U);
 	m_core->GetContext()->PSSetConstantBuffers(0U, 1U, m_PSDynamicCBuffer.GetAddressOf());
 
-	m_core->GetContext()->OMSetDepthStencilState(m_dsstate.Get(), 1u);
+	m_core->GetContext()->RSSetState(m_rsstate.Get());
+	m_core->GetContext()->OMSetDepthStencilState(m_dsstate.Get(), 1U);
 	m_core->GetContext()->OMSetBlendState(m_blendState.Get(), nullptr, 0xffffffff);
-
-	//m_core->GetContext()->DrawIndexed(ARRAYSIZE(indices), 0u, 0u);
 	m_core->GetContext()->Draw(ARRAYSIZE(vertices), 0U);
 }

@@ -3,7 +3,7 @@
 #include <KhanTools/Log.h>
 #include <KhanRender/RenderingHub.h>
 #include <KhanRender/SelectionRectRenderer.h>
-
+#include <KhanRender/CubeRenderer.h>
 
 Game2::Game2()
 	:
@@ -62,9 +62,13 @@ Game2::~Game2() noexcept
 void Game2::Run()
 {
 	m_renderingHub->RenderBegin();
-	static auto SelectionRect = KhanRender::SelectionRectRenderer(m_renderingHub);
+
+	static auto cube_renderer = KhanRender::CubeRenderer(m_renderingHub);
+	cube_renderer.Render();
+
+	static auto selectionRect_renderer = KhanRender::SelectionRectRenderer(m_renderingHub);
 	if (bIsSelectionRectDrawing)
-		SelectionRect.Render(x1, y1, x2, y2);
+		selectionRect_renderer.Render(x1, y1, x2, y2);
 	
 	m_renderingHub->RenderEnd();
 }

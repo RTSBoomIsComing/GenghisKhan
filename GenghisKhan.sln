@@ -5,8 +5,6 @@ VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sandbox", "Sandbox\Sandbox.vcxproj", "{96311C3F-0E11-40E6-8219-12CD52C0DF51}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GenghisKhan", "GenghisKhan\GenghisKhan.vcxproj", "{457E1FEF-E6E1-45A9-98EB-EA2A0ED8AEFC}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1D4DAEBF-D3F1-4215-AFE2-171130CE8256}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
@@ -29,10 +27,6 @@ Global
 		{96311C3F-0E11-40E6-8219-12CD52C0DF51}.Debug|x64.Build.0 = Debug|x64
 		{96311C3F-0E11-40E6-8219-12CD52C0DF51}.Release|x64.ActiveCfg = Release|x64
 		{96311C3F-0E11-40E6-8219-12CD52C0DF51}.Release|x64.Build.0 = Release|x64
-		{457E1FEF-E6E1-45A9-98EB-EA2A0ED8AEFC}.Debug|x64.ActiveCfg = Debug|x64
-		{457E1FEF-E6E1-45A9-98EB-EA2A0ED8AEFC}.Debug|x64.Build.0 = Debug|x64
-		{457E1FEF-E6E1-45A9-98EB-EA2A0ED8AEFC}.Release|x64.ActiveCfg = Release|x64
-		{457E1FEF-E6E1-45A9-98EB-EA2A0ED8AEFC}.Release|x64.Build.0 = Release|x64
 		{52798A14-965B-456B-93D5-FB1953880DC9}.Debug|x64.ActiveCfg = Debug|x64
 		{52798A14-965B-456B-93D5-FB1953880DC9}.Debug|x64.Build.0 = Debug|x64
 		{52798A14-965B-456B-93D5-FB1953880DC9}.Release|x64.ActiveCfg = Release|x64

@@ -98,6 +98,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="public\KhanRender\CubeRenderer.h" />
     <ClInclude Include="private\KhanDx\KhanDxComponents.h" />
     <ClInclude Include="private\KhanDx\KhanDxFactories.h" />
     <ClInclude Include="private\KhanDx\KhanDxUtils.h" />
@@ -108,6 +109,7 @@
     <ClInclude Include="public\KhanRender\SelectionRectRenderer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="public\KhanRender\CubeRenderer.cpp" />
     <ClCompile Include="private\KhanDx\KhanDxComponents.cpp" />
     <ClCompile Include="private\KhanDx\KhanDxFactories.cpp" />
     <ClCompile Include="private\KhanDx\KhanDxUtils.cpp" />
