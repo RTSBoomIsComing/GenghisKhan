@@ -24,4 +24,4 @@ So you don't need to install libraries manually,
 Once you build visual studio solution all the libraries installed automatically.
 
 ## Results of work
-![Results](https://user-images.githubusercontent.com/61501369/216623142-566ae1ff-0312-46b4-bfc1-786eeb967437.png){: width="60%",height="40%"}
+![Results](https://user-images.githubusercontent.com/61501369/216623142-566ae1ff-0312-46b4-bfc1-786eeb967437.png)
