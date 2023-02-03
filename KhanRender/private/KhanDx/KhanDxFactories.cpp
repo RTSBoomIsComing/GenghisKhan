@@ -2,16 +2,19 @@
 #include "KhanDxFactories.h"
 #include <KhanDx/KhanDxUtils.h>
 
-void KhanDx::CreateRenderTarget(ID3D11Device* d3d_device, IDXGISwapChain* swapchain, ID3D11RenderTargetView** rtview, UINT width, UINT height)
+ComPtr<ID3D11RenderTargetView> KhanDx::CreateRenderTarget(ID3D11Device* d3d_device, IDXGISwapChain* swapchain, UINT width, UINT height)
 {
 	ComPtr<ID3D11Resource> backBuffer;
 	ThrowIfFailed(
 		swapchain->GetBuffer(0u, IID_PPV_ARGS(&backBuffer)),
 		"failed to get back buffer");
 
+	ComPtr<ID3D11RenderTargetView> rtview;
 	ThrowIfFailed(
-		d3d_device->CreateRenderTargetView(backBuffer.Get(), nullptr, rtview),
+		d3d_device->CreateRenderTargetView(backBuffer.Get(), nullptr, &rtview),
 		"failed to create back buffer");
+
+	return rtview;
 }
 
 void KhanDx::CreateDepthStencilStateAndView(ID3D11Device* d3d_device, ID3D11DepthStencilState** dsstate, ID3D11DepthStencilView** dsview, UINT width, UINT height)

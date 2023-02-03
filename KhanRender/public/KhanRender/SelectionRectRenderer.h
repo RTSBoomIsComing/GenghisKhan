@@ -7,7 +7,7 @@ namespace KhanRender
 	class SelectionRectRenderer : public Renderer
 	{		
 	public:
-		SelectionRectRenderer(std::shared_ptr<RenderingHub> core);;
+		SelectionRectRenderer(std::shared_ptr<RenderingHub> core);
 		void Render(int x1, int y1, int x2, int y2);
 
 	private:

@@ -3,13 +3,16 @@
 #include "KhanDx/KhanDxUtils.h"
 #include "KhanDx/KhanDxFactories.h"
 
+//ComPtr<ID3D11Device>			KhanRender::RenderingHub::d3d_device = nullptr;
+//ComPtr<ID3D11DeviceContext>	KhanRender::RenderingHub::d3d_context = nullptr;
+
 KhanRender::RenderingHub::RenderingHub(HWND hwnd, UINT width, UINT height)
 {
 	rt_width = width;
 	rt_height = height;
 	this->CreateDeviceAndContext();
 	this->CreateSwapChain(hwnd, width, height);
-	KhanDx::CreateRenderTarget(d3d_device.Get(), m_swapchain.Get(), &rtview, width, height);
+	rtview = KhanDx::CreateRenderTarget(d3d_device.Get(), m_swapchain.Get(),width, height);
 
 	KhanDx::CreateDepthStencilStateAndView(d3d_device.Get(), &dsstate, &dsview, width, height);
 	d3d_context->OMSetDepthStencilState(dsstate.Get(), 1u);
@@ -74,7 +77,7 @@ void KhanRender::RenderingHub::ResizeRenderTarget(UINT width, UINT height) noexc
 
 	m_swapchain->ResizeBuffers(0u, 0u, 0u, DXGI_FORMAT_UNKNOWN, 0u);
 
-	KhanDx::CreateRenderTarget(d3d_device.Get(), m_swapchain.Get(), &rtview, width, height);
+	rtview = KhanDx::CreateRenderTarget(d3d_device.Get(), m_swapchain.Get(),width, height);
 	KhanDx::CreateDepthStencilStateAndView(d3d_device.Get(), &dsstate, &dsview, width, height);
 	viewport = KhanDx::CreateDefaultViewport(static_cast<float>(width), static_cast<float>(height));
 	d3d_context->RSSetViewports(1u, &viewport);

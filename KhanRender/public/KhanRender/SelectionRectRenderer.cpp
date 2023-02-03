@@ -40,21 +40,18 @@ void KhanRender::SelectionRectRenderer::Render(int x1, int y1, int x2, int y2)
 	{
 		std::swap(y1, y2);
 	}
-
+	
 	m_core->d3d_context->RSSetState(m_rsstate.Get());
 
 	UINT Stride = sizeof(Vertex);
 	UINT offset{};
 	m_core->d3d_context->IASetVertexBuffers(0U, 1U, m_vertexBuffer.GetAddressOf(), &Stride, &offset);
-
-
 	m_core->d3d_context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0u);
-
-	m_core->d3d_context->PSSetShader(m_pixelShader.Get(), nullptr, 0u);
-
-
+	m_core->d3d_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_core->d3d_context->IASetInputLayout(m_inputLayout.Get());
+
 	m_core->d3d_context->VSSetShader(m_vertexShader.Get(), nullptr, 0u);
+	m_core->d3d_context->PSSetShader(m_pixelShader.Get(), nullptr, 0u);
 
 	float rect_w = static_cast<float>(x2 - x1);
 	float rect_h = static_cast<float>(y2 - y1);
@@ -74,26 +71,21 @@ void KhanRender::SelectionRectRenderer::Render(int x1, int y1, int x2, int y2)
 		0.0f,   0.0f,   0.0f,  1.0f,
 	};
 
-	//static ComPtr<ID3D11Buffer> vsDynamicCBuffer = KhanDx::CreateDynamicCBuffer<XMFLOAT4X4, 1U>(m_core->d3d_device.Get());
-	D3D11_MAPPED_SUBRESOURCE mappedResource{};
-
-	m_core->d3d_context->Map(m_VSDynamicCBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	::memcpy(mappedResource.pData, &rectTransform, sizeof(rectTransform));
+	// Update vertex shader dynamic constant buffer.
+	D3D11_MAPPED_SUBRESOURCE mappedResource_vs{};
+	m_core->d3d_context->Map(m_VSDynamicCBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource_vs);
+	::memcpy(mappedResource_vs.pData, &rectTransform, sizeof(rectTransform));
 	m_core->d3d_context->Unmap(m_VSDynamicCBuffer.Get(), 0u);
-
 	m_core->d3d_context->VSSetConstantBuffers(0u, 1u, m_VSDynamicCBuffer.GetAddressOf());
 
-
-	//static ComPtr<ID3D11Buffer> psDynamicCBuffer = KhanDx::CreateDynamicCBuffer<XMFLOAT4, 1U>(m_core->d3d_device.Get());
+	// Update pixel shader dynamic constant buffer.
 	D3D11_MAPPED_SUBRESOURCE mappedResource_ps{};
-
 	m_core->d3d_context->Map(m_PSDynamicCBuffer.Get(), 0U, D3D11_MAP_WRITE_DISCARD, 0U, &mappedResource_ps);
 	::memcpy(mappedResource_ps.pData, &rectSize, sizeof(rectSize));
 	m_core->d3d_context->Unmap(m_PSDynamicCBuffer.Get(), 0U);
-
 	m_core->d3d_context->PSSetConstantBuffers(0U, 1U, m_PSDynamicCBuffer.GetAddressOf());
 
-	m_core->d3d_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	
 
 	m_core->d3d_context->OMSetBlendState(m_blendState.Get(), nullptr, 0xffffffff);
 

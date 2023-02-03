@@ -26,8 +26,8 @@ namespace KhanRender
 		UINT rt_height{};
 
 	public:
-		static inline ComPtr<ID3D11Device>			d3d_device;
-		static inline ComPtr<ID3D11DeviceContext>	d3d_context;
+		static inline ComPtr<ID3D11Device>			d3d_device{};
+		static inline ComPtr<ID3D11DeviceContext>	d3d_context{};
 
 		ComPtr<ID3D11RenderTargetView>	rtview;
 		ComPtr<ID3D11DepthStencilView>	dsview;
