@@ -7,7 +7,7 @@
 #include "KhanRender/RenderingHub.h"
 #include <KhanDx/KhanDxFactories.h>
 
-KhanRender::ImGuiRenderer::ImGuiRenderer(void* hwnd, std::shared_ptr<RenderingHub> core, std::function<void()> ImGuiRender_Impl)
+KhanRender::ImGuiRenderer::ImGuiRenderer(void* hWnd, std::shared_ptr<RenderingHub> core, std::function<void()> ImGuiRender_Impl)
 	:
 	m_ImGuiRender_Impl(ImGuiRender_Impl)
 {
@@ -19,8 +19,8 @@ KhanRender::ImGuiRenderer::ImGuiRenderer(void* hwnd, std::shared_ptr<RenderingHu
 
 	::ImGui::StyleColorsDark(); // Setup Dear ImGui style
 
-	::ImGui_ImplWin32_Init(hwnd);
-	::ImGui_ImplDX11_Init(core->GetDevice().Get(), core->GetContext().Get());
+	::ImGui_ImplWin32_Init(hWnd);
+	::ImGui_ImplDX11_Init(core->GetDevice().Get(), core->GetDeviceContext().Get());
 }
 
 KhanRender::ImGuiRenderer::~ImGuiRenderer() noexcept

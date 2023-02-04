@@ -8,7 +8,7 @@ namespace KhanRender
 	class ImGuiRenderer
 	{
 	public:
-		ImGuiRenderer(void* hwnd, std::shared_ptr<class RenderingHub> core, std::function<void()> ImGuiRender_Impl);
+		ImGuiRenderer(void* hWnd, std::shared_ptr<class RenderingHub> core, std::function<void()> ImGuiRender_Impl);
 		~ImGuiRenderer() noexcept;
 
 		void Render();

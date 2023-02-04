@@ -11,16 +11,16 @@ namespace KhanRender
 		void Render(int x1, int y1, int x2, int y2);
 
 	private:
-		ComPtr<ID3D11Buffer>		    m_vertexBuffer;
-		//ComPtr<ID3D11Buffer>		    m_indexBuffer;
-		ComPtr<ID3D11PixelShader>	    m_pixelShader;
-		ComPtr<ID3D11VertexShader>	    m_vertexShader;
-		ComPtr<ID3D11InputLayout>	    m_inputLayout;
-		ComPtr<ID3D11Buffer>		    m_PSDynamicCBuffer;
-		ComPtr<ID3D11Buffer>		    m_VSDynamicCBuffer;
-		ComPtr<ID3D11RasterizerState>   m_rsstate;
-		ComPtr<ID3D11DepthStencilState> m_dsstate;
-		ComPtr<ID3D11BlendState>	    m_blendState;
+		ComPtr<ID3D11Buffer>		    m_pVertexBuffer;
+		//ComPtr<ID3D11Buffer>		    m_pIndexBuffer;
+		ComPtr<ID3D11PixelShader>	    m_pPixelShader;
+		ComPtr<ID3D11VertexShader>	    m_pVertexShader;
+		ComPtr<ID3D11InputLayout>	    m_pInputLayout;
+		ComPtr<ID3D11Buffer>		    m_pPSDynConstBuf;
+		ComPtr<ID3D11Buffer>		    m_pVSDynConstBuf;
+		ComPtr<ID3D11RasterizerState>   m_pRasterizerState;
+		ComPtr<ID3D11DepthStencilState> m_pDepthStencilState;
+		ComPtr<ID3D11BlendState>	    m_pBlendState;
 	private:
 		struct Vertex
 		{

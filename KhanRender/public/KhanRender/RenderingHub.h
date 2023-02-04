@@ -9,7 +9,7 @@ namespace KhanRender
 	class RenderingHub
 	{
 	public:
-		RenderingHub(HWND hwnd, UINT width, UINT height);
+		RenderingHub(HWND hWnd, UINT width, UINT height);
 
 	public:
 		void RenderBegin() noexcept;
@@ -17,27 +17,27 @@ namespace KhanRender
 		void ResizeRenderTarget(UINT width, UINT height) noexcept;
 
 	private:
-		UINT screen_width{};
-		UINT screen_height{};
+		UINT m_screenWidth{};
+		UINT m_screenHeight{};
 
-		ComPtr<ID3D11Device> m_device;
-		ComPtr<ID3D11DeviceContext> m_context;
-		ComPtr<IDXGISwapChain> m_swapchain;
+		ComPtr<ID3D11Device> m_pDevice;
+		ComPtr<ID3D11DeviceContext> m_pDeviceContext;
+		ComPtr<IDXGISwapChain> m_pSwapChain;
 
-		ComPtr<ID3D11RenderTargetView> m_rtview;
-		ComPtr<ID3D11DepthStencilView> m_dsview;
+		ComPtr<ID3D11RenderTargetView> m_pRTV;
+		ComPtr<ID3D11DepthStencilView> m_pDSV;
 
-		D3D11_VIEWPORT m_viewport;
+		D3D11_VIEWPORT m_viewport{};
 
 
 	public:
-		UINT GetScreenWidth() const noexcept { return screen_width; }
-		UINT GetScreenHeight() const noexcept { return screen_height; }
+		UINT const& GetScreenWidth() const noexcept { return m_screenWidth; }
+		UINT const& GetScreenHeight() const noexcept { return m_screenHeight; }
 
-		ComPtr<ID3D11Device> GetDevice() noexcept { return m_device; }
-		ComPtr<ID3D11DeviceContext> GetContext() noexcept { return m_context; }
-		ComPtr<ID3D11RenderTargetView> GetRTView() noexcept { return m_rtview; }
-		ComPtr<ID3D11DepthStencilView> GetDSView() noexcept { return m_dsview; }
+		ComPtr<ID3D11Device>& GetDevice() noexcept { return m_pDevice; }
+		ComPtr<ID3D11DeviceContext>& GetDeviceContext() noexcept { return m_pDeviceContext; }
+		ComPtr<ID3D11RenderTargetView>& GetRTV() noexcept { return m_pRTV; }
+		ComPtr<ID3D11DepthStencilView>& GetDSV() noexcept { return m_pDSV; }
 	};
 }
 
