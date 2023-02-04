@@ -8,7 +8,7 @@ namespace KhanRender
 	{
 	public:
 		CubeRenderer(std::shared_ptr<RenderingHub> core);
-		void Render();
+		void Render(UINT instanceCount);
 
 	private:
 		ComPtr<ID3D11Buffer>		    m_vertexBuffer;

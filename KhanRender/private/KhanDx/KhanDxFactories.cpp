@@ -3,14 +3,13 @@
 #include <KhanDx/KhanDxUtils.h>
 
 
-std::tuple<ComPtr<ID3D11Device>, ComPtr<ID3D11DeviceContext>> KhanDx::CreateDeviceAndContext()
+KhanDx::D3D11DeviceWithContext KhanDx::CreateDeviceAndContext()
 {
-	static ComPtr<ID3D11Device> static_d3d_device{};
-	static ComPtr<ID3D11DeviceContext> static_d3d_context{};
-
-	if (static_d3d_device && static_d3d_context)
+	static D3D11DeviceWithContext d3d_deviceWithContext;
+	auto& [d3d_device, d3d_context] = d3d_deviceWithContext;
+	if (d3d_device && d3d_context)
 	{
-		return { static_d3d_device, static_d3d_context };
+		return d3d_deviceWithContext;
 	}
 
 	UINT CreateDeviceFlags{};
@@ -20,14 +19,14 @@ std::tuple<ComPtr<ID3D11Device>, ComPtr<ID3D11DeviceContext>> KhanDx::CreateDevi
 
 	KhanDx::ThrowIfFailed(::D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE,
 		nullptr, CreateDeviceFlags, nullptr, 0U,
-		D3D11_SDK_VERSION, &static_d3d_device, nullptr,
-		&static_d3d_context),
+		D3D11_SDK_VERSION, &d3d_device, nullptr,
+		&d3d_context),
 		"Failed to Create D3d Device and Context");
 
-	return { static_d3d_device, static_d3d_context };
+	return d3d_deviceWithContext;
 }
 
-ComPtr<IDXGISwapChain> KhanDx::CreateSwapChain(ID3D11Device* d3d_device, HWND hwnd)
+ComPtr<IDXGISwapChain> KhanDx::CreateSwapChain(ComPtr<ID3D11Device> d3d_device, HWND hwnd)
 {
 	ComPtr<IDXGISwapChain> swapchain;
 
@@ -55,14 +54,14 @@ ComPtr<IDXGISwapChain> KhanDx::CreateSwapChain(ID3D11Device* d3d_device, HWND hw
 	swapchain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapchain_desc.Flags = 0U;
 
-	KhanDx::ThrowIfFailed(dxgi_factory->CreateSwapChain(d3d_device,
+	KhanDx::ThrowIfFailed(dxgi_factory->CreateSwapChain(d3d_device.Get(),
 		&swapchain_desc, &swapchain),
 		"Failed to Create SwapChain");
 
 	return swapchain;
 }
 
-ComPtr<ID3D11RenderTargetView> KhanDx::CreateRenderTargetView(ID3D11Device* d3d_device, IDXGISwapChain* swapchain, UINT width, UINT height)
+ComPtr<ID3D11RenderTargetView> KhanDx::CreateRenderTargetView(ComPtr<ID3D11Device> d3d_device, ComPtr<IDXGISwapChain> swapchain, UINT width, UINT height)
 {
 	ComPtr<ID3D11Resource> backBuffer;
 	ThrowIfFailed(
@@ -77,7 +76,7 @@ ComPtr<ID3D11RenderTargetView> KhanDx::CreateRenderTargetView(ID3D11Device* d3d_
 	return rtview;
 }
 
-ComPtr<ID3D11DepthStencilView> KhanDx::CreateDepthStencilView(ID3D11Device* d3d_device, UINT width, UINT height)
+ComPtr<ID3D11DepthStencilView> KhanDx::CreateDepthStencilView(ComPtr<ID3D11Device> d3d_device, UINT width, UINT height)
 {
 	ComPtr<ID3D11Texture2D> dsBuffer;
 	D3D11_TEXTURE2D_DESC dsBufferDesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_D32_FLOAT, width, height);

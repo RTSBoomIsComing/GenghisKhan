@@ -11,9 +11,8 @@ KhanRender::SelectionRectRenderer::SelectionRectRenderer(std::shared_ptr<Renderi
 	//m_indexBuffer  = KhanDx::CreateIndexBuffer(m_core->GetDevice(), indices, sizeof(indices));
 	m_pixelShader  = KhanDx::CreatePixelShader(m_core->GetDevice(), "PixelShader.cso");
 
-	ComPtr<ID3DBlob> shaderBlob = KhanDx::CreateShaderBlob("VertexShader.cso");
-	m_vertexShader = KhanDx::CreateVertexShader(m_core->GetDevice(), shaderBlob.Get());
-	m_inputLayout  = KhanDx::CreateInputLayout(m_core->GetDevice(), shaderBlob.Get(), elementDescs, ARRAYSIZE(elementDescs));
+	std::tie(m_vertexShader, m_inputLayout) = KhanDx::CreateVertexShaderAndInputLayout(
+		m_core->GetDevice(), "VertexShader.cso", elementDescs, ARRAYSIZE(elementDescs));
 
 	m_PSDynamicCBuffer = KhanDx::CreateDynamicCBuffer<DirectX::XMFLOAT4, 1U>(m_core->GetDevice());
 	m_VSDynamicCBuffer = KhanDx::CreateDynamicCBuffer<DirectX::XMFLOAT4X4, 1U>(m_core->GetDevice());

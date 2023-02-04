@@ -34,10 +34,10 @@ namespace KhanRender
 		UINT GetScreenWidth() const noexcept { return screen_width; }
 		UINT GetScreenHeight() const noexcept { return screen_height; }
 
-		ID3D11Device* GetDevice() noexcept { return m_device.Get(); }
-		ID3D11DeviceContext* GetContext() noexcept { return m_context.Get(); }
-		ID3D11RenderTargetView* GetRTView() noexcept { return m_rtview.Get(); }
-		ID3D11DepthStencilView* GetDSView() noexcept { return m_dsview.Get(); }
+		ComPtr<ID3D11Device> GetDevice() noexcept { return m_device; }
+		ComPtr<ID3D11DeviceContext> GetContext() noexcept { return m_context; }
+		ComPtr<ID3D11RenderTargetView> GetRTView() noexcept { return m_rtview; }
+		ComPtr<ID3D11DepthStencilView> GetDSView() noexcept { return m_dsview; }
 	};
 }
 

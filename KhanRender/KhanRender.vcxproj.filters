@@ -20,5 +20,6 @@
     <ClCompile Include="private\KhanDx\KhanDxComponents.cpp" />
     <ClCompile Include="public\KhanRender\SelectionRectRenderer.cpp" />
     <ClCompile Include="public\KhanRender\CubeRenderer.cpp" />
+    <ClCompile Include="public\KhanRender\ImGuiRenderer.cpp" />
   </ItemGroup>
 </Project>

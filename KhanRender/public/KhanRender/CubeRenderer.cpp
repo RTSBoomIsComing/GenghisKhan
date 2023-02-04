@@ -10,18 +10,17 @@ KhanRender::CubeRenderer::CubeRenderer(std::shared_ptr<RenderingHub> core)
 	m_indexBuffer  = KhanDx::CreateIndexBuffer(m_core->GetDevice(), indices, sizeof(indices));
 	m_pixelShader = KhanDx::CreatePixelShader(m_core->GetDevice(), "PS_BasicGeometry3d.cso");
 
-	ComPtr<ID3DBlob> shaderBlob = KhanDx::CreateShaderBlob("VS_BasicGeometry3d.cso");
-	m_vertexShader = KhanDx::CreateVertexShader(m_core->GetDevice(), shaderBlob.Get());
-	m_inputLayout = KhanDx::CreateInputLayout(m_core->GetDevice(), shaderBlob.Get(), elementDescs, ARRAYSIZE(elementDescs));
+	std::tie(m_vertexShader, m_inputLayout) = KhanDx::CreateVertexShaderAndInputLayout(
+		m_core->GetDevice(), "VS_BasicGeometry3d.cso", elementDescs, ARRAYSIZE(elementDescs));
 
-	m_VSDynamicCBuffer = KhanDx::CreateDynamicCBuffer<DirectX::XMFLOAT4X4, 1u>(m_core->GetDevice());
+	m_VSDynamicCBuffer = KhanDx::CreateDynamicCBuffer<DirectX::XMFLOAT4X4, 2u>(m_core->GetDevice());
 	//m_rsstate = KhanDx::CreateRSState_WireFrame(m_core->GetDevice());
 	m_rsstate = KhanDx::CreateRSState_Solid(m_core->GetDevice());
 	m_dsstate = KhanDx::CreateDSState_Default(m_core->GetDevice());
 	m_blendState = nullptr; // blend off
 }
 
-void KhanRender::CubeRenderer::Render()
+void KhanRender::CubeRenderer::Render(UINT instanceCount)
 {
 	using namespace DirectX;
 
@@ -36,7 +35,7 @@ void KhanRender::CubeRenderer::Render()
 
 	m_core->GetContext()->PSSetShader(m_pixelShader.Get(), nullptr, 0u);
 
-	XMFLOAT4X4 WorldViewProjMatrix{};
+	XMFLOAT4X4 WorldViewProjMatrix[2]{};
 	//XMMatrixRotationZ
 	//XMMatrixRotationX
 	//XMMatrixRotationY
@@ -46,10 +45,17 @@ void KhanRender::CubeRenderer::Render()
 	if (angle_temp > 5.0F) angle_temp = -5.0F;
 
 	float aspect_ratio = (float)m_core->GetScreenWidth() / m_core->GetScreenHeight();
-	XMStoreFloat4x4(&WorldViewProjMatrix,
+	XMStoreFloat4x4(&WorldViewProjMatrix[0],
 		XMMatrixTranspose(
 			XMMatrixRotationY(angle_temp)
 			* XMMatrixTranslation(angle_temp, 0.0f, 0.0f)
+			* XMMatrixLookAtLH({ 0.0f, 0.0f, -10.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f })
+			* XMMatrixPerspectiveFovLH(3.14f / 4.f, aspect_ratio, 1.0f, 100.0f)));
+
+	XMStoreFloat4x4(&WorldViewProjMatrix[1],
+		XMMatrixTranspose(
+			XMMatrixRotationY(-angle_temp)
+			* XMMatrixTranslation(-angle_temp, 0.0f, 0.0f)
 			* XMMatrixLookAtLH({ 0.0f, 0.0f, -10.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f })
 			* XMMatrixPerspectiveFovLH(3.14f / 4.f, aspect_ratio, 1.0f, 100.0f)));
 
@@ -65,5 +71,5 @@ void KhanRender::CubeRenderer::Render()
 	m_core->GetContext()->RSSetState(m_rsstate.Get());
 	m_core->GetContext()->OMSetDepthStencilState(m_dsstate.Get(), 1U);
 	m_core->GetContext()->OMSetBlendState(m_blendState.Get(), nullptr, 0xffffffff);
-	m_core->GetContext()->DrawIndexed(ARRAYSIZE(indices), 0u, 0u);
+	m_core->GetContext()->DrawIndexedInstanced(ARRAYSIZE(indices), 2U, 0U, 0U, 0U);
 }

@@ -2,7 +2,7 @@
 #include "KhanDxComponents.h"
 #include "KhanDx/KhanDxUtils.h"
 
-ComPtr<ID3D11RasterizerState> KhanDx::CreateRSState_Solid(ID3D11Device* d3d_device) noexcept
+ComPtr<ID3D11RasterizerState> KhanDx::CreateRSState_Solid(ComPtr<ID3D11Device> d3d_device) noexcept
 {
 	ComPtr<ID3D11RasterizerState> rsstate;
 	D3D11_RASTERIZER_DESC desc{};
@@ -15,7 +15,7 @@ ComPtr<ID3D11RasterizerState> KhanDx::CreateRSState_Solid(ID3D11Device* d3d_devi
 	return rsstate;
 }
 
-ComPtr<ID3D11RasterizerState> KhanDx::CreateRSState_Solid_NoCulling(ID3D11Device* d3d_device) noexcept
+ComPtr<ID3D11RasterizerState> KhanDx::CreateRSState_Solid_NoCulling(ComPtr<ID3D11Device> d3d_device) noexcept
 {
 	ComPtr<ID3D11RasterizerState> rsstate;
 	D3D11_RASTERIZER_DESC desc{};
@@ -28,7 +28,7 @@ ComPtr<ID3D11RasterizerState> KhanDx::CreateRSState_Solid_NoCulling(ID3D11Device
 	return rsstate;
 }
 
-ComPtr<ID3D11RasterizerState> KhanDx::CreateRSState_WireFrame(ID3D11Device* d3d_device) noexcept
+ComPtr<ID3D11RasterizerState> KhanDx::CreateRSState_WireFrame(ComPtr<ID3D11Device> d3d_device) noexcept
 {
 	ComPtr<ID3D11RasterizerState> rsstate;
 	D3D11_RASTERIZER_DESC desc{};
@@ -41,7 +41,7 @@ ComPtr<ID3D11RasterizerState> KhanDx::CreateRSState_WireFrame(ID3D11Device* d3d_
 	return rsstate;
 }
 
-ComPtr<ID3D11DepthStencilState> KhanDx::CreateDSState_Default(ID3D11Device* d3d_device) noexcept
+ComPtr<ID3D11DepthStencilState> KhanDx::CreateDSState_Default(ComPtr<ID3D11Device> d3d_device) noexcept
 {
 	ComPtr<ID3D11DepthStencilState> dsstate;
 	D3D11_DEPTH_STENCIL_DESC dsDesc = CD3D11_DEPTH_STENCIL_DESC(D3D11_DEFAULT);
@@ -52,7 +52,7 @@ ComPtr<ID3D11DepthStencilState> KhanDx::CreateDSState_Default(ID3D11Device* d3d_
 	return dsstate;
 }
 
-ComPtr<ID3D11Buffer> KhanDx::CreateVertexBuffer(ID3D11Device* d3d_device, const void* pSysMem, UINT byteWidth) noexcept
+ComPtr<ID3D11Buffer> KhanDx::CreateVertexBuffer(ComPtr<ID3D11Device> d3d_device, const void* pSysMem, UINT byteWidth) noexcept
 {
 	// Fill in the subresource data.
 	D3D11_SUBRESOURCE_DATA InitVertexData{};
@@ -75,7 +75,7 @@ ComPtr<ID3D11Buffer> KhanDx::CreateVertexBuffer(ID3D11Device* d3d_device, const 
 	return vertexBuffer;
 }
 
-ComPtr<ID3D11Buffer> KhanDx::CreateIndexBuffer(ID3D11Device* d3d_device, const void* pSysMem, UINT byteWidth) noexcept
+ComPtr<ID3D11Buffer> KhanDx::CreateIndexBuffer(ComPtr<ID3D11Device> d3d_device, const void* pSysMem, UINT byteWidth) noexcept
 {
 	// Fill in the subresource data.
 	D3D11_SUBRESOURCE_DATA InitIndexData{};
@@ -97,7 +97,7 @@ ComPtr<ID3D11Buffer> KhanDx::CreateIndexBuffer(ID3D11Device* d3d_device, const v
 	return indexBuffer;
 }
 
-ComPtr<ID3D11BlendState> KhanDx::CreateBlendState_Alpha(ID3D11Device* d3d_device) noexcept
+ComPtr<ID3D11BlendState> KhanDx::CreateBlendState_Alpha(ComPtr<ID3D11Device> d3d_device) noexcept
 {
 	D3D11_BLEND_DESC blendDesc{};
 	blendDesc.RenderTarget[0].BlendEnable = true;
@@ -114,25 +114,25 @@ ComPtr<ID3D11BlendState> KhanDx::CreateBlendState_Alpha(ID3D11Device* d3d_device
 	return blendState;
 }
 
-ComPtr<ID3DBlob> KhanDx::CreateShaderBlob(std::string_view fileName)
+ComPtr<ID3DBlob> KhanDx::CreateShaderBlob(std::string_view cso_name)
 {
 #if defined(DEBUG) || defined(_DEBUG)
-	std::wstring fullFileName{ L"..\\bin\\Debug-x64\\" };
+	std::wstring fullPath{ L"..\\bin\\Debug-x64\\" };
 #else
-	std::wstring fullFileName{ L"..\\bin\\Release-x64\\" };
+	std::wstring fullPath{ L"..\\bin\\Release-x64\\" };
 #endif
-	fullFileName += std::wstring(fileName.begin(), fileName.end());
+	fullPath += std::wstring(cso_name.begin(), cso_name.end());
 
 	ComPtr<ID3DBlob> ShaderBlob;
-	ThrowIfFailed(::D3DReadFileToBlob(fullFileName.data(), &ShaderBlob),
-		std::string{ "failed to read file: " } + std::string{ fileName });
+	ThrowIfFailed(::D3DReadFileToBlob(fullPath.data(), &ShaderBlob),
+		std::string{ "failed to read file: " } + std::string{ cso_name });
 
 	return ShaderBlob;
 }
 
-ComPtr<ID3D11PixelShader> KhanDx::CreatePixelShader(ID3D11Device* d3d_device, std::string_view fileName)
+ComPtr<ID3D11PixelShader> KhanDx::CreatePixelShader(ComPtr<ID3D11Device> d3d_device, std::string_view cso_name)
 {
-	ComPtr<ID3DBlob> pixelShader_blob = CreateShaderBlob(fileName);
+	ComPtr<ID3DBlob> pixelShader_blob = CreateShaderBlob(cso_name);
 
 	ComPtr<ID3D11PixelShader> pixelShader;
 	ThrowIfFailed(d3d_device->CreatePixelShader(
@@ -143,7 +143,7 @@ ComPtr<ID3D11PixelShader> KhanDx::CreatePixelShader(ID3D11Device* d3d_device, st
 	return pixelShader;
 }
 
-ComPtr<ID3D11VertexShader> KhanDx::CreateVertexShader(ID3D11Device* d3d_device, ID3DBlob* pShaderBlob) noexcept
+ComPtr<ID3D11VertexShader> KhanDx::CreateVertexShader(ComPtr<ID3D11Device> d3d_device, ComPtr<ID3DBlob> pShaderBlob) noexcept
 {
 	ComPtr<ID3D11VertexShader> vertexShader;
 	ThrowIfFailed(d3d_device->CreateVertexShader(
@@ -153,7 +153,15 @@ ComPtr<ID3D11VertexShader> KhanDx::CreateVertexShader(ID3D11Device* d3d_device, 
 	return vertexShader;
 }
 
-ComPtr<ID3D11InputLayout> KhanDx::CreateInputLayout(ID3D11Device* d3d_device, ID3DBlob* pShaderBlob, const D3D11_INPUT_ELEMENT_DESC* elementDescs, UINT numElements) noexcept
+KhanDx::D3D11VertexShaderAndInputLayout KhanDx::CreateVertexShaderAndInputLayout(ComPtr<ID3D11Device> d3d_device, std::string_view cso_name, const D3D11_INPUT_ELEMENT_DESC* elementDescs, UINT numElements)
+{
+	ComPtr<ID3DBlob> vertexShader_blob = CreateShaderBlob(cso_name);
+	auto vertexShader = CreateVertexShader(d3d_device, vertexShader_blob.Get());
+	auto inputLayout = CreateInputLayout(d3d_device, vertexShader_blob.Get(), elementDescs, numElements);
+	return { std::move(vertexShader) , std::move(inputLayout) };
+}
+
+ComPtr<ID3D11InputLayout> KhanDx::CreateInputLayout(ComPtr<ID3D11Device> d3d_device, ComPtr<ID3DBlob> pShaderBlob, const D3D11_INPUT_ELEMENT_DESC* elementDescs, UINT numElements) noexcept
 {
 	ComPtr<ID3D11InputLayout> inputLayout;
 	ThrowIfFailed(d3d_device->CreateInputLayout(elementDescs, numElements,

@@ -65,7 +65,7 @@ void Game2::Run()
 	m_renderingHub->RenderBegin();
 
 	static auto cube_renderer = KhanRender::CubeRenderer(m_renderingHub);
-	cube_renderer.Render();
+	cube_renderer.Render(1U);
 
 	static auto selectionRect_renderer = KhanRender::SelectionRectRenderer(m_renderingHub);
 	if (bIsSelectionRectDrawing)
