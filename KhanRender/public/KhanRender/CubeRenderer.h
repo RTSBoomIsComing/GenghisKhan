@@ -1,14 +1,18 @@
 #pragma once
 #include "KhanRender/Renderer.h"
 #include <DirectXMath.h>
+#include <vector>
 
 namespace KhanRender
 {
 	class CubeRenderer : public Renderer
 	{
 	public:
-		CubeRenderer(std::shared_ptr<RenderingHub> core);
-		void Render(UINT instanceCount);
+		CubeRenderer(std::shared_ptr<RenderingHub> pHub);
+		void Update(std::vector<DirectX::XMFLOAT4X4> const& transforms);
+		void Render();
+	private:
+		UINT m_numInstance{};
 
 	private:
 		ComPtr<ID3D11Buffer>		    m_pVertexBuffer;
@@ -17,12 +21,19 @@ namespace KhanRender
 		ComPtr<ID3D11VertexShader>	    m_pVertexShader;
 		ComPtr<ID3D11InputLayout>	    m_pInputLayout;
 		//ComPtr<ID3D11Buffer>		    m_pPSDynCBuf;
-		//ComPtr<ID3D11Buffer>		    m_pVSDynCBuf;
-		ComPtr<ID3D11Buffer>		    m_pVSDynStructBuf;
+		ComPtr<ID3D11Buffer>		    m_pVSDynConstBuf;
+		//ComPtr<ID3D11Buffer>		    m_pVSDynStructBuf;
 		ComPtr<ID3D11BlendState>	    m_pBlendState;
 		ComPtr<ID3D11RasterizerState>   m_pRasterizerState;
 		ComPtr<ID3D11DepthStencilState> m_pDepthStencilState;
-		ComPtr<ID3D11ShaderResourceView> m_pSRV;
+		//ComPtr<ID3D11ShaderResourceView> m_pSRV;
+
+		const D3D11_INPUT_ELEMENT_DESC elementDescs[3]
+		{
+			{ "POSITION", 0U, DXGI_FORMAT_R32G32B32_FLOAT, 0U, 0U,                           D3D11_INPUT_PER_VERTEX_DATA, 0U },
+			{ "TEXCOORD", 0U, DXGI_FORMAT_R32G32_FLOAT,    0U, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0U },
+			{ "NORMAL",   0U, DXGI_FORMAT_R32G32B32_FLOAT, 0U, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0U },
+		};
 
 		struct Vertex
 		{
@@ -99,13 +110,6 @@ namespace KhanRender
 			// Right Face
 			20, 21, 22,
 			20, 22, 23
-		};
-
-		const D3D11_INPUT_ELEMENT_DESC elementDescs[3]
-		{
-			{ "POSITION", 0U, DXGI_FORMAT_R32G32B32_FLOAT, 0U, 0U,                           D3D11_INPUT_PER_VERTEX_DATA, 0U },
-			{ "TEXCOORD", 0U, DXGI_FORMAT_R32G32_FLOAT,    0U, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0U },
-			{ "NORMAL",   0U, DXGI_FORMAT_R32G32B32_FLOAT, 0U, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0U },
 		};
 	};
 }

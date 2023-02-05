@@ -62,14 +62,27 @@ Game2::~Game2() noexcept
 
 void Game2::Run()
 {
+	using namespace DirectX;
 	m_renderingHub->RenderBegin();
 
 	static auto cube_renderer = KhanRender::CubeRenderer(m_renderingHub);
-	cube_renderer.Render(1U);
+
+	static float angle_temp{ -5.0F };
+	angle_temp += 0.02F;
+	if (angle_temp > 5.0F) angle_temp = -5.0F;
+	std::vector<XMFLOAT4X4> cubeTransforms(2);
+	XMStoreFloat4x4(&cubeTransforms[0], XMMatrixRotationY(angle_temp) * XMMatrixTranslation(angle_temp, 0.0F, 0.0F));
+	XMStoreFloat4x4(&cubeTransforms[1], XMMatrixRotationY(-angle_temp) * XMMatrixTranslation(-angle_temp, 0.0F, 0.0F));
+
+	cube_renderer.Update(cubeTransforms);
+	cube_renderer.Render();
 
 	static auto selectionRect_renderer = KhanRender::SelectionRectRenderer(m_renderingHub);
 	if (bIsSelectionRectDrawing)
-		selectionRect_renderer.Render(x1, y1, x2, y2);
+	{
+		selectionRect_renderer.Update(x1, y1, x2, y2);
+		selectionRect_renderer.Render();
+	}
 
 	static auto imgui_renderer = KhanRender::ImGuiRenderer(m_window_handle, m_renderingHub, std::bind(&Game2::OnImGuiRender, this));
 	imgui_renderer.Render();

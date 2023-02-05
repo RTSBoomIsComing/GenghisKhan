@@ -13,6 +13,7 @@ using Microsoft::WRL::ComPtr;
 #include <memory>
 #include <iostream>
 #include <format>
+#include <vector>
 
 #include <d3d11.h>
 #include <d3dcompiler.h>

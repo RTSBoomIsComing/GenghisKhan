@@ -12,13 +12,14 @@ namespace KhanRender
 	class Renderer
 	{
 	public:
-		Renderer(std::shared_ptr<RenderingHub> hub)
+		Renderer(std::shared_ptr<RenderingHub> pHub)
 			:
-			m_screenWidth(hub->GetScreenWidth()),
-			m_screenHeight(hub->GetScreenHeight()),
-			m_pDevice(hub->GetDevice()),
-			m_pDeviceContext(hub->GetDeviceContext()) {}
+			m_screenWidth(pHub->GetScreenWidth()),
+			m_screenHeight(pHub->GetScreenHeight()),
+			m_pDevice(pHub->GetDevice()),
+			m_pDeviceContext(pHub->GetDeviceContext()) {}
 		//virtual void Render() abstract;
+		//void OnResize();
 
 	protected:
 		UINT const& m_screenWidth;
