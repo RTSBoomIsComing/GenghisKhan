@@ -8,16 +8,20 @@
 #define PCH_H
 
 // add headers that you want to pre-compile here
-#include "framework.h"
 
+// win 32 api
+#include "framework.h"
 #include <wrl.h>
 using Microsoft::WRL::ComPtr;
 
+// d3d11 dependencies
 #include <d3d11.h>
 #include <dxgi.h>
 #include <d3dcompiler.h>
 
+// standard libraries
 #include <format>
+
 
 
 

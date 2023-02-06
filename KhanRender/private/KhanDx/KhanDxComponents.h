@@ -27,10 +27,10 @@ namespace KhanDx
 	ComPtr<ID3D11ShaderResourceView> CreateSRV_StructBuf(ComPtr<ID3D11Device> pDevice, ComPtr<ID3D11Resource> pBuf, UINT firstElement, UINT numElements) noexcept;
 
 	template<typename T>
-	ComPtr<ID3D11Buffer> CreateDynConstBuf(ComPtr<ID3D11Device> pDevice, UINT numElements) noexcept
+	ComPtr<ID3D11Buffer> CreateDynConstBuf(ComPtr<ID3D11Device> pDevice, UINT maxNumElements) noexcept
 	{
 		D3D11_BUFFER_DESC bufDesc{};
-		bufDesc.ByteWidth = sizeof(T) * numElements;
+		bufDesc.ByteWidth = sizeof(T) * maxNumElements;
 		bufDesc.Usage = D3D11_USAGE_DYNAMIC;
 		bufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		bufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;

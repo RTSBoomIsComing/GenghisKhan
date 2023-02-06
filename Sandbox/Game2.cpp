@@ -6,54 +6,16 @@
 #include <KhanRender/CubeRenderer.h>
 #include <KhanRender/ImGuiRenderer.h>
 
+#include <KhanECS/Camera.h>
+#include <KhanECS/PlayerControl.h>
+
 Game2::Game2()
 	:
 	m_renderingHub(std::make_shared<KhanRender::RenderingHub>(m_window_handle, m_window_width, m_window_height))
 {
-	m_input.mouse.OnLeftButtonDown.DefaultFn = [&](int x, int y) {
-		KHAN_INFO(std::format("LBD: {:d}, {:d}", x, y));
-		x1 = x;
-		y1 = y;
-		bIsSelectionRectDrawing = true;
-	};
-	m_input.mouse.OnLeftButtonUp.DefaultFn = [&](int x, int y) {
-		KHAN_INFO(std::format("LBU: {:d}, {:d}", x, y));
-		bIsSelectionRectDrawing = false;
-	};
-	m_input.mouse.OnRightButtonDown.DefaultFn = [&](int x, int y) {
-		KHAN_INFO(std::format("RBD: {:d}, {:d}", x, y));
-	};
-	m_input.mouse.OnRightButtonUp.DefaultFn = [&](int x, int y) {
-		KHAN_INFO(std::format("RBU: {:d}, {:d}", x, y));
-	};
-	m_input.mouse.OnLeftButtonDown.InstantFn = [&](int x, int y) {
-		KHAN_ERROR(std::format("LBD: {:d}, {:d}", x, y));
-		m_input.mouse.OnLeftButtonDown.InstantFn = nullptr;
-	};
-	m_input.mouse.OnRightButtonDown.InstantFn = [&](int x, int y) {
-		KHAN_ERROR(std::format("RBD: {:d}, {:d}", x, y));
-		m_input.mouse.OnRightButtonDown.InstantFn = nullptr;
-	};
-	m_input.mouse.OnLeftButtonUp.InstantFn = [&](int x, int y) {
-		KHAN_ERROR(std::format("LBU: {:d}, {:d}", x, y));
-		m_input.mouse.OnLeftButtonUp.InstantFn = nullptr;
-	};
-	m_input.mouse.OnRightButtonUp.InstantFn = [&](int x, int y) {
-		KHAN_ERROR(std::format("RBU: {:d}, {:d}", x, y));
-		m_input.mouse.OnRightButtonUp.InstantFn = nullptr;
-	};
-	m_input.mouse.OnMouseMove.DefaultFn = [&](int x, int y) {
-		x2 = x;
-		y2 = y;
-		if (x == 0 || x == (m_window_width - 1) || y == 0 || y == (m_window_height - 1))
-		{
-			bIsMouseOnEdge = true;
-		}
-		else
-		{
-			bIsMouseOnEdge = false;
-		}
-	};
+	BindActionsToInput();
+
+	KhanECS::Entity::MakeCamera(m_reg, m_aspectRatio);
 }
 
 Game2::~Game2() noexcept
@@ -63,18 +25,28 @@ Game2::~Game2() noexcept
 void Game2::Run()
 {
 	using namespace DirectX;
-	m_renderingHub->RenderBegin();
+	KhanECS::System::MouseEdgeScroll(m_reg, m_cameraVelocity);
+
 
 	static auto cube_renderer = KhanRender::CubeRenderer(m_renderingHub);
+	{
+		static float angle_temp{ -5.0F };
+		angle_temp += 0.02F;
+		if (angle_temp > 5.0F) angle_temp = -5.0F;
+		std::vector<XMFLOAT4X4> cubeTransforms(8);
+		int idx{};
+		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(+angle_temp) * XMMatrixTranslation(+angle_temp, 0.0F, 0.0F));
+		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(-angle_temp) * XMMatrixTranslation(-angle_temp, 0.0F, 0.0F));
+		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(-angle_temp) * XMMatrixTranslation(-angle_temp, 2.0F, 0.0F));
+		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(+angle_temp) * XMMatrixTranslation(+angle_temp, 2.0F, 0.0F));
+		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(+angle_temp) * XMMatrixTranslation(+angle_temp, -2.0F, 0.0F));
+		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(-angle_temp) * XMMatrixTranslation(-angle_temp, -2.0F, 0.0F));
+		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(-angle_temp) * XMMatrixTranslation(-angle_temp + 3.0F, 2.0F, 0.0F));
+		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(+angle_temp) * XMMatrixTranslation(+angle_temp + 3.0F, 2.0F, 0.0F));
 
-	static float angle_temp{ -5.0F };
-	angle_temp += 0.02F;
-	if (angle_temp > 5.0F) angle_temp = -5.0F;
-	std::vector<XMFLOAT4X4> cubeTransforms(2);
-	XMStoreFloat4x4(&cubeTransforms[0], XMMatrixRotationY(angle_temp) * XMMatrixTranslation(angle_temp, 0.0F, 0.0F));
-	XMStoreFloat4x4(&cubeTransforms[1], XMMatrixRotationY(-angle_temp) * XMMatrixTranslation(-angle_temp, 0.0F, 0.0F));
-
-	cube_renderer.Update(cubeTransforms);
+		cube_renderer.Update(cubeTransforms);
+	}
+	m_renderingHub->RenderBegin();
 	cube_renderer.Render();
 
 	static auto selectionRect_renderer = KhanRender::SelectionRectRenderer(m_renderingHub);
@@ -139,4 +111,51 @@ void Game2::OnImGuiRender()
 		ImGui::End();
 	}
 
+}
+
+void Game2::BindActionsToInput() noexcept
+{
+	m_input.mouse.OnLeftButtonDown.DefaultFn = [&](int x, int y) {
+		KHAN_INFO(std::format("LBD: {:d}, {:d}", x, y));
+		x1 = x;
+		y1 = y;
+		bIsSelectionRectDrawing = true;
+	};
+	m_input.mouse.OnLeftButtonUp.DefaultFn = [&](int x, int y) {
+		KHAN_INFO(std::format("LBU: {:d}, {:d}", x, y));
+		bIsSelectionRectDrawing = false;
+	};
+	m_input.mouse.OnRightButtonDown.DefaultFn = [&](int x, int y) {
+		KHAN_INFO(std::format("RBD: {:d}, {:d}", x, y));
+	};
+	m_input.mouse.OnRightButtonUp.DefaultFn = [&](int x, int y) {
+		KHAN_INFO(std::format("RBU: {:d}, {:d}", x, y));
+	};
+	m_input.mouse.OnLeftButtonDown.InstantFn = [&](int x, int y) {
+		KHAN_ERROR(std::format("LBD: {:d}, {:d}", x, y));
+		m_input.mouse.OnLeftButtonDown.InstantFn = nullptr;
+	};
+	m_input.mouse.OnRightButtonDown.InstantFn = [&](int x, int y) {
+		KHAN_ERROR(std::format("RBD: {:d}, {:d}", x, y));
+		m_input.mouse.OnRightButtonDown.InstantFn = nullptr;
+	};
+	m_input.mouse.OnLeftButtonUp.InstantFn = [&](int x, int y) {
+		KHAN_ERROR(std::format("LBU: {:d}, {:d}", x, y));
+		m_input.mouse.OnLeftButtonUp.InstantFn = nullptr;
+	};
+	m_input.mouse.OnRightButtonUp.InstantFn = [&](int x, int y) {
+		KHAN_ERROR(std::format("RBU: {:d}, {:d}", x, y));
+		m_input.mouse.OnRightButtonUp.InstantFn = nullptr;
+	};
+	m_input.mouse.OnMouseMove.DefaultFn = [&](int x, int y) {
+		using namespace DirectX;
+		x2 = x;
+		y2 = y;
+
+		m_cameraVelocity = DirectX::XMFLOAT2{};
+		if (x == 0) m_cameraVelocity.x = -1.0F;
+		if (y == 0) m_cameraVelocity.y = +1.0F;
+		if (x == m_window_width)  m_cameraVelocity.x = +1.0F;
+		if (y == m_window_height) m_cameraVelocity.y = -1.0F;
+	};
 }

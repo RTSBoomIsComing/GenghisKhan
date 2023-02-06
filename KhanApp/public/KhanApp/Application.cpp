@@ -22,6 +22,12 @@ void KhanApp::Application::OnResizeWindow(UINT width, UINT height) noexcept
 {
 	m_window_width = width;
 	m_window_height = height;
+	m_aspectRatio = float(width) / height;
+}
+
+bool KhanApp::Application::CheckPosOnScreenEdge(UINT x, UINT y) noexcept
+{
+	return x == 0U || x == (m_window_width - 1U) || y == 0U || y == (m_window_height - 1U);
 }
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
@@ -54,6 +60,7 @@ namespace KhanApp
 			return 0u;
 		case WM_KILLFOCUS:	// I think it would be better than using WM_ACTIVATE
 			app->DisableMouseLockToWindow();
+			app->m_input.mouse.ButtonStates.reset();
 			return 0u;
 
 		//case WM_SETFOCUS:
@@ -74,6 +81,7 @@ namespace KhanApp
 		case WM_MOUSEMOVE:
 		{
 			const POINTS pos = MAKEPOINTS(lparam);
+			app->m_input.mouse.Positions[static_cast<int>(Mouse::EventType::MOVE)] = pos;
 			app->m_input.mouse.OnMouseMove(pos.x, pos.y);
 			return 0u;
 		}
@@ -81,13 +89,20 @@ namespace KhanApp
 		{
 			app->EnableMouseLockToWindow();
 
-			const POINT pos{ GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam) };
+			app->m_input.mouse.ButtonStates[static_cast<int>(Mouse::ButtonType::LEFT)] = true;
+			
+			const POINTS pos = MAKEPOINTS(lparam);
+			app->m_input.mouse.Positions[static_cast<int>(Mouse::EventType::LEFT_DOWN)] = pos;
 			app->m_input.mouse.OnLeftButtonDown(pos.x, pos.y);
 			return 0u;
 		}
 		case WM_LBUTTONUP:
 		{
-			const POINT pos{ GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam) };
+			//const POINT pos{ GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam) };
+			app->m_input.mouse.ButtonStates[static_cast<int>(Mouse::ButtonType::LEFT)] = false;
+
+			const POINTS pos = MAKEPOINTS(lparam);
+			app->m_input.mouse.Positions[static_cast<int>(Mouse::EventType::LEFT_UP)] = pos;
 			app->m_input.mouse.OnLeftButtonUp(pos.x, pos.y);
 			return 0u;
 		}
@@ -95,14 +110,20 @@ namespace KhanApp
 		{
 			app->EnableMouseLockToWindow();
 
-			const POINT pos{ GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam) };
+			app->m_input.mouse.ButtonStates[static_cast<int>(Mouse::ButtonType::RIGHT)] = true;
+
+			const POINTS pos = MAKEPOINTS(lparam);
+			app->m_input.mouse.Positions[static_cast<int>(Mouse::EventType::RIGHT_DOWN)] = pos;
 			app->m_input.mouse.OnRightButtonDown(pos.x, pos.y);
 			return 0u;
 		}
 		case WM_RBUTTONUP:
 		{
-			const POINT Pos{ GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam) };
-			app->m_input.mouse.OnRightButtonUp(Pos.x, Pos.y);
+			app->m_input.mouse.ButtonStates[static_cast<int>(Mouse::ButtonType::RIGHT)] = false;
+
+			const POINTS pos = MAKEPOINTS(lparam);
+			app->m_input.mouse.Positions[static_cast<int>(Mouse::EventType::RIGHT_UP)] = pos;
+			app->m_input.mouse.OnRightButtonUp(pos.x, pos.y);
 			return 0u;
 		}
 		//case WM_MBUTTONDOWN:

@@ -1,6 +1,6 @@
 cbuffer CBuffer : register(b0)
 {
-	matrix WorldViewProjMatrix[2];
+	matrix WorldViewProjMatrix[10];
 };
 
 //struct Transform

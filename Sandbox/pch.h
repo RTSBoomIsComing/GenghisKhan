@@ -2,21 +2,21 @@
 
 // this pch is for Sandbox project
 
-#define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
-#define NOMINMAX
-#include <Windows.h>
-
+// win 32 api
+#include "framework.h"
 #include <wrl/client.h>
 using Microsoft::WRL::ComPtr;
 
+// standard libraries
 #include <limits> // std::numeric_limits<T>
 #include <memory>
 #include <iostream>
 #include <format>
 #include <vector>
 
-#include <d3d11.h>
-#include <d3dcompiler.h>
+// additional dependencies
 #include <entt/entt.hpp>
-
 #include <DirectXMath.h>
+using DirectX::XMFLOAT4X4;
+using DirectX::XMFLOAT3;
+

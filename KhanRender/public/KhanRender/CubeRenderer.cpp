@@ -14,9 +14,9 @@ KhanRender::CubeRenderer::CubeRenderer(std::shared_ptr<RenderingHub> pHub)
 	m_pVertexShader = KhanDx::CreateVertexShader(m_pDevice, pBlob.Get());
 	m_pInputLayout = KhanDx::CreateInputLayout(m_pDevice, pBlob.Get(), elementDescs, ARRAYSIZE(elementDescs));
 
-	m_pVSDynConstBuf = KhanDx::CreateDynConstBuf<DirectX::XMFLOAT4X4>(m_pDevice, 2U);
-	//m_pVSDynStructBuf = KhanDx::CreateDynStructBuf<DirectX::XMFLOAT4X4>(m_pDevice, 2U);
-	//m_pSRV = KhanDx::CreateSRV_StructBuf(m_pDevice, m_pVSDynStructBuf, 0U, 2U);
+	m_pVSDynConstBuf = KhanDx::CreateDynConstBuf<DirectX::XMFLOAT4X4>(m_pDevice, 10U);
+	//m_pVSDynStructBuf = KhanDx::CreateDynStructBuf<DirectX::XMFLOAT4X4>(m_pDevice, m_numInstance);
+	//m_pSRV = KhanDx::CreateSRV_StructBuf(m_pDevice, m_pVSDynStructBuf, 0U, m_numInstance);
 
 	m_pBlendState = nullptr; // blend off
 	m_pRasterizerState = KhanDx::CreateRasterizerState_Solid(m_pDevice);
@@ -37,7 +37,7 @@ void KhanRender::CubeRenderer::Update(std::vector<DirectX::XMFLOAT4X4> const& tr
 			XMMatrixTranspose(
 				XMLoadFloat4x4(&transforms[i])
 				// Now these are hard coded. But later LookAt and PerspectiveFov matrices will be obtained by camera entity.
-				* XMMatrixLookAtLH({ 0.0F, 0.0F, -10.0F }, { 0.0F, 0.0F, 1.0F }, { 0.0F, 1.0F, 0.0F })
+				* XMMatrixLookToLH({ 0.0F, 0.0F, -10.0F }, { 0.0F, 0.0F, 1.0F }, { 0.0F, 1.0F, 0.0F })
 				* XMMatrixPerspectiveFovLH(3.14F / 4.F, aspect_ratio, 1.0F, 100.0F)));
 	}
 
@@ -51,38 +51,12 @@ void KhanRender::CubeRenderer::Render()
 {
 	UINT Stride = sizeof(Vertex);
 	UINT offset{};
-	m_pDeviceContext->IASetVertexBuffers(0u, 1u, m_pVertexBuffer.GetAddressOf(), &Stride, &offset);
+	m_pDeviceContext->IASetVertexBuffers(0U, 1U, m_pVertexBuffer.GetAddressOf(), &Stride, &offset);
 	m_pDeviceContext->IASetInputLayout(m_pInputLayout.Get());
 	m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_pDeviceContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0U);
 	m_pDeviceContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0U);
 	m_pDeviceContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0U);
-
-
-	//XMMatrixRotationZ
-	//XMMatrixRotationX
-	//XMMatrixRotationY
-	//XMMatrixTranslation
-	//static float angle_temp{-5.0F};
-	//angle_temp += 0.02F;
-	//if (angle_temp > 5.0F) angle_temp = -5.0F;
-
-
-	//XMStoreFloat4x4(&WorldViewProjMatrix[0],
-	//	XMMatrixTranspose(
-	//		XMMatrixRotationY(angle_temp)
-	//		* XMMatrixTranslation(angle_temp, 0.0F, 0.0F)
-
-
-	//XMStoreFloat4x4(&WorldViewProjMatrix[1],
-	//	XMMatrixTranspose(
-	//		XMMatrixRotationY(-angle_temp)
-	//		* XMMatrixTranslation(-angle_temp, 0.0F, 0.0F)
-	//		* XMMatrixLookAtLH({ 0.0F, 0.0F, -10.0F }, { 0.0F, 0.0F, 1.0F }, { 0.0F, 1.0F, 0.0F })
-	//		* XMMatrixPerspectiveFovLH(3.14F / 4.F, aspect_ratio, 1.0F, 100.0F)));
-
-
-
 
 	//m_pDeviceContext->VSSetShaderResources(0U, 1U, m_pSRV.GetAddressOf());
 	m_pDeviceContext->VSSetConstantBuffers(0U, 1U, m_pVSDynConstBuf.GetAddressOf());
