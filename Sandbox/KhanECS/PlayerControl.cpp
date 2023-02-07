@@ -16,14 +16,14 @@ DirectX::XMMATRIX KhanECS::System::MouseEdgeScroll(entt::registry& reg, DirectX:
 		//XMFLOAT3& rot = view.get<Rotation>(e).vec;
 
 		// store new position to Position::vec
-		XMFLOAT3& pos = view.get<Position>(e).vec;
+		XMFLOAT3& pos = view.get<Position>(e);
 		XMVECTOR const newPos = XMLoadFloat3(&pos) + XMLoadFloat2(&velocity);
 		XMStoreFloat3(&pos, newPos);
 
 		// store new translation matrix to Position::mat
-		XMFLOAT4X4& viewMatrix = view.get<Position>(e).mat;
+		//XMFLOAT4X4& viewMatrix = view.get<Position>(e).mat;
 		XMMATRIX const newViewMatrix = XMMatrixTranslationFromVector(newPos);
-		XMStoreFloat4x4(&viewMatrix, newViewMatrix);
+		//XMStoreFloat4x4(&viewMatrix, newViewMatrix);
 		
 		// later have to extract GetViewMatrix function from this function
 		return XMMatrixInverse(nullptr, newViewMatrix);

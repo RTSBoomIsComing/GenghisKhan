@@ -22,6 +22,7 @@ Game2::~Game2() noexcept
 {
 }
 
+
 void Game2::Run()
 {
 	using namespace DirectX;
@@ -152,7 +153,7 @@ void Game2::BindActionsToInput() noexcept
 		using namespace DirectX;
 
 		if (!m_isMouseLocked) return;
-		
+
 		x2 = x; y2 = y;
 
 		m_cameraVelocity = DirectX::XMFLOAT2{};
