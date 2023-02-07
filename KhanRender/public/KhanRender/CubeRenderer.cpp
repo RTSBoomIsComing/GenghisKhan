@@ -24,7 +24,7 @@ KhanRender::CubeRenderer::CubeRenderer(std::shared_ptr<RenderingHub> pHub)
 
 }
 
-void KhanRender::CubeRenderer::Update(std::vector<DirectX::XMFLOAT4X4> const& transforms)
+void KhanRender::CubeRenderer::Update(std::vector<DirectX::XMFLOAT4X4> const& transforms, DirectX::XMMATRIX const& viewProjMat)
 {
 	using namespace DirectX;
 
@@ -33,12 +33,8 @@ void KhanRender::CubeRenderer::Update(std::vector<DirectX::XMFLOAT4X4> const& tr
 	float aspect_ratio = (float)m_screenWidth / m_screenHeight;
 	for (UINT i{}; i < m_numInstance; ++i)
 	{
-		XMStoreFloat4x4(&WVPMatrices[i],
-			XMMatrixTranspose(
-				XMLoadFloat4x4(&transforms[i])
-				// Now these are hard coded. But later LookAt and PerspectiveFov matrices will be obtained by camera entity.
-				* XMMatrixLookToLH({ 0.0F, 0.0F, -10.0F }, { 0.0F, 0.0F, 1.0F }, { 0.0F, 1.0F, 0.0F })
-				* XMMatrixPerspectiveFovLH(3.14F / 4.F, aspect_ratio, 1.0F, 100.0F)));
+		XMStoreFloat4x4(&WVPMatrices[i], XMMatrixTranspose(
+			XMLoadFloat4x4(&transforms[i]) * viewProjMat));
 	}
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource{};

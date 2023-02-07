@@ -25,11 +25,6 @@ void KhanApp::Application::OnResizeWindow(UINT width, UINT height) noexcept
 	m_aspectRatio = float(width) / height;
 }
 
-bool KhanApp::Application::CheckPosOnScreenEdge(UINT x, UINT y) noexcept
-{
-	return x == 0U || x == (m_window_width - 1U) || y == 0U || y == (m_window_height - 1U);
-}
-
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
 
 namespace KhanApp 

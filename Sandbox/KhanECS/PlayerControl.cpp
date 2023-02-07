@@ -1,34 +1,32 @@
 #include "pch.h"
 #include "PlayerControl.h"
 
-void KhanECS::System::MouseEdgeScroll(entt::registry& reg, DirectX::XMFLOAT2 velocity) noexcept
-{
+
+// later PlayerController component will succeed this function, for the time being, use it
+DirectX::XMMATRIX KhanECS::System::MouseEdgeScroll(entt::registry& reg, DirectX::XMFLOAT2 velocity) noexcept
+{	
 	using namespace DirectX;
 	using namespace entt::literals;
 	using namespace KhanECS::Entity;
 	using namespace KhanECS::Component;
-	auto view = reg.view<entt::tag<"Camera"_hs>, Position, ForwardVector, UpVector, Perspective, ViewProjMatrix>();
+	auto view = reg.view<entt::tag<"Camera"_hs>, Position, Rotation>();
 
 	for (entt::entity const e : view)
 	{
-		XMFLOAT3& pos = view.get<Position>(e).pos;
-		XMVECTOR newPos = XMLoadFloat3(&pos) + XMLoadFloat2(&velocity);
+		//XMFLOAT3& rot = view.get<Rotation>(e).vec;
+
+		// store new position to Position::vec
+		XMFLOAT3& pos = view.get<Position>(e).vec;
+		XMVECTOR const newPos = XMLoadFloat3(&pos) + XMLoadFloat2(&velocity);
 		XMStoreFloat3(&pos, newPos);
+
+		// store new translation matrix to Position::mat
+		XMFLOAT4X4& viewMatrix = view.get<Position>(e).mat;
+		XMMATRIX const newViewMatrix = XMMatrixTranslationFromVector(newPos);
+		XMStoreFloat4x4(&viewMatrix, newViewMatrix);
 		
-		XMFLOAT3 const& eyeDir = view.get<ForwardVector>(e).vec;
-		XMFLOAT3 const& up = view.get<UpVector>(e).vec;
-
-		auto const& perspective = view.get<Perspective>(e);
-		float const fov = perspective.fovAngleY;
-		float const aspectRatio = perspective.aspectRatio;
-		float const nearZ = perspective.nearZ;
-		float const farZ = perspective.farZ;
-
-		auto& viewProjMatrix = view.get<ViewProjMatrix>(e).mat;
-
-		auto newViewProjMatrix = XMMatrixLookToLH(newPos, XMLoadFloat3(&eyeDir), XMLoadFloat3(&up))
-			* XMMatrixPerspectiveFovLH(fov, aspectRatio, nearZ, farZ);
-
-		XMStoreFloat4x4(&viewProjMatrix, newViewProjMatrix);
+		// later have to extract GetViewMatrix function from this function
+		return XMMatrixInverse(nullptr, newViewMatrix);
 	}
+	return XMMatrixIdentity();
 }

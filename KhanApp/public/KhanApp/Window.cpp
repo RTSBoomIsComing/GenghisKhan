@@ -50,7 +50,7 @@ KhanApp::Window::~Window() noexcept
 
 void KhanApp::Window::EnableMouseLockToWindow()
 {
-	if (bIsMouseLocked) return;
+	if (m_isMouseLocked) return;
 
 	POINT screenTopLeft{ 0L, 0L };
 
@@ -68,12 +68,12 @@ void KhanApp::Window::EnableMouseLockToWindow()
 		throw ::GetLastError();
 	}
 
-	bIsMouseLocked = true;
+	m_isMouseLocked = true;
 }
 
 void KhanApp::Window::DisableMouseLockToWindow()
 {
-	if (!bIsMouseLocked) return;
+	if (!m_isMouseLocked) return;
 
 	if (!::ClipCursor(nullptr))
 	{
@@ -81,5 +81,5 @@ void KhanApp::Window::DisableMouseLockToWindow()
 		throw ::GetLastError();
 	}
 
-	bIsMouseLocked = false;
+	m_isMouseLocked = false;
 }

@@ -15,7 +15,7 @@ Game2::Game2()
 {
 	BindActionsToInput();
 
-	KhanECS::Entity::MakeCamera(m_reg, m_aspectRatio);
+	auto entity = KhanECS::Entity::MakeCamera(m_reg, m_aspectRatio);
 }
 
 Game2::~Game2() noexcept
@@ -25,8 +25,10 @@ Game2::~Game2() noexcept
 void Game2::Run()
 {
 	using namespace DirectX;
-	KhanECS::System::MouseEdgeScroll(m_reg, m_cameraVelocity);
 
+	auto viewMat = KhanECS::System::MouseEdgeScroll(m_reg, m_cameraVelocity);
+
+	auto viewProjMat = viewMat * KhanECS::System::GetProjectionMatrix(m_aspectRatio);
 
 	static auto cube_renderer = KhanRender::CubeRenderer(m_renderingHub);
 	{
@@ -43,8 +45,7 @@ void Game2::Run()
 		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(-angle_temp) * XMMatrixTranslation(-angle_temp, -2.0F, 0.0F));
 		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(-angle_temp) * XMMatrixTranslation(-angle_temp + 3.0F, 2.0F, 0.0F));
 		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(+angle_temp) * XMMatrixTranslation(+angle_temp + 3.0F, 2.0F, 0.0F));
-
-		cube_renderer.Update(cubeTransforms);
+		cube_renderer.Update(cubeTransforms, viewProjMat);
 	}
 	m_renderingHub->RenderBegin();
 	cube_renderer.Render();
@@ -149,13 +150,15 @@ void Game2::BindActionsToInput() noexcept
 	};
 	m_input.mouse.OnMouseMove.DefaultFn = [&](int x, int y) {
 		using namespace DirectX;
-		x2 = x;
-		y2 = y;
+
+		if (!m_isMouseLocked) return;
+		
+		x2 = x; y2 = y;
 
 		m_cameraVelocity = DirectX::XMFLOAT2{};
 		if (x == 0) m_cameraVelocity.x = -1.0F;
 		if (y == 0) m_cameraVelocity.y = +1.0F;
-		if (x == m_window_width)  m_cameraVelocity.x = +1.0F;
-		if (y == m_window_height) m_cameraVelocity.y = -1.0F;
+		if (x == m_window_width - 1)  m_cameraVelocity.x = +1.0F;
+		if (y == m_window_height - 1) m_cameraVelocity.y = -1.0F;
 	};
 }

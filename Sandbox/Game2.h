@@ -17,11 +17,11 @@ class Game2 : public KhanApp::Application
 {
 public:
 	Game2();
-	~Game2() noexcept;
+	virtual ~Game2() noexcept;
 
 public:
 	void Run();
-	void OnResizeWindow(UINT width, UINT height) noexcept override;
+	virtual void OnResizeWindow(UINT width, UINT height) noexcept override;
 	void OnImGuiRender();
 
 protected:
@@ -35,6 +35,7 @@ protected:
 
 protected:
 	DirectX::XMFLOAT2 m_cameraVelocity{};
+
 	int x1{};
 	int x2{};
 	int y1{};

@@ -9,7 +9,7 @@ namespace KhanRender
 	{
 	public:
 		CubeRenderer(std::shared_ptr<RenderingHub> pHub);
-		void Update(std::vector<DirectX::XMFLOAT4X4> const& transforms);
+		void Update(std::vector<DirectX::XMFLOAT4X4> const& transforms, DirectX::XMMATRIX const& viewProjMat);
 		void Render();
 	private:
 		UINT m_numInstance{};

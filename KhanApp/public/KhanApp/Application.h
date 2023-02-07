@@ -12,7 +12,6 @@ namespace KhanApp
 
 		// when override this function, have to call this function in overrided function.
 		virtual void OnResizeWindow(UINT width, UINT height) noexcept;
-		bool CheckPosOnScreenEdge(UINT x, UINT y) noexcept;
 
 	public:
 		float m_aspectRatio{ float(m_window_width) / m_window_height };
