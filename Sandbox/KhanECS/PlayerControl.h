@@ -9,7 +9,5 @@
 
 namespace KhanECS::System
 {
-
-	[[nodiscard]]
-	DirectX::XMMATRIX MouseEdgeScroll(entt::registry& reg, DirectX::XMFLOAT2 velocity) noexcept;
+	void MouseEdgeScroll(entt::registry& reg, DirectX::XMFLOAT2 velocity) noexcept;
 }

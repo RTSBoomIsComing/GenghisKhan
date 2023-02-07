@@ -15,14 +15,37 @@ namespace KhanECS::Component
 	struct Position
 	{
 		float x{}, y{}, z{};
-		constexpr operator XMFLOAT3() const { return { x, y, z }; }
-		operator XMFLOAT3& () { return reinterpret_cast<XMFLOAT3&>(x); }
+
+		// below annotated code allow converting XMVector to Position, but it is too confusing so that I disabled it
+		//Position() noexcept = default;
+		//Position(float x, float y, float z) noexcept : x(x), y(y), z(z) {}
+		//Position(DirectX::XMVECTOR const& other) noexcept
+		//{
+		//	DirectX::XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(this), other);
+		//}
+		//Position& operator=(DirectX::XMVECTOR const& other) noexcept
+		//{
+		//	DirectX::XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(this), other);
+		//	return *this;
+		//}
+
+		operator XMFLOAT3() const { return { x, y, z }; }
+		operator XMFLOAT3& () { return reinterpret_cast<XMFLOAT3&>(*this); }
+		operator DirectX::XMVECTOR() const
+		{
+			return DirectX::XMLoadFloat3(reinterpret_cast<const XMFLOAT3*>(this));
+		}
 	};
 	struct Rotation
 	{
 		float x{}, y{}, z{};
-		constexpr operator XMFLOAT3() const { return { x, y, z }; }
+
+		operator XMFLOAT3() const { return { x, y, z }; }
 		operator XMFLOAT3& () { return reinterpret_cast<XMFLOAT3&>(x); }
+		operator DirectX::XMVECTOR() const
+		{
+			return DirectX::XMLoadFloat3(reinterpret_cast<const XMFLOAT3*>(this));
+		}
 	};
 }
 
@@ -35,6 +58,8 @@ namespace KhanECS::Entity
 
 namespace KhanECS::System
 {
+	DirectX::XMMATRIX GetViewMatrix(entt::registry const& reg) noexcept;
+
 	DirectX::XMMATRIX GetProjectionMatrix
 	(
 		float aspectRatio = 4.0F / 3,

@@ -27,9 +27,10 @@ void Game2::Run()
 {
 	using namespace DirectX;
 
-	auto viewMat = KhanECS::System::MouseEdgeScroll(m_reg, m_cameraVelocity);
+	KhanECS::System::MouseEdgeScroll(m_reg, m_cameraVelocity);
 
-	auto viewProjMat = viewMat * KhanECS::System::GetProjectionMatrix(m_aspectRatio);
+	XMMATRIX viewMat = KhanECS::System::GetViewMatrix(m_reg);
+	XMMATRIX viewProjMat = viewMat * KhanECS::System::GetProjectionMatrix(m_aspectRatio);
 
 	static auto cube_renderer = KhanRender::CubeRenderer(m_renderingHub);
 	{
