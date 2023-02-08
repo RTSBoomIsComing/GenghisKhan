@@ -1,6 +1,4 @@
 #pragma once
-
-
 #include "KhanECS/Camera.h"
 
 // additional dependencies

@@ -33,6 +33,7 @@ namespace KhanApp
 	{
 		if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
 			return 1u;
+
 		auto app = reinterpret_cast<KhanApp::Application*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 		assert(app && "app is nullptr");
 
@@ -75,6 +76,7 @@ namespace KhanApp
 		//case WM_INPUT:
 		case WM_MOUSEMOVE:
 		{
+			// if (ImGui::GetIO().WantCaptureMouse) return 192U;
 			const POINTS pos = MAKEPOINTS(lparam);
 			app->m_input.mouse.Positions[static_cast<int>(Mouse::EventType::MOVE)] = pos;
 			app->m_input.mouse.OnMouseMove(pos.x, pos.y);
@@ -83,6 +85,7 @@ namespace KhanApp
 		case WM_LBUTTONDOWN:
 		{
 			app->EnableMouseLockToWindow();
+			if (ImGui::GetIO().WantCaptureMouse) return 192U;
 
 			app->m_input.mouse.ButtonStates[static_cast<int>(Mouse::ButtonType::LEFT)] = true;
 			
@@ -93,7 +96,7 @@ namespace KhanApp
 		}
 		case WM_LBUTTONUP:
 		{
-			//const POINT pos{ GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam) };
+			if (ImGui::GetIO().WantCaptureMouse) return 192U;
 			app->m_input.mouse.ButtonStates[static_cast<int>(Mouse::ButtonType::LEFT)] = false;
 
 			const POINTS pos = MAKEPOINTS(lparam);
@@ -104,6 +107,7 @@ namespace KhanApp
 		case WM_RBUTTONDOWN:
 		{
 			app->EnableMouseLockToWindow();
+			if (ImGui::GetIO().WantCaptureMouse) return 192U;
 
 			app->m_input.mouse.ButtonStates[static_cast<int>(Mouse::ButtonType::RIGHT)] = true;
 
@@ -114,6 +118,7 @@ namespace KhanApp
 		}
 		case WM_RBUTTONUP:
 		{
+			if (ImGui::GetIO().WantCaptureMouse) return 192U;
 			app->m_input.mouse.ButtonStates[static_cast<int>(Mouse::ButtonType::RIGHT)] = false;
 
 			const POINTS pos = MAKEPOINTS(lparam);

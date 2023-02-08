@@ -14,6 +14,8 @@ Game2::Game2()
 	m_renderingHub(std::make_shared<KhanRender::RenderingHub>(m_window_handle, m_window_width, m_window_height))
 {
 	BindActionsToInput();
+	m_imGuiRenderer = std::make_unique<KhanRender::ImGuiRenderer>(m_window_handle, m_renderingHub, std::bind(&Game2::OnImGuiRender, this));
+
 
 	auto entity = KhanECS::Entity::MakeCamera(m_reg);
 }
@@ -21,7 +23,6 @@ Game2::Game2()
 Game2::~Game2() noexcept
 {
 }
-
 
 void Game2::Run()
 {
@@ -59,8 +60,8 @@ void Game2::Run()
 		selectionRect_renderer.Render();
 	}
 
-	static auto imgui_renderer = KhanRender::ImGuiRenderer(m_window_handle, m_renderingHub, std::bind(&Game2::OnImGuiRender, this));
-	imgui_renderer.Render();
+	
+	m_imGuiRenderer->Render();
 	m_renderingHub->RenderEnd();
 }
 
@@ -122,6 +123,7 @@ void Game2::BindActionsToInput() noexcept
 		KHAN_INFO(std::format("LBD: {:d}, {:d}", x, y));
 		x1 = x;
 		y1 = y;
+		
 		bIsSelectionRectDrawing = true;
 	};
 	m_input.mouse.OnLeftButtonUp.DefaultFn = [&](int x, int y) {

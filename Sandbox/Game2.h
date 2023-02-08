@@ -11,6 +11,7 @@
 namespace KhanRender
 {
 	class RenderingHub;
+	class ImGuiRenderer;
 }
 
 class Game2 : public KhanApp::Application
@@ -29,7 +30,7 @@ protected:
 
 protected:
 	std::shared_ptr<KhanRender::RenderingHub> m_renderingHub;
-
+	std::unique_ptr<KhanRender::ImGuiRenderer> m_imGuiRenderer;
 protected:
 	entt::registry m_reg;
 
