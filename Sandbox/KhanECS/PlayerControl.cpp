@@ -15,7 +15,7 @@ void KhanECS::System::MouseEdgeScroll(entt::registry& reg, DirectX::XMFLOAT2 vel
 		//XMFLOAT3& rot = view.get<Rotation>(e).vec;
 
 		XMFLOAT3& pos = view.get<Position>(e);
-		XMVECTOR newPos = XMLoadFloat3(&pos) + XMLoadFloat2(&velocity);
+		XMVECTOR newPos = XMLoadFloat3(&pos) + 0.1F * XMLoadFloat2(&velocity);
 		XMStoreFloat3(&pos, newPos);
 	}
 }

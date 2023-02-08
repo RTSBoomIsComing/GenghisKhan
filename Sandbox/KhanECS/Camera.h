@@ -12,40 +12,15 @@ using DirectX::XMFLOAT4X4;
 
 namespace KhanECS::Component
 {
-	struct Position
+	struct Position : XMFLOAT3 
 	{
-		float x{}, y{}, z{};
-
-		// below annotated code allow converting XMVector to Position, but it is too confusing so that I disabled it
-		//Position() noexcept = default;
-		//Position(float x, float y, float z) noexcept : x(x), y(y), z(z) {}
-		//Position(DirectX::XMVECTOR const& other) noexcept
-		//{
-		//	DirectX::XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(this), other);
-		//}
-		//Position& operator=(DirectX::XMVECTOR const& other) noexcept
-		//{
-		//	DirectX::XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(this), other);
-		//	return *this;
-		//}
-
-		operator XMFLOAT3() const { return { x, y, z }; }
-		operator XMFLOAT3& () { return reinterpret_cast<XMFLOAT3&>(*this); }
-		operator DirectX::XMVECTOR() const
-		{
-			return DirectX::XMLoadFloat3(reinterpret_cast<const XMFLOAT3*>(this));
-		}
+		constexpr Position() noexcept = default;
+		constexpr Position(float x, float y, float z) noexcept : XMFLOAT3(x, y, z) {}
 	};
-	struct Rotation
+	struct Rotation : XMFLOAT3 
 	{
-		float x{}, y{}, z{};
-
-		operator XMFLOAT3() const { return { x, y, z }; }
-		operator XMFLOAT3& () { return reinterpret_cast<XMFLOAT3&>(x); }
-		operator DirectX::XMVECTOR() const
-		{
-			return DirectX::XMLoadFloat3(reinterpret_cast<const XMFLOAT3*>(this));
-		}
+		constexpr Rotation() noexcept = default;
+		constexpr Rotation(float x, float y, float z) noexcept : XMFLOAT3(x, y, z) {}
 	};
 }
 
