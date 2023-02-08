@@ -1,34 +1,17 @@
 #pragma once
 
+#include "KhanEcs/Components.h"
+
 // additional dependencies
 #include <DirectXMath.h>
 #include <entt/fwd.hpp>
 #include <limits>
-#include <cmath>
-
-using DirectX::XMFLOAT2;
-using DirectX::XMFLOAT3;
-using DirectX::XMFLOAT4X4;
-
-namespace KhanECS::Component
-{
-	struct Position : XMFLOAT3 
-	{
-		constexpr Position() noexcept = default;
-		constexpr Position(float x, float y, float z) noexcept : XMFLOAT3(x, y, z) {}
-	};
-	struct Rotation : XMFLOAT3 
-	{
-		constexpr Rotation() noexcept = default;
-		constexpr Rotation(float x, float y, float z) noexcept : XMFLOAT3(x, y, z) {}
-	};
-}
 
 namespace KhanECS::Entity
 {
 	using namespace entt::literals;
 
-	entt::entity MakeCamera(entt::registry& reg, float aspectRatio) noexcept;
+	entt::entity MakeCamera(entt::registry& reg) noexcept;
 }
 
 namespace KhanECS::System

@@ -15,7 +15,7 @@ Game2::Game2()
 {
 	BindActionsToInput();
 
-	auto entity = KhanECS::Entity::MakeCamera(m_reg, m_aspectRatio);
+	auto entity = KhanECS::Entity::MakeCamera(m_reg);
 }
 
 Game2::~Game2() noexcept

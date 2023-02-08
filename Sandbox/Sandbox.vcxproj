@@ -120,6 +120,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="KhanECS\Camera.h" />
+    <ClInclude Include="KhanECS\Components.h" />
     <ClInclude Include="KhanECS\Factories.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Game2.h" />

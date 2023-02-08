@@ -3,7 +3,7 @@
 
 
 
-entt::entity KhanECS::Entity::MakeCamera(entt::registry& reg, float aspectRatio) noexcept
+entt::entity KhanECS::Entity::MakeCamera(entt::registry& reg) noexcept
 {
 	using namespace DirectX;
 	using namespace KhanECS::Component;
@@ -22,16 +22,14 @@ DirectX::XMMATRIX KhanECS::System::GetViewMatrix(entt::registry const& reg) noex
 	using namespace DirectX;
 	using namespace entt::literals;
 	using namespace KhanECS::Component;
-	auto view  = reg.view<entt::tag<"Camera"_hs>, Position, Rotation>();
+	auto view = reg.view<entt::tag<"Camera"_hs>, Position, Rotation>();
 
 	for (entt::entity e : view)
 	{
-		//XMFLOAT3& rot = view.get<Rotation>(e).vec;
-
 		Position const& pos = view.get<Position>(e);
 		Rotation const& rot = view.get<Rotation>(e);
 
-		XMMATRIX viewMat = XMMatrixInverse(nullptr, 
+		XMMATRIX viewMat = XMMatrixInverse(nullptr,
 			XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&rot))
 			* XMMatrixTranslationFromVector(XMLoadFloat3(&pos)));
 		return viewMat;
