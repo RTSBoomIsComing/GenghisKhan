@@ -24,7 +24,7 @@ So you don't need to install libraries manually,
 Once you build visual studio solution all the libraries installed automatically.
 
 ## Results of work so far
-![Results](https://user-images.githubusercontent.com/61501369/216623142-566ae1ff-0312-46b4-bfc1-786eeb967437.png)
+![Results](https://user-images.githubusercontent.com/61501369/217764200-53519382-2534-4180-a96c-7fa8dcd398c6.png)
 
 ## TODO
 - make CubeRenderer allow instancing
