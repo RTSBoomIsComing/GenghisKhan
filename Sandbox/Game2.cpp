@@ -7,7 +7,11 @@
 #include <KhanRender/ImGuiRenderer.h>
 
 #include <KhanECS/Camera.h>
+#include <KhanECS/Cube.h>
 #include <KhanECS/PlayerControl.h>
+
+
+#include <random>
 
 Game2::Game2()
 	:
@@ -15,9 +19,19 @@ Game2::Game2()
 {
 	BindActionsToInput();
 	m_imGuiRenderer = std::make_unique<KhanRender::ImGuiRenderer>(m_window_handle, m_renderingHub, std::bind(&Game2::OnImGuiRender, this));
-
+	m_cubeRenderer = std::make_unique<KhanRender::CubeRenderer>(m_renderingHub);
 
 	auto entity = KhanECS::Entity::MakeCamera(m_reg);
+
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int> die(-40, 40);
+
+	for (int i{}; i < 1000; ++i)
+	{
+		auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{ (float)die(gen), (float)die(gen), 50.0F + die(gen) });
+	}
 }
 
 Game2::~Game2() noexcept
@@ -32,25 +46,14 @@ void Game2::Run()
 
 	XMMATRIX viewProjMat = KhanECS::System::GetViewMatrix(m_reg) * KhanECS::System::GetProjectionMatrix(m_aspectRatio);
 
-	static auto cube_renderer = KhanRender::CubeRenderer(m_renderingHub);
-	{
-		static float angle_temp{ -5.0F };
-		angle_temp += 0.02F;
-		if (angle_temp > 5.0F) angle_temp = -5.0F;
-		std::vector<XMFLOAT4X4> cubeTransforms(8);
-		int idx{};
-		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(+angle_temp) * XMMatrixTranslation(+angle_temp, 0.0F, 0.0F));
-		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(-angle_temp) * XMMatrixTranslation(-angle_temp, 0.0F, 0.0F));
-		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(-angle_temp) * XMMatrixTranslation(-angle_temp, 2.0F, 0.0F));
-		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(+angle_temp) * XMMatrixTranslation(+angle_temp, 2.0F, 0.0F));
-		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(+angle_temp) * XMMatrixTranslation(+angle_temp, -2.0F, 0.0F));
-		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(-angle_temp) * XMMatrixTranslation(-angle_temp, -2.0F, 0.0F));
-		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(-angle_temp) * XMMatrixTranslation(-angle_temp + 3.0F, 2.0F, 0.0F));
-		XMStoreFloat4x4(&cubeTransforms[idx++], XMMatrixRotationY(+angle_temp) * XMMatrixTranslation(+angle_temp + 3.0F, 2.0F, 0.0F));
-		cube_renderer.Update(cubeTransforms, viewProjMat);
-	}
+
+	std::vector<XMMATRIX> cubeWorldMatrices = std::move(KhanECS::System::GetCubeWorldMatrices(m_reg));
+
+	m_cubeRenderer->Update(cubeWorldMatrices, viewProjMat);
+
+
 	m_renderingHub->RenderBegin();
-	cube_renderer.Render();
+	m_cubeRenderer->Render();
 
 	static auto selectionRect_renderer = KhanRender::SelectionRectRenderer(m_renderingHub);
 	if (bIsSelectionRectDrawing)
@@ -118,6 +121,8 @@ void Game2::OnImGuiRender()
 
 void Game2::BindActionsToInput() noexcept
 {
+	// these input bindings are just for testing
+
 	m_input.mouse.OnLeftButtonDown.DefaultFn = [&](int x, int y) {
 		KHAN_INFO(std::format("LBD: {:d}, {:d}", x, y));
 		x1 = x;

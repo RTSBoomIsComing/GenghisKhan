@@ -109,7 +109,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="KhanECS\Camera.cpp" />
-    <ClCompile Include="KhanECS\Factories.cpp" />
+    <ClCompile Include="KhanECS\Cube.cpp" />
     <ClCompile Include="Game2.cpp" />
     <ClCompile Include="KhanECS\PlayerControl.cpp" />
     <ClCompile Include="pch.cpp">
@@ -121,7 +121,7 @@
   <ItemGroup>
     <ClInclude Include="KhanECS\Camera.h" />
     <ClInclude Include="KhanECS\Components.h" />
-    <ClInclude Include="KhanECS\Factories.h" />
+    <ClInclude Include="KhanECS\Cube.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Game2.h" />
     <ClInclude Include="KhanECS\PlayerControl.h" />

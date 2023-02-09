@@ -10,6 +10,7 @@ namespace KhanECS::Component
 	struct Position : XMFLOAT3
 	{
 		constexpr Position() noexcept = default;
+		constexpr Position(DirectX::XMFLOAT3 pos) noexcept : XMFLOAT3(pos) {}
 		constexpr Position(float x, float y, float z) noexcept : XMFLOAT3(x, y, z) {}
 	};
 	struct Rotation : XMFLOAT3

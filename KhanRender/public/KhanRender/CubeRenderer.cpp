@@ -14,7 +14,7 @@ KhanRender::CubeRenderer::CubeRenderer(std::shared_ptr<RenderingHub> pHub)
 	m_pVertexShader = KhanDx::CreateVertexShader(m_pDevice, pBlob.Get());
 	m_pInputLayout = KhanDx::CreateInputLayout(m_pDevice, pBlob.Get(), elementDescs, ARRAYSIZE(elementDescs));
 
-	m_pVSDynConstBuf = KhanDx::CreateDynConstBuf<DirectX::XMFLOAT4X4>(m_pDevice, 10U);
+	m_pVSDynConstBuf = KhanDx::CreateDynConstBuf<DirectX::XMFLOAT4X4>(m_pDevice, 1000U);
 	//m_pVSDynStructBuf = KhanDx::CreateDynStructBuf<DirectX::XMFLOAT4X4>(m_pDevice, m_numInstance);
 	//m_pSRV = KhanDx::CreateSRV_StructBuf(m_pDevice, m_pVSDynStructBuf, 0U, m_numInstance);
 
@@ -24,17 +24,16 @@ KhanRender::CubeRenderer::CubeRenderer(std::shared_ptr<RenderingHub> pHub)
 
 }
 
-void KhanRender::CubeRenderer::Update(std::vector<DirectX::XMFLOAT4X4> const& transforms, DirectX::XMMATRIX const& viewProjMat)
+void KhanRender::CubeRenderer::Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat)
 {
 	using namespace DirectX;
 
-	m_numInstance = (UINT)transforms.size();
+	m_numInstance = (UINT)worldMats.size();
 	std::vector <XMFLOAT4X4> WVPMatrices(m_numInstance);
-	float aspect_ratio = (float)m_screenWidth / m_screenHeight;
+
 	for (UINT i{}; i < m_numInstance; ++i)
 	{
-		XMStoreFloat4x4(&WVPMatrices[i], XMMatrixTranspose(
-			XMLoadFloat4x4(&transforms[i]) * viewProjMat));
+		XMStoreFloat4x4(&WVPMatrices[i], XMMatrixTranspose(worldMats[i] * viewProjMat));
 	}
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource{};

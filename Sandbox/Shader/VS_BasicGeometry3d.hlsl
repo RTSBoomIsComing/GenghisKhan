@@ -1,6 +1,6 @@
 cbuffer CBuffer : register(b0)
 {
-	matrix WorldViewProjMatrix[10];
+	matrix WorldViewProjMatrix[1000];
 };
 
 //struct Transform
@@ -21,6 +21,7 @@ struct VS_OUTPUT
 	float4 pos : SV_POSITION;
 	float2 tex : TEXCOORD;
 	float3 normal : NORMAL;
+	uint InstanceId : SV_InstanceID;
 };
 
 VS_OUTPUT main(VS_INPUT input, uint InstanceId : SV_InstanceID)
@@ -29,6 +30,7 @@ VS_OUTPUT main(VS_INPUT input, uint InstanceId : SV_InstanceID)
 	output.pos = mul(float4(input.pos, 1.0f), WorldViewProjMatrix[InstanceId]);
 	output.tex = input.tex;
 	output.normal = input.normal;
+	output.InstanceId = InstanceId;
 	//output.normal = (float3)mul(float4(input.normal, 0.0f), World);
 	return output;
 }

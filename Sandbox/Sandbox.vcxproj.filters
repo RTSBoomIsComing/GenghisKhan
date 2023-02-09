@@ -24,7 +24,7 @@
     <ClCompile Include="Game2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="KhanECS\Factories.cpp">
+    <ClCompile Include="KhanECS\Cube.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="KhanECS\Camera.cpp">
@@ -47,7 +47,7 @@
     <ClInclude Include="framework.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="KhanECS\Factories.h">
+    <ClInclude Include="KhanECS\Cube.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="KhanECS\Camera.h">
