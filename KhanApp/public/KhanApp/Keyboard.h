@@ -1,19 +1,21 @@
 #pragma once
 #include "Delegate.h"
 #include <bitset>
+#include <map>
+
+#include <functional>
+
 namespace KhanApp
 {
 	class Keyboard
 	{
 		friend LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 	public:
-		// Return types of funcions bound to Delegate are void
-		Delegate<unsigned char, int> OnKeyDown{}; 
-		Delegate<unsigned char, int> OnKeyUp{}; 
+		std::bitset<256> KeyStates;
 
-	private:
-		//void ProcessMessage(uint32_t keyCode, bool wasDown, bool isDown) noexcept;
-		std::bitset<256ui64> keyState;
+		std::unordered_map<unsigned char, Delegate<>> OnKeyDown;
+		std::unordered_map<unsigned char, Delegate<>> OnKeyUp;
+		
 	};
 }
 

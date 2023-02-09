@@ -6,6 +6,7 @@ namespace KhanApp
 {
 	class Application : public Window
 	{
+		friend LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 	public:
 		Application();
 		virtual ~Application() noexcept;

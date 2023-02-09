@@ -30,6 +30,8 @@ namespace KhanApp
 		};
 		std::bitset<static_cast<int>(ButtonType::MAX)> ButtonStates{};
 
+
+
 	public:
 		POINTS GetLastMovePosition() const noexcept { return Positions[static_cast<int>(EventType::MOVE)]; }
 		POINTS GetLastLeftDownPosition() const noexcept { return Positions[static_cast<int>(EventType::LEFT_DOWN)]; }
@@ -39,8 +41,8 @@ namespace KhanApp
 		POINTS GetLastMiddleDownPosition() const noexcept { return Positions[static_cast<int>(EventType::MIDDLE_DOWN)]; }
 		POINTS GetLastMiddleUpPosition() const noexcept { return Positions[static_cast<int>(EventType::MIDDLE_UP)]; }
 
-		bool IsLeftPressed() const noexcept { return ButtonStates[static_cast<int>(ButtonType::LEFT)]; }
-		bool IsRightPressed() const noexcept { return ButtonStates[static_cast<int>(ButtonType::RIGHT)]; }
-		bool IsMiddlePressed() const noexcept { return ButtonStates[static_cast<int>(ButtonType::MIDDLE)]; }
+		bool IsLeftButtonDown() const noexcept { return ButtonStates[static_cast<int>(ButtonType::LEFT)]; }
+		bool IsRightButtonDown() const noexcept { return ButtonStates[static_cast<int>(ButtonType::RIGHT)]; }
+		bool IsMiddleButtonDown() const noexcept { return ButtonStates[static_cast<int>(ButtonType::MIDDLE)]; }
 	};
 }

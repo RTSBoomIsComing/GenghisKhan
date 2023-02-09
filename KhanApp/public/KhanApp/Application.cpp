@@ -57,6 +57,7 @@ namespace KhanApp
 		case WM_KILLFOCUS:	// I think it would be better than using WM_ACTIVATE
 			app->DisableMouseLockToWindow();
 			app->m_input.mouse.ButtonStates.reset();
+			app->m_input.keyboard.KeyStates.reset();
 			return 0u;
 
 		//case WM_SETFOCUS:
@@ -80,6 +81,8 @@ namespace KhanApp
 			const POINTS pos = MAKEPOINTS(lparam);
 			app->m_input.mouse.Positions[static_cast<int>(Mouse::EventType::MOVE)] = pos;
 			app->m_input.mouse.OnMouseMove(pos.x, pos.y);
+
+			//app->m_input.m_reg
 			return 0u;
 		}
 		case WM_LBUTTONDOWN:
@@ -134,23 +137,35 @@ namespace KhanApp
 		//case WM_MOUSEHOVER:
 		//	//DirectX::Mouse::ProcessMessage(msg, wparam, lparam);
 		//	//return 0u;
-		//case WM_KEYDOWN:
-		//case WM_KEYUP:
-		//case WM_SYSKEYUP:
-		//case WM_SYSKEYDOWN:
-		//{
-		//	uint32_t VKCode = LOWORD(wparam);
+		case WM_KEYDOWN:
+		case WM_SYSKEYDOWN:
+		{
+			//bool isDown = (lparam & 0x8000'0000u) == 0;
 
-		//	bool wasDown = (lparam & 0x4000'0000u) != 0;
-		//	bool isDown = (lparam & 0x8000'0000u) == 0;
-		//	//app->m_input.keyboard.ProcessMessage(VKCode, wasDown, isDown);
-		//}
-		//DirectX::Keyboard::ProcessMessage(msg, wparam, lparam);
-		//if (wparam == VK_RETURN && (lparam & 0x60000000) == 0x20000000)
-		//{
-		//}
-		//return DefWindowProc(hwnd, msg, wparam, lparam);
+			bool wasDown = (lparam & 0x4000'0000u) != 0;
+			unsigned char VKeyCode = static_cast<unsigned char>(wparam);
+			app->m_input.keyboard.KeyStates[VKeyCode] = true;
+			if (!wasDown && app->m_input.keyboard.OnKeyDown.contains(VKeyCode))
+			{
+				app->m_input.keyboard.OnKeyDown[VKeyCode]();
+			}
+			return 0;
 		}
-		return DefWindowProc(hwnd, msg, wparam, lparam);
+
+		case WM_KEYUP:
+		case WM_SYSKEYUP:
+		{
+			unsigned char VKeyCode = static_cast<unsigned char>(wparam);
+			app->m_input.keyboard.KeyStates[VKeyCode] = false;
+			if (app->m_input.keyboard.OnKeyUp.contains(VKeyCode)) 
+			{ 
+				app->m_input.keyboard.OnKeyUp[VKeyCode](); 
+			}
+
+			return 0;
+		}
+		default: return DefWindowProc(hwnd, msg, wparam, lparam);
+		}
+		return 0;
 	}
 }

@@ -30,8 +30,7 @@ void Game2::Run()
 
 	KhanECS::System::MouseEdgeScroll(m_reg, m_cameraVelocity);
 
-	XMMATRIX viewMat = KhanECS::System::GetViewMatrix(m_reg);
-	XMMATRIX viewProjMat = viewMat * KhanECS::System::GetProjectionMatrix(m_aspectRatio);
+	XMMATRIX viewProjMat = KhanECS::System::GetViewMatrix(m_reg) * KhanECS::System::GetProjectionMatrix(m_aspectRatio);
 
 	static auto cube_renderer = KhanRender::CubeRenderer(m_renderingHub);
 	{
@@ -60,7 +59,7 @@ void Game2::Run()
 		selectionRect_renderer.Render();
 	}
 
-	
+
 	m_imGuiRenderer->Render();
 	m_renderingHub->RenderEnd();
 }
@@ -123,7 +122,7 @@ void Game2::BindActionsToInput() noexcept
 		KHAN_INFO(std::format("LBD: {:d}, {:d}", x, y));
 		x1 = x;
 		y1 = y;
-		
+
 		bIsSelectionRectDrawing = true;
 	};
 	m_input.mouse.OnLeftButtonUp.DefaultFn = [&](int x, int y) {
@@ -154,15 +153,39 @@ void Game2::BindActionsToInput() noexcept
 	};
 	m_input.mouse.OnMouseMove.DefaultFn = [&](int x, int y) {
 		using namespace DirectX;
-
+		m_cameraVelocity = DirectX::XMFLOAT2{};
 		if (!m_isMouseLocked) return;
 
 		x2 = x; y2 = y;
 
-		m_cameraVelocity = DirectX::XMFLOAT2{};
 		if (x == 0) m_cameraVelocity.x = -1.0F;
 		if (y == 0) m_cameraVelocity.y = +1.0F;
 		if (x == m_window_width - 1)  m_cameraVelocity.x = +1.0F;
 		if (y == m_window_height - 1) m_cameraVelocity.y = -1.0F;
+	};
+
+	m_input.keyboard.OnKeyDown['A'].DefaultFn = [&]() {
+		m_cameraVelocity.x = -1.0F;
+	};
+	m_input.keyboard.OnKeyUp['A'].DefaultFn = [&]() {
+		m_cameraVelocity.x = 0.0F;
+	};
+	m_input.keyboard.OnKeyDown['D'].DefaultFn = [&]() {
+		m_cameraVelocity.x = +1.0F;
+	};
+	m_input.keyboard.OnKeyUp['D'].DefaultFn = [&]() {
+		m_cameraVelocity.x = 0.0F;
+	};
+	m_input.keyboard.OnKeyDown['W'].DefaultFn = [&]() {
+		m_cameraVelocity.y = +1.0F;
+	};
+	m_input.keyboard.OnKeyUp['W'].DefaultFn = [&]() {
+		m_cameraVelocity.y = 0.0F;
+	};
+	m_input.keyboard.OnKeyDown['S'].DefaultFn = [&]() {
+		m_cameraVelocity.y = -1.0F;
+	};
+	m_input.keyboard.OnKeyUp['S'].DefaultFn = [&]() {
+		m_cameraVelocity.y = 0.0F;
 	};
 }
