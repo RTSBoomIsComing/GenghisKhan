@@ -9,7 +9,7 @@ entt::entity KhanECS::Entity::MakeCamera(entt::registry& reg) noexcept
 	using namespace KhanECS::Component;
 
 	entt::entity e = reg.create();
-	reg.emplace<entt::tag<"Camera"_hs>>(e);
+	reg.emplace<Camera>(e);
 	reg.emplace<Position>(e, 0.0F, 0.0F, -10.0F);
 	reg.emplace<Rotation>(e);
 
@@ -20,9 +20,8 @@ entt::entity KhanECS::Entity::MakeCamera(entt::registry& reg) noexcept
 DirectX::XMMATRIX KhanECS::System::GetViewMatrix(entt::registry const& reg) noexcept
 {
 	using namespace DirectX;
-	using namespace entt::literals;
 	using namespace KhanECS::Component;
-	auto view = reg.view<entt::tag<"Camera"_hs>, Position, Rotation>();
+	auto view = reg.view<Camera, Position, Rotation>();
 
 	for (entt::entity e : view)
 	{

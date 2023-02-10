@@ -43,6 +43,7 @@ protected:
 	int x2{};
 	int y1{};
 	int y2{};
-	bool bIsSelectionRectDrawing{};
+	bool m_isCameraMoving{};
+	bool m_isSelectionRectDrawing{};
 };
 

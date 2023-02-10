@@ -1,8 +1,14 @@
 #pragma once
+#include <KhanECS/Components.h>
+
 #include <entt/entity/fwd.hpp>
 #include <DirectXMath.h>
 #include <vector>
 
+namespace KhanECS::Component
+{
+	struct Cube : EntityName {};
+}
 
 namespace KhanECS::Entity
 {

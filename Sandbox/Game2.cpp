@@ -9,8 +9,9 @@
 #include <KhanECS/Camera.h>
 #include <KhanECS/Cube.h>
 #include <KhanECS/PlayerControl.h>
+#include <KhanECS/Systems.h>
 
-
+// standard libraries
 #include <random>
 
 Game2::Game2()
@@ -41,13 +42,35 @@ Game2::~Game2() noexcept
 void Game2::Run()
 {
 	using namespace DirectX;
+	using namespace entt::literals;
+
+	auto [LBDown_X, LBDown_Y] = m_input.mouse.GetLastLeftDownPosition();
+	x1 = LBDown_X;
+	y1 = LBDown_Y;
+
+	auto [Move_X, Move_Y] = m_input.mouse.GetLastMovePosition();
+	x2 = Move_X;
+	y2 = Move_Y;
+
+	// camera movement control
+	m_cameraVelocity = {};
+	if (m_isMouseLocked)
+	{
+		if (Move_X == 0) m_cameraVelocity.x += -1.0F;
+		if (Move_Y == 0) m_cameraVelocity.y += +1.0F;
+		if (Move_X == m_window_width - 1)  m_cameraVelocity.x += +1.0F;
+		if (Move_Y == m_window_height - 1) m_cameraVelocity.y += -1.0F;
+	}
+	if (m_input.keyboard.KeyStates['A']) m_cameraVelocity.x += -1.0F;
+	if (m_input.keyboard.KeyStates['D']) m_cameraVelocity.x += +1.0F;
+	if (m_input.keyboard.KeyStates['S']) m_cameraVelocity.y += -1.0F;
+	if (m_input.keyboard.KeyStates['W']) m_cameraVelocity.y += +1.0F;
 
 	KhanECS::System::MouseEdgeScroll(m_reg, m_cameraVelocity);
-
 	XMMATRIX viewProjMat = KhanECS::System::GetViewMatrix(m_reg) * KhanECS::System::GetProjectionMatrix(m_aspectRatio);
 
 
-	std::vector<XMMATRIX> cubeWorldMatrices = std::move(KhanECS::System::GetCubeWorldMatrices(m_reg));
+	std::vector<XMMATRIX> cubeWorldMatrices = std::move(KhanECS::System::GetWorldMatrices<KhanECS::Component::Cube>(m_reg));
 
 	m_cubeRenderer->Update(cubeWorldMatrices, viewProjMat);
 
@@ -56,7 +79,7 @@ void Game2::Run()
 	m_cubeRenderer->Render();
 
 	static auto selectionRect_renderer = KhanRender::SelectionRectRenderer(m_renderingHub);
-	if (bIsSelectionRectDrawing)
+	if (m_isSelectionRectDrawing && m_isMouseLocked)
 	{
 		selectionRect_renderer.Update(x1, y1, x2, y2);
 		selectionRect_renderer.Render();
@@ -125,14 +148,11 @@ void Game2::BindActionsToInput() noexcept
 
 	m_input.mouse.OnLeftButtonDown.DefaultFn = [&](int x, int y) {
 		KHAN_INFO(std::format("LBD: {:d}, {:d}", x, y));
-		x1 = x;
-		y1 = y;
-
-		bIsSelectionRectDrawing = true;
+		m_isSelectionRectDrawing = true;
 	};
 	m_input.mouse.OnLeftButtonUp.DefaultFn = [&](int x, int y) {
 		KHAN_INFO(std::format("LBU: {:d}, {:d}", x, y));
-		bIsSelectionRectDrawing = false;
+		m_isSelectionRectDrawing = false;
 	};
 	m_input.mouse.OnRightButtonDown.DefaultFn = [&](int x, int y) {
 		KHAN_INFO(std::format("RBD: {:d}, {:d}", x, y));
@@ -156,41 +176,5 @@ void Game2::BindActionsToInput() noexcept
 		KHAN_ERROR(std::format("RBU: {:d}, {:d}", x, y));
 		m_input.mouse.OnRightButtonUp.InstantFn = nullptr;
 	};
-	m_input.mouse.OnMouseMove.DefaultFn = [&](int x, int y) {
-		using namespace DirectX;
-		m_cameraVelocity = DirectX::XMFLOAT2{};
-		if (!m_isMouseLocked) return;
 
-		x2 = x; y2 = y;
-
-		if (x == 0) m_cameraVelocity.x = -1.0F;
-		if (y == 0) m_cameraVelocity.y = +1.0F;
-		if (x == m_window_width - 1)  m_cameraVelocity.x = +1.0F;
-		if (y == m_window_height - 1) m_cameraVelocity.y = -1.0F;
-	};
-
-	m_input.keyboard.OnKeyDown['A'].DefaultFn = [&]() {
-		m_cameraVelocity.x = -1.0F;
-	};
-	m_input.keyboard.OnKeyUp['A'].DefaultFn = [&]() {
-		m_cameraVelocity.x = 0.0F;
-	};
-	m_input.keyboard.OnKeyDown['D'].DefaultFn = [&]() {
-		m_cameraVelocity.x = +1.0F;
-	};
-	m_input.keyboard.OnKeyUp['D'].DefaultFn = [&]() {
-		m_cameraVelocity.x = 0.0F;
-	};
-	m_input.keyboard.OnKeyDown['W'].DefaultFn = [&]() {
-		m_cameraVelocity.y = +1.0F;
-	};
-	m_input.keyboard.OnKeyUp['W'].DefaultFn = [&]() {
-		m_cameraVelocity.y = 0.0F;
-	};
-	m_input.keyboard.OnKeyDown['S'].DefaultFn = [&]() {
-		m_cameraVelocity.y = -1.0F;
-	};
-	m_input.keyboard.OnKeyUp['S'].DefaultFn = [&]() {
-		m_cameraVelocity.y = 0.0F;
-	};
 }

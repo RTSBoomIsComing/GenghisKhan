@@ -7,6 +7,7 @@ using DirectX::XMFLOAT3;
 
 namespace KhanECS::Component
 {
+	struct EntityName {};
 	struct Position : XMFLOAT3
 	{
 		constexpr Position() noexcept = default;
@@ -16,6 +17,7 @@ namespace KhanECS::Component
 	struct Rotation : XMFLOAT3
 	{
 		constexpr Rotation() noexcept = default;
+		constexpr Rotation(DirectX::XMFLOAT3 rot) noexcept : XMFLOAT3(rot) {}
 		constexpr Rotation(float x, float y, float z) noexcept : XMFLOAT3(x, y, z) {}
 	};
 }

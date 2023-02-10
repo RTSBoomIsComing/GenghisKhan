@@ -7,10 +7,14 @@
 #include <entt/fwd.hpp>
 #include <limits>
 
+
+namespace KhanECS::Component
+{
+	struct Camera : EntityName {};
+}
+
 namespace KhanECS::Entity
 {
-	using namespace entt::literals;
-
 	entt::entity MakeCamera(entt::registry& reg) noexcept;
 }
 

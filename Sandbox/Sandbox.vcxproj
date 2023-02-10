@@ -125,6 +125,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="Game2.h" />
     <ClInclude Include="KhanECS\PlayerControl.h" />
+    <ClInclude Include="KhanECS\Systems.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="src\System\System.h" />
   </ItemGroup>
