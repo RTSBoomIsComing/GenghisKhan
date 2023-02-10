@@ -8,7 +8,7 @@ namespace KhanRender
 	class MeshRenderer : public Renderer
 	{
 	public:
-		MeshRenderer(std::shared_ptr<RenderingHub> pHub);
+		MeshRenderer(const Renderer& renderer);
 		void Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat);
 		void Render();
 	private:

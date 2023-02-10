@@ -3,12 +3,12 @@
 #include "KhanDx/KhanDxComponents.h"
 
 
-KhanRender::SelectionRectRenderer::SelectionRectRenderer(std::shared_ptr<RenderingHub> core)
+KhanRender::SelectionRectRenderer::SelectionRectRenderer(const Renderer& renderer)
 	:
-	Renderer(core)
+	Renderer(renderer)
 {
 	m_pVertexBuffer = KhanDx::CreateVertexBuffer(m_pDevice, vertices, sizeof(vertices));
-	m_pPixelShader  = KhanDx::CreatePixelShader(m_pDevice, "PixelShader");
+	m_pPixelShader = KhanDx::CreatePixelShader(m_pDevice, "PixelShader");
 
 	ComPtr<ID3DBlob> pBlob = KhanDx::CreateShaderBlob("VertexShader");
 	m_pVertexShader = KhanDx::CreateVertexShader(m_pDevice, pBlob.Get());
@@ -42,9 +42,14 @@ void KhanRender::SelectionRectRenderer::Render()
 	m_pDeviceContext->Draw(ARRAYSIZE(vertices), 0U);
 }
 
-void KhanRender::SelectionRectRenderer::Update(int x1, int y1, int x2, int y2)
+void KhanRender::SelectionRectRenderer::Update(const RECT& rect, UINT m_screenWidth, UINT m_screenHeight)
 {
 	using namespace DirectX;
+
+	int x1 = rect.left;
+	int x2 = rect.right;
+	int y1 = rect.top;
+	int y2 = rect.bottom;
 	// normalize the rectangle (x1 < x2, y1 < y2) 
 	if (x1 > x2)
 	{

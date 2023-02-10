@@ -4,10 +4,10 @@
 
 #include <imgui_impl_win32.h>
 #include <imgui_impl_dx11.h>
-#include "KhanRender/RenderingHub.h"
+#include "KhanRender/Renderer.h"
 #include <KhanDx/KhanDxFactories.h>
 
-KhanRender::ImGuiRenderer::ImGuiRenderer(void* hWnd, std::shared_ptr<RenderingHub> core, std::function<void()> ImGuiRender_Impl)
+KhanRender::ImGuiRenderer::ImGuiRenderer(void* hWnd, const Renderer& renderer, std::function<void()> ImGuiRender_Impl)
 	:
 	m_ImGuiRender_Impl(ImGuiRender_Impl)
 {
@@ -20,7 +20,7 @@ KhanRender::ImGuiRenderer::ImGuiRenderer(void* hWnd, std::shared_ptr<RenderingHu
 	::ImGui::StyleColorsDark(); // Setup Dear ImGui style
 
 	::ImGui_ImplWin32_Init(hWnd);
-	::ImGui_ImplDX11_Init(core->GetDevice().Get(), core->GetDeviceContext().Get());
+	::ImGui_ImplDX11_Init(renderer.m_pDevice.Get(), renderer.m_pDeviceContext.Get());
 }
 
 KhanRender::ImGuiRenderer::~ImGuiRenderer() noexcept

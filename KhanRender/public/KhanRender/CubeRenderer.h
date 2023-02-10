@@ -8,7 +8,7 @@ namespace KhanRender
 	class CubeRenderer : public Renderer
 	{
 	public:
-		CubeRenderer(std::shared_ptr<RenderingHub> pHub);
+		CubeRenderer(const Renderer& renderer);
 		void Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat);
 		void Render();
 	private:

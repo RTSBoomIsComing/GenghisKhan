@@ -4,7 +4,7 @@
     <ClInclude Include="private\pch.h" />
     <ClInclude Include="private\framework.h" />
     <ClInclude Include="public\KhanRender\Renderer.h" />
-    <ClInclude Include="public\KhanRender\RenderingHub.h" />
+    <ClInclude Include="public\KhanRender\MainRenderer.h" />
     <ClInclude Include="private\KhanDx\KhanDxUtils.h" />
     <ClInclude Include="private\KhanDx\KhanDxFactories.h" />
     <ClInclude Include="private\KhanDx\KhanDxComponents.h" />
@@ -15,7 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="private\pch.cpp" />
-    <ClCompile Include="public\KhanRender\RenderingHub.cpp" />
+    <ClCompile Include="public\KhanRender\MainRenderer.cpp" />
     <ClCompile Include="private\KhanDx\KhanDxUtils.cpp" />
     <ClCompile Include="private\KhanDx\KhanDxFactories.cpp" />
     <ClCompile Include="private\KhanDx\KhanDxComponents.cpp" />
@@ -23,5 +23,6 @@
     <ClCompile Include="public\KhanRender\CubeRenderer.cpp" />
     <ClCompile Include="public\KhanRender\ImGuiRenderer.cpp" />
     <ClCompile Include="public\KhanRender\MeshRenderer.cpp" />
+    <ClCompile Include="public\KhanRender\Renderer.cpp" />
   </ItemGroup>
 </Project>

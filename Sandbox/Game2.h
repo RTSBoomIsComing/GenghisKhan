@@ -1,6 +1,6 @@
 #pragma once
 #include <KhanApp/Application.h>
-
+#include <KhanRender/MainRenderer.h>
 // standard libraries
 #include <memory>
 
@@ -10,7 +10,6 @@
 
 namespace KhanRender
 {
-	class RenderingHub;
 	class ImGuiRenderer;
 	class CubeRenderer;
 }
@@ -30,7 +29,7 @@ protected:
 	void BindActionsToInput() noexcept;
 
 protected:
-	std::shared_ptr<KhanRender::RenderingHub> m_renderingHub;
+	KhanRender::MainRenderer m_mainRenderer;
 	std::unique_ptr<KhanRender::ImGuiRenderer> m_imGuiRenderer;
 	std::unique_ptr <KhanRender::CubeRenderer> m_cubeRenderer;
 protected:
@@ -38,11 +37,8 @@ protected:
 
 protected:
 	DirectX::XMFLOAT2 m_cameraVelocity{};
-
-	int x1{};
-	int x2{};
-	int y1{};
-	int y2{};
+	float clear_color[4]{};
+	RECT selectionRect{};
 	bool m_isCameraMoving{};
 	bool m_isSelectionRectDrawing{};
 };

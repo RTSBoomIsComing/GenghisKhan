@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "Game2.h"
 #include <KhanTools/Log.h>
-#include <KhanRender/RenderingHub.h>
 #include <KhanRender/SelectionRectRenderer.h>
 #include <KhanRender/CubeRenderer.h>
 #include <KhanRender/ImGuiRenderer.h>
@@ -16,11 +15,11 @@
 
 Game2::Game2()
 	:
-	m_renderingHub(std::make_shared<KhanRender::RenderingHub>(m_window_handle, m_window_width, m_window_height))
+	m_mainRenderer(m_window_handle, m_window_width, m_window_height)
 {
 	BindActionsToInput();
-	m_imGuiRenderer = std::make_unique<KhanRender::ImGuiRenderer>(m_window_handle, m_renderingHub, std::bind(&Game2::OnImGuiRender, this));
-	m_cubeRenderer = std::make_unique<KhanRender::CubeRenderer>(m_renderingHub);
+	m_imGuiRenderer = std::make_unique<KhanRender::ImGuiRenderer>(m_window_handle, m_mainRenderer, std::bind(&Game2::OnImGuiRender, this));
+	m_cubeRenderer = std::make_unique<KhanRender::CubeRenderer>(m_mainRenderer);
 
 	auto entity = KhanECS::Entity::MakeCamera(m_reg);
 
@@ -45,12 +44,12 @@ void Game2::Run()
 	using namespace entt::literals;
 
 	auto [LBDown_X, LBDown_Y] = m_input.mouse.GetLastLeftDownPosition();
-	x1 = LBDown_X;
-	y1 = LBDown_Y;
+	selectionRect.left = LBDown_X;
+	selectionRect.top = LBDown_Y;
 
 	auto [Move_X, Move_Y] = m_input.mouse.GetLastMovePosition();
-	x2 = Move_X;
-	y2 = Move_Y;
+	selectionRect.right = Move_X;
+	selectionRect.bottom = Move_Y;
 
 	// camera movement control
 	m_cameraVelocity = {};
@@ -75,25 +74,25 @@ void Game2::Run()
 	m_cubeRenderer->Update(cubeWorldMatrices, viewProjMat);
 
 
-	m_renderingHub->RenderBegin();
+	m_mainRenderer.RenderBegin(clear_color);
 	m_cubeRenderer->Render();
 
-	static auto selectionRect_renderer = KhanRender::SelectionRectRenderer(m_renderingHub);
+	static auto selectionRect_renderer = KhanRender::SelectionRectRenderer(m_mainRenderer);
 	if (m_isSelectionRectDrawing && m_isMouseLocked)
 	{
-		selectionRect_renderer.Update(x1, y1, x2, y2);
+		selectionRect_renderer.Update(selectionRect, m_window_width, m_window_height);
 		selectionRect_renderer.Render();
 	}
 
 
 	m_imGuiRenderer->Render();
-	m_renderingHub->RenderEnd();
+	m_mainRenderer.RenderEnd();
 }
 
 void Game2::OnResizeWindow(UINT width, UINT height) noexcept
 {
 	Application::OnResizeWindow(width, height);
-	m_renderingHub->ResizeRenderTarget(width, height);
+	m_mainRenderer.ResizeRenderTarget(width, height);
 }
 
 void Game2::OnImGuiRender()
@@ -101,7 +100,7 @@ void Game2::OnImGuiRender()
 	// (we use static, which essentially makes the variable globals, as a convenience to keep the example code easy to follow)
 	static bool show_demo_window = true;
 	static bool show_another_window = false;
-	static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+	//static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
 	if (show_demo_window)

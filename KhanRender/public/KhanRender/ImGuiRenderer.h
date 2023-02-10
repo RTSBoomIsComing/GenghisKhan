@@ -1,4 +1,6 @@
 #pragma once
+#include "Renderer.h"
+
 #include <functional>
 #include <memory>
 #include <imgui.h>
@@ -8,7 +10,7 @@ namespace KhanRender
 	class ImGuiRenderer
 	{
 	public:
-		ImGuiRenderer(void* hWnd, std::shared_ptr<class RenderingHub> core, std::function<void()> ImGuiRender_Impl);
+		ImGuiRenderer(void* hWnd, const Renderer& renderer, std::function<void()> ImGuiRender_Impl);
 		~ImGuiRenderer() noexcept;
 
 		void Render();

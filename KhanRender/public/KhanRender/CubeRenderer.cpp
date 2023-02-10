@@ -2,9 +2,9 @@
 #include "CubeRenderer.h"
 #include "KhanDx/KhanDxComponents.h"
 
-KhanRender::CubeRenderer::CubeRenderer(std::shared_ptr<RenderingHub> pHub)
+KhanRender::CubeRenderer::CubeRenderer(const Renderer& renderer)
 	:
-	Renderer(pHub)
+	Renderer(renderer)
 {
 	m_pVertexBuffer = KhanDx::CreateVertexBuffer(m_pDevice, vertices, sizeof(vertices));
 	m_pIndexBuffer = KhanDx::CreateIndexBuffer(m_pDevice, indices, sizeof(indices));

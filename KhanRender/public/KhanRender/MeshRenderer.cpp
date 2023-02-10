@@ -2,9 +2,9 @@
 #include "MeshRenderer.h"
 #include "KhanDx/KhanDxComponents.h"
 
-KhanRender::MeshRenderer::MeshRenderer(std::shared_ptr<RenderingHub> pHub)
+KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer)
 	:
-	Renderer(pHub)
+	Renderer(renderer)
 {
 	m_pVertexBuffer = KhanDx::CreateVertexBuffer(m_pDevice, vertices, sizeof(vertices));
 	m_pIndexBuffer = KhanDx::CreateIndexBuffer(m_pDevice, indices, sizeof(indices));

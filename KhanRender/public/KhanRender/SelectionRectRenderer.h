@@ -5,11 +5,11 @@
 namespace KhanRender
 {
 	class SelectionRectRenderer : public Renderer
-	{		
+	{
 	public:
-		SelectionRectRenderer(std::shared_ptr<RenderingHub> pHub);
+		SelectionRectRenderer(const Renderer& renderer);
 		void Render();
-		void Update(int x1, int y1, int x2, int y2);
+		void Update(const RECT& rect, UINT m_screenWidth, UINT m_screenHeight);
 
 	private:
 		ComPtr<ID3D11Buffer>		    m_pVertexBuffer;
