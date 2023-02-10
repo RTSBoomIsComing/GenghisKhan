@@ -82,7 +82,6 @@ namespace KhanApp
 			app->m_input.mouse.Positions[static_cast<int>(Mouse::EventType::MOVE)] = pos;
 			app->m_input.mouse.OnMouseMove(pos.x, pos.y);
 
-			//app->m_input.m_reg
 			return 0u;
 		}
 		case WM_LBUTTONDOWN:
@@ -140,8 +139,6 @@ namespace KhanApp
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
 		{
-			//bool isDown = (lparam & 0x8000'0000u) == 0;
-
 			bool wasDown = (lparam & 0x4000'0000u) != 0;
 			unsigned char VKeyCode = static_cast<unsigned char>(wparam);
 			app->m_input.keyboard.KeyStates[VKeyCode] = true;

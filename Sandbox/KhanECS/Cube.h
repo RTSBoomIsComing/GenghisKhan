@@ -3,7 +3,7 @@
 
 #include <entt/entity/fwd.hpp>
 #include <DirectXMath.h>
-#include <vector>
+
 
 namespace KhanECS::Component
 {
@@ -17,6 +17,6 @@ namespace KhanECS::Entity
 
 namespace KhanECS::System
 {
-	std::vector<DirectX::XMMATRIX> GetCubeWorldMatrices(entt::registry const& reg) noexcept;
+
 }
 

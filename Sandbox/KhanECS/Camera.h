@@ -1,5 +1,4 @@
 #pragma once
-
 #include "KhanEcs/Components.h"
 
 // additional dependencies

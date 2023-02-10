@@ -4,18 +4,17 @@
 
 // additional dependencies
 #include <DirectXMath.h>
-#include <entt/entt.hpp>
+#include <entt/fwd.hpp>
 
 namespace KhanECS::System
 {
-	template<typename T>
+	template<typename ...Args>
 	std::vector<DirectX::XMMATRIX> GetWorldMatrices(entt::registry const& reg) noexcept
 	{
 		using namespace DirectX;
 		using namespace KhanECS::Component;
-		using namespace entt::literals;
 
-		auto view = reg.view<T, Position, Rotation>();
+		auto view = reg.view<Args..., Position, Rotation>();
 		std::vector<DirectX::XMMATRIX> matrices;
 		for (entt::entity e : view)
 		{

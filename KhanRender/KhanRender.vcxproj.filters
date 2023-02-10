@@ -11,6 +11,7 @@
     <ClInclude Include="public\KhanRender\SelectionRectRenderer.h" />
     <ClInclude Include="public\KhanRender\CubeRenderer.h" />
     <ClInclude Include="public\KhanRender\ImGuiRenderer.h" />
+    <ClInclude Include="public\KhanRender\MeshRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="private\pch.cpp" />
@@ -21,5 +22,6 @@
     <ClCompile Include="public\KhanRender\SelectionRectRenderer.cpp" />
     <ClCompile Include="public\KhanRender\CubeRenderer.cpp" />
     <ClCompile Include="public\KhanRender\ImGuiRenderer.cpp" />
+    <ClCompile Include="public\KhanRender\MeshRenderer.cpp" />
   </ItemGroup>
 </Project>
