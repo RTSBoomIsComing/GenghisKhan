@@ -24,13 +24,16 @@ So you don't need to install libraries manually,
 Once you build visual studio solution all the libraries installed automatically.
 
 ## Results of work so far
-![Results](https://user-images.githubusercontent.com/61501369/217764200-53519382-2534-4180-a96c-7fa8dcd398c6.png)
+![Results](https://user-images.githubusercontent.com/61501369/218139932-9a4e0ba4-51d8-403a-bffd-e98bd0197abd.png)
+
+## Done
+- Input binding with keyboard and mouse
+- Draw a selection rectangle with mouse 
+- Camera movement with both mouse and keyboard
+- Make Renderer allow instancing with either constant buffer or structured buffer (shader resource view)
+- Import and render a 3d mesh(model) from file using Assimp library
 
 ## TODO
-- make CubeRenderer allow instancing
-- make Cube entity with entt and test rendering a lot of cubes with instancing
-- add feature selecting(picking) objects by mouse
-- draw outlines of selected(picked) objects
-- Keyboard event system
-- load and render 3d model from file using assimp library
+- add object-selecting(picking) function using selection rectangle or mouse click... -> need ray casting
+- draw outlines of selected(picked) objects -> post processing, use of stencil buffer
 

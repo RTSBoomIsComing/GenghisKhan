@@ -27,16 +27,16 @@ Game2::Game2()
 
 	auto entity = KhanECS::Entity::MakeCamera(m_reg);
 
-	//std::random_device rd;
-	//std::mt19937 gen(rd());
-	//std::uniform_int_distribution<int> die(-40, 40);
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int> die(-40, 40);
 
-	//for (int i{}; i < 1000; ++i)
-	//{
-	//	auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{ (float)die(gen), (float)die(gen), 50.0F + die(gen) });
-	//}
+	for (int i{}; i < 1000; ++i)
+	{
+		auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{ (float)die(gen), (float)die(gen), 50.0F + die(gen) });
+	}
 
-	auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{0.0F, 0.0F, -5.0F});
+	//auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{0.0F, 0.0F, -5.0F});
 }
 
 Game2::~Game2() noexcept
