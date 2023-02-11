@@ -29,14 +29,14 @@ Game2::Game2()
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int> die(-40, 40);
+	std::uniform_int_distribution<int> die(-1500, 1500);
 
-	for (int i{}; i < 1000; ++i)
+	for (int i{}; i < 100; ++i)
 	{
-		auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{ (float)die(gen), (float)die(gen), 50.0F + die(gen) });
+		auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{ (float)die(gen), -200.0F, 500.0F + die(gen) });
 	}
 
-	//auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{0.0F, 0.0F, -5.0F});
+	//auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{0.0F, 0.0F, 100.0F});
 }
 
 Game2::~Game2() noexcept

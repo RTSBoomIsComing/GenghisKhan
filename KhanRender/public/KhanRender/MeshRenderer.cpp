@@ -11,34 +11,66 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer)
 	:
 	Renderer(renderer)
 {
+	using namespace DirectX;
 	// Load the model using Assimp
 	Assimp::Importer importer;
-	//"D:/Assets/zelda/zeldaPosed001.fbx"
-	//"D:\\Assets\\monkey.obj"
-	const aiScene* scene = importer.ReadFile("D:\\Assets\\monkey.obj", aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
-	auto mesh = scene->mMeshes[0];
-	m_numVertices = mesh->mNumVertices;
-	m_numIndices = mesh->mNumFaces * 3;
 
-	std::vector<UINT> m_indices;
-	m_indices.reserve(m_numIndices);
-	for (UINT i{}; i < mesh->mNumFaces; ++i) {
-		aiFace face = mesh->mFaces[i];
-		for (UINT j{}; j < face.mNumIndices; ++j)
-			m_indices.push_back(face.mIndices[j]);
+	//"D:\\Assets\\monkey.obj"
+	const aiScene* scene = importer.ReadFile("D:/Assets/X Bot.fbx", aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
+
+	UINT accNumVertices{};
+	UINT accNumIndices{};
+	UINT numMeshes = scene->mNumMeshes;
+
+	for (UINT i{}; i < numMeshes; ++i)
+	{
+		auto mesh = scene->mMeshes[i];
+		Model model{};
+		model.NumVertices = mesh->mNumVertices;
+		model.NumIndices = mesh->mNumFaces * 3;
+		model.BaseVertexLocation = accNumVertices;
+		model.StartIndexLocation = accNumIndices;
+		m_models.push_back(model);
+
+		accNumVertices += model.NumVertices;
+		accNumIndices += model.NumIndices;
 	}
 
-	m_pVertexBuffer = KhanDx::CreateVertexBuffer(m_pDevice, scene->mMeshes[0]->mVertices, 12 * m_numVertices);
-	m_pIndexBuffer = KhanDx::CreateIndexBuffer(m_pDevice, m_indices.data(), sizeof(UINT) * m_numIndices);
+	std::vector<UINT> m_indices; // I think this would be a member variable... but not now, just let it as a local variable
+	m_indices.reserve(accNumIndices);
+	for (UINT i{}; i < numMeshes; ++i)
+	{
+		auto mesh = scene->mMeshes[i];
+		for (UINT j{}; j < mesh->mNumFaces; ++j)
+		{
+			aiFace face = mesh->mFaces[j];
+			m_indices.insert(m_indices.end(), face.mIndices, face.mIndices + face.mNumIndices);
+		}
+	}
 
-	m_pPixelShader = KhanDx::CreatePixelShader(m_pDevice, "PS_BasicGeometry3d");
+	std::vector<XMFLOAT3> m_vertexPositions; // I think this would be a member variable... but not now, just let it as a local variable
+	m_vertexPositions.reserve(accNumVertices);
+	for (UINT i{}; i < numMeshes; ++i)
+	{
+		auto mesh = scene->mMeshes[i];
+		m_vertexPositions.insert(m_vertexPositions.end(), reinterpret_cast<XMFLOAT3*>(mesh->mVertices), reinterpret_cast<XMFLOAT3*>(mesh->mVertices + mesh->mNumVertices));
+	}
 
-	ComPtr<ID3DBlob> pBlob = KhanDx::CreateShaderBlob("VS_BasicGeometry3d");
+	m_elementDescs.emplace_back("POSITION", 0U, DXGI_FORMAT_R32G32B32_FLOAT, 0U, 0U, D3D11_INPUT_PER_VERTEX_DATA, 0U);
+	//{ "TEXCOORD", 0U, DXGI_FORMAT_R32G32_FLOAT,    0U, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0U },
+	//{ "NORMAL",   0U, DXGI_FORMAT_R32G32B32_FLOAT, 0U, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0U },
+
+
+	m_pVertexBuffer = KhanDx::CreateVertexBuffer(m_pDevice, m_vertexPositions.data(), sizeof(m_vertexPositions[0]) * (UINT)m_vertexPositions.size());
+	m_pIndexBuffer = KhanDx::CreateIndexBuffer(m_pDevice, m_indices.data(), sizeof(m_indices[0]) * (UINT)m_indices.size());
+
+	m_pPixelShader = KhanDx::CreatePixelShader(m_pDevice, "PS_3dModelFromAssimp");
+	ComPtr<ID3DBlob> pBlob = KhanDx::CreateShaderBlob("VS_3dModelFromAssimp");
 	m_pVertexShader = KhanDx::CreateVertexShader(m_pDevice, pBlob.Get());
-	m_pInputLayout = KhanDx::CreateInputLayout(m_pDevice, pBlob.Get(), elementDescs.data(), elementDescs.size());
+	m_pInputLayout = KhanDx::CreateInputLayout(m_pDevice, pBlob.Get(), m_elementDescs.data(), (UINT)m_elementDescs.size());
 
 	m_pVSDynConstBuf = KhanDx::CreateDynConstBuf<DirectX::XMFLOAT4X4>(m_pDevice, 1000U);
-	
+
 	// if need structured buffer
 	//m_pVSDynStructBuf = KhanDx::CreateDynStructBuf<DirectX::XMFLOAT4X4>(m_pDevice, m_numInstance);
 	//m_pSRV = KhanDx::CreateSRV_StructBuf(m_pDevice, m_pVSDynStructBuf, 0U, m_numInstance);
@@ -84,5 +116,9 @@ void KhanRender::MeshRenderer::Render()
 	m_pDeviceContext->RSSetState(m_pRasterizerState.Get());
 	m_pDeviceContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 1U);
 	m_pDeviceContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xFFFFFFFF);
-	m_pDeviceContext->DrawIndexedInstanced(m_numIndices, m_numInstance, 0U, 0U, 0U);
+	for (auto& model : m_models)
+	{
+		m_pDeviceContext->DrawIndexedInstanced(model.NumIndices, m_numInstance, model.StartIndexLocation, model.BaseVertexLocation, 0U);
+	}
+	
 }

@@ -5,18 +5,27 @@
 
 namespace KhanRender
 {
+	struct Model
+	{
+		UINT NumVertices{};
+		UINT NumIndices{};
+		UINT BaseVertexLocation{};
+		UINT StartIndexLocation{};
+	};
+
 	class MeshRenderer : public Renderer
 	{
 	public:
 		MeshRenderer(const Renderer& renderer);
 		void Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat);
 		void Render();
-	private:
+	private: // about rendering infomations
+		std::vector<Model> m_models;
 		UINT m_numInstance{};
-		UINT m_numIndices{};
-		UINT m_numVertices{};
+		//UINT m_numIndices{};
+		//UINT m_numVertices{};
 		
-	private:
+	private: // about directx 11 components
 		ComPtr<ID3D11Buffer>		    m_pVertexBuffer;
 		ComPtr<ID3D11Buffer>		    m_pIndexBuffer;
 		ComPtr<ID3D11PixelShader>	    m_pPixelShader;
@@ -30,12 +39,7 @@ namespace KhanRender
 		ComPtr<ID3D11DepthStencilState> m_pDepthStencilState;
 		//ComPtr<ID3D11ShaderResourceView> m_pSRV;
 
-		std::vector<D3D11_INPUT_ELEMENT_DESC> elementDescs
-		{
-			{ "POSITION", 0U, DXGI_FORMAT_R32G32B32_FLOAT, 0U, 0U,                           D3D11_INPUT_PER_VERTEX_DATA, 0U },
-			//{ "TEXCOORD", 0U, DXGI_FORMAT_R32G32_FLOAT,    0U, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0U },
-			//{ "NORMAL",   0U, DXGI_FORMAT_R32G32B32_FLOAT, 0U, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0U },
-		};
+		std::vector<D3D11_INPUT_ELEMENT_DESC> m_elementDescs;
 
 		//struct Vertex
 		//{
