@@ -38,7 +38,8 @@ protected:
 	entt::registry m_reg;
 
 protected:
-	DirectX::XMFLOAT2 m_cameraVelocity{};
+	DirectX::XMFLOAT3 m_cameraVelocity{};
+	DirectX::XMFLOAT3 m_cameraRotation{};
 	float clear_color[4]{};
 	RECT selectionRect{};
 	bool m_isCameraMoving{};

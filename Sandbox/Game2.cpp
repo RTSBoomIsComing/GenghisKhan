@@ -70,6 +70,7 @@ void Game2::Run()
 	if (m_input.keyboard.KeyStates['S']) m_cameraVelocity.y += -1.0F;
 	if (m_input.keyboard.KeyStates['W']) m_cameraVelocity.y += +1.0F;
 
+	KhanECS::System::SetCameraRotation(m_reg, m_cameraRotation);
 	KhanECS::System::MouseEdgeScroll(m_reg, m_cameraVelocity);
 	XMMATRIX viewProjMat = KhanECS::System::GetViewMatrix(m_reg) * KhanECS::System::GetProjectionMatrix(m_aspectRatio);
 
@@ -103,11 +104,13 @@ void Game2::OnResizeWindow(UINT width, UINT height) noexcept
 }
 
 void Game2::OnImGuiRender()
-{    // Our state
+{
+	using namespace DirectX;
+	// Our state
 	// (we use static, which essentially makes the variable globals, as a convenience to keep the example code easy to follow)
 	static bool show_demo_window = true;
 	static bool show_another_window = false;
-	//static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
 
 	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
 	if (show_demo_window)
@@ -115,7 +118,6 @@ void Game2::OnImGuiRender()
 
 	// 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
 	{
-		static float f = 0.0f;
 		static int counter = 0;
 
 		ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
@@ -124,7 +126,7 @@ void Game2::OnImGuiRender()
 		ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
 		ImGui::Checkbox("Another Window", &show_another_window);
 
-		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+		ImGui::SliderFloat3("camera rot", reinterpret_cast<float*>(&m_cameraRotation), -XM_PI, XM_PI);
 		ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
 		if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)

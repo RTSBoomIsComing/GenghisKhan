@@ -7,5 +7,6 @@
 
 namespace KhanECS::System
 {
-	void MouseEdgeScroll(entt::registry& reg, DirectX::XMFLOAT2 velocity) noexcept;
+	void MouseEdgeScroll(entt::registry& reg, DirectX::XMFLOAT3 velocity) noexcept;
+	void SetCameraRotation(entt::registry& reg, DirectX::XMFLOAT3 const& newRot) noexcept;
 }

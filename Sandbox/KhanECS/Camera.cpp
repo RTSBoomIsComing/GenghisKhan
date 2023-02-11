@@ -10,8 +10,8 @@ entt::entity KhanECS::Entity::MakeCamera(entt::registry& reg) noexcept
 
 	entt::entity e = reg.create();
 	reg.emplace<Camera>(e);
-	reg.emplace<Position>(e, 0.0F, 0.0F, -10.0F);
-	reg.emplace<Rotation>(e);
+	reg.emplace<Position>(e, 0.0F, 100.0F, 0.0F);
+	reg.emplace<Rotation>(e, 0.0F, 0.0F, 0.0F);
 
 	return e;
 }
