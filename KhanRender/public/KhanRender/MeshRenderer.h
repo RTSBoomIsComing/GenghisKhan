@@ -20,13 +20,20 @@ namespace KhanRender
 		void Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat);
 		void Render();
 	private: // about rendering infomations
-		std::vector<Model> m_models;
 		UINT m_numInstance{};
+		std::vector<Model> m_models;
+		std::vector<ID3D11Buffer*>	m_vtxBufPtrs;
+		std::vector<UINT>			m_vtxStrides;
+		std::vector<UINT>			m_vtxBufOffsets;
+
 		//UINT m_numIndices{};
 		//UINT m_numVertices{};
 		
 	private: // about directx 11 components
-		ComPtr<ID3D11Buffer>		    m_pVertexBuffer;
+		ComPtr<ID3D11Buffer> m_pVtxBufPosition;
+		ComPtr<ID3D11Buffer> m_pVtxBufTexCoord;
+		ComPtr<ID3D11Buffer> m_pVtxBufNormal;
+
 		ComPtr<ID3D11Buffer>		    m_pIndexBuffer;
 		ComPtr<ID3D11PixelShader>	    m_pPixelShader;
 		ComPtr<ID3D11VertexShader>	    m_pVertexShader;
