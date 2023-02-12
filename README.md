@@ -24,7 +24,7 @@ So you don't need to install libraries manually,
 Once you build visual studio solution all the libraries installed automatically.
 
 ## Results of work so far
-![Results](https://user-images.githubusercontent.com/61501369/218249317-15a8d89f-4afe-4025-b010-5edc1fe43472.png)
+![Results](https://user-images.githubusercontent.com/61501369/218304602-974cc435-3d03-4617-ab62-ff7fe6c87f7f.png)
 
 ## Done
 - Input binding with keyboard and mouse
