@@ -6,54 +6,67 @@
 #include <assimp/postprocess.h>
 #include <KhanTools/Log.h>
 
-
-
-
 KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer)
 	:
 	Renderer(renderer)
 {
 	using namespace DirectX;
+
 	// Load the model using Assimp
 	Assimp::Importer importer;
-
-	const aiScene* scene = importer.ReadFile("..\\Mixamo\\akai_e_espiritu.fbx", aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
-	if (nullptr == scene) {
+	std::string SceneFilePath{ "..\\Mixamo\\akai_e_espiritu.fbx" };
+	//std::string SceneFilePath{ "..\\Mixamo\\X bot.fbx" };
+	const aiScene* pScene = importer.ReadFile(SceneFilePath, aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
+	if (nullptr == pScene) {
 		KHAN_ERROR(importer.GetErrorString());
 		throw std::exception{ "Failed to import file using assimp" };
 	}
 
 	UINT accNumVertices{};
 	UINT accNumIndices{};
-	UINT numMeshes = scene->mNumMeshes;
+	UINT numMeshes = pScene->mNumMeshes;
 
 	for (UINT i{}; i < numMeshes; i++)
 	{
-		auto mesh = scene->mMeshes[i];
+		auto pMesh = pScene->mMeshes[i];
 		Model model{};
-		model.NumVertices = mesh->mNumVertices;
-		model.NumIndices = mesh->mNumFaces * 3;
+		model.NumVertices = pMesh->mNumVertices;
+		model.NumIndices = pMesh->mNumFaces * 3;
 		model.BaseVertexLocation = accNumVertices;
 		model.StartIndexLocation = accNumIndices;
 		m_models.push_back(model);
 
 		accNumVertices += model.NumVertices;
 		accNumIndices += model.NumIndices;
+	}
 
-		auto material = scene->mMaterials[mesh->mMaterialIndex];
-		auto a = material->GetTextureCount(aiTextureType_DIFFUSE);
-		//material->GetTexture(aiTextureType_DIFFUSE)
-		//KHAN_INFO("a");
+	for (UINT i{}; i < numMeshes; i++)
+	{
+		auto pMesh = pScene->mMeshes[i];
+		auto pMaterial = pScene->mMaterials[pMesh->mMaterialIndex];
+
+		if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0)
+		{
+			aiString filePath;
+			if (pMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &filePath) == AI_SUCCESS)
+			{
+				const aiTexture* pAiTexture = pScene->GetEmbeddedTexture(filePath.C_Str());
+				if (pAiTexture)
+				{
+					m_models[i].m_pSRV = KhanDx::CreateSRV_Texture2D(m_pDevice.Get(), pAiTexture);
+				}
+			}
+		}
 	}
 
 	std::vector<UINT> m_indices; // I think this would be a member variable... but not now, just let it as a local variable
 	m_indices.reserve(accNumIndices);
 	for (UINT i{}; i < numMeshes; i++)
 	{
-		auto mesh = scene->mMeshes[i];
-		for (UINT j{}; j < mesh->mNumFaces; j++)
+		auto pMesh = pScene->mMeshes[i];
+		for (UINT j{}; j < pMesh->mNumFaces; j++)
 		{
-			aiFace face = mesh->mFaces[j];
+			aiFace face = pMesh->mFaces[j];
 			m_indices.insert(m_indices.end(), face.mIndices, face.mIndices + face.mNumIndices);
 		}
 	}
@@ -62,34 +75,34 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer)
 	m_vertices.reserve(accNumVertices);
 	for (UINT i{}; i < numMeshes; i++)
 	{
-		auto mesh = scene->mMeshes[i];
-		XMFLOAT3* xmVertices = reinterpret_cast<XMFLOAT3*>(mesh->mVertices);
-		XMFLOAT3* xmNormals = reinterpret_cast<XMFLOAT3*>(mesh->mNormals);
-		XMFLOAT3** xmTexCoords = reinterpret_cast<XMFLOAT3**>(mesh->mTextureCoords);
-		for (UINT j{}; j < mesh->mNumVertices; j++)
+		auto pMesh = pScene->mMeshes[i];
+		XMFLOAT3* xmVertices = reinterpret_cast<XMFLOAT3*>(pMesh->mVertices);
+		XMFLOAT3* xmNormals = reinterpret_cast<XMFLOAT3*>(pMesh->mNormals);
+		XMFLOAT3** xmTexCoords = reinterpret_cast<XMFLOAT3**>(pMesh->mTextureCoords);
+		for (UINT j{}; j < pMesh->mNumVertices; j++)
 		{
 			m_vertices.emplace_back(xmVertices[j], xmTexCoords[0][j], xmNormals[j]);
 		}
 	}
 
-	m_pVertexBuffer = KhanDx::CreateVertexBuffer(m_pDevice, m_vertices.data(), sizeof(Vertex) * (UINT)m_vertices.size());
-	m_pIndexBuffer = KhanDx::CreateIndexBuffer(m_pDevice, m_indices.data(), sizeof(m_indices[0]) * (UINT)m_indices.size());
+	m_pVertexBuffer = KhanDx::CreateVertexBuffer(m_pDevice.Get(), m_vertices.data(), sizeof(Vertex) * (UINT)m_vertices.size());
+	m_pIndexBuffer = KhanDx::CreateIndexBuffer(m_pDevice.Get(), m_indices.data(), sizeof(m_indices[0]) * (UINT)m_indices.size());
 
-	m_pPixelShader = KhanDx::CreatePixelShader(m_pDevice, "PS_3dModelFromAssimp");
+	m_pPixelShader = KhanDx::CreatePixelShader(m_pDevice.Get(), "PS_3dModelFromAssimp");
 	ComPtr<ID3DBlob> pBlob = KhanDx::CreateShaderBlob("VS_3dModelFromAssimp");
-	m_pVertexShader = KhanDx::CreateVertexShader(m_pDevice, pBlob.Get());
-	m_pInputLayout = KhanDx::CreateInputLayout(m_pDevice, pBlob.Get(), m_elementDescs.data(), (UINT)m_elementDescs.size());
+	m_pVertexShader = KhanDx::CreateVertexShader(m_pDevice.Get(), pBlob.Get());
+	m_pInputLayout = KhanDx::CreateInputLayout(m_pDevice.Get(), pBlob.Get(), m_elementDescs.data(), (UINT)m_elementDescs.size());
 
-	m_pVSDynConstBuf = KhanDx::CreateDynConstBuf<DirectX::XMFLOAT4X4>(m_pDevice, 1000U);
+	m_pVSDynConstBuf = KhanDx::CreateDynConstBuf<DirectX::XMFLOAT4X4>(m_pDevice.Get(), 1000U);
 
 	// if need structured buffer
 	//m_pVSDynStructBuf = KhanDx::CreateDynStructBuf<DirectX::XMFLOAT4X4>(m_pDevice, m_numInstance);
 	//m_pSRV = KhanDx::CreateSRV_StructBuf(m_pDevice, m_pVSDynStructBuf, 0U, m_numInstance);
 
 	m_pBlendState = nullptr; // blend off
-	m_pRasterizerState = KhanDx::CreateRasterizerState_Solid(m_pDevice);
-	m_pDepthStencilState = KhanDx::CreateDepthStencilState_Default(m_pDevice);
-
+	m_pRasterizerState = KhanDx::CreateRasterizerState_Solid(m_pDevice.Get());
+	m_pDepthStencilState = KhanDx::CreateDepthStencilState_Default(m_pDevice.Get());
+	m_pSamplerState = KhanDx::CreateSamplerState_Basic(m_pDevice.Get());
 }
 
 void KhanRender::MeshRenderer::Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat)
@@ -121,14 +134,18 @@ void KhanRender::MeshRenderer::Render()
 	m_pDeviceContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0U);
 	m_pDeviceContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0U);
 
-	//m_pDeviceContext->VSSetShaderResources(0U, 1U, m_pSRV.GetAddressOf());
+
+
+
 	m_pDeviceContext->VSSetConstantBuffers(0U, 1U, m_pVSDynConstBuf.GetAddressOf());
 
 	m_pDeviceContext->RSSetState(m_pRasterizerState.Get());
 	m_pDeviceContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 1U);
 	m_pDeviceContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xFFFFFFFF);
+	m_pDeviceContext->PSSetSamplers(0, 1, m_pSamplerState.GetAddressOf());
 	for (auto& model : m_models)
 	{
+		m_pDeviceContext->PSSetShaderResources(0U, 1U, model.m_pSRV.GetAddressOf());
 		m_pDeviceContext->DrawIndexedInstanced(model.NumIndices, m_numInstance, model.StartIndexLocation, model.BaseVertexLocation, 0U);
 	}
 

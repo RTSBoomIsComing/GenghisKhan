@@ -36,7 +36,7 @@ Game2::Game2()
 		auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{ (float)die(gen), -200.0F, 500.0F + die(gen) });
 	}
 
-	//auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{0.0F, 0.0F, 100.0F});
+//	auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{0.0F, 0.0F, 100.0F});
 }
 
 Game2::~Game2() noexcept

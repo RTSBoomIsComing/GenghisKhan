@@ -6,28 +6,33 @@ using Microsoft::WRL::ComPtr;
 #include <string_view>
 #include <tuple>
 
+struct aiTexture;
+
 namespace KhanDx
 {
-	ComPtr<ID3D11RasterizerState> CreateRasterizerState_Solid(ComPtr<ID3D11Device> pDevice) noexcept;
-	ComPtr<ID3D11RasterizerState> CreateRasterizerState_Solid_NoCulling(ComPtr<ID3D11Device> pDevice) noexcept;
-	ComPtr<ID3D11RasterizerState> CreateRasterizerState_WireFrame(ComPtr<ID3D11Device> pDevice) noexcept;
+	ComPtr<ID3D11RasterizerState> CreateRasterizerState_Solid(ID3D11Device* pDevice) noexcept;
+	ComPtr<ID3D11RasterizerState> CreateRasterizerState_Solid_NoCulling(ID3D11Device* pDevice) noexcept;
+	ComPtr<ID3D11RasterizerState> CreateRasterizerState_WireFrame(ID3D11Device* pDevice) noexcept;
+	ComPtr<ID3D11SamplerState>	  CreateSamplerState_Basic(ID3D11Device* pDevice) noexcept;
 	
-	ComPtr<ID3D11DepthStencilState> CreateDepthStencilState_Default(ComPtr<ID3D11Device> pDevice) noexcept;
-	ComPtr<ID3D11BlendState> CreateBlendState_Alpha(ComPtr<ID3D11Device> pDevice) noexcept;
+	ComPtr<ID3D11DepthStencilState> CreateDepthStencilState_Default(ID3D11Device* pDevice) noexcept;
+	ComPtr<ID3D11BlendState> CreateBlendState_Alpha(ID3D11Device* pDevice) noexcept;
 	
 	
-	ComPtr<ID3D11Buffer> CreateVertexBuffer(ComPtr<ID3D11Device> pDevice, const void* pSysMem, UINT byteWidth) noexcept;
-	ComPtr<ID3D11Buffer> CreateIndexBuffer(ComPtr<ID3D11Device> pDevice, const void* pSysMem, UINT byteWidth) noexcept;
+	ComPtr<ID3D11Buffer> CreateVertexBuffer(ID3D11Device* pDevice, const void* pSysMem, UINT byteWidth) noexcept;
+	ComPtr<ID3D11Buffer> CreateIndexBuffer(ID3D11Device* pDevice, const void* pSysMem, UINT byteWidth) noexcept;
 
 	ComPtr<ID3DBlob> CreateShaderBlob(std::string_view shaderName);
-	ComPtr<ID3D11PixelShader> CreatePixelShader(ComPtr<ID3D11Device> pDevice, std::string_view shaderName);
-	ComPtr<ID3D11VertexShader> CreateVertexShader(ComPtr<ID3D11Device> pDevice, ComPtr<ID3DBlob> pBlob) noexcept;
-	ComPtr<ID3D11InputLayout> CreateInputLayout(ComPtr<ID3D11Device> pDevice, ComPtr<ID3DBlob> pBlob, const D3D11_INPUT_ELEMENT_DESC* elementDescs, UINT numElements) noexcept;
+	ComPtr<ID3D11PixelShader> CreatePixelShader(ID3D11Device* pDevice, std::string_view shaderName);
+	ComPtr<ID3D11VertexShader> CreateVertexShader(ID3D11Device* pDevice, ComPtr<ID3DBlob> pBlob) noexcept;
+	ComPtr<ID3D11InputLayout> CreateInputLayout(ID3D11Device* pDevice, ComPtr<ID3DBlob> pBlob, const D3D11_INPUT_ELEMENT_DESC* elementDescs, UINT numElements) noexcept;
 
-	ComPtr<ID3D11ShaderResourceView> CreateSRV_StructBuf(ComPtr<ID3D11Device> pDevice, ComPtr<ID3D11Resource> pBuf, UINT firstElement, UINT numElements) noexcept;
+	ComPtr<ID3D11ShaderResourceView> CreateSRV_StructBuf(ID3D11Device* pDevice, ComPtr<ID3D11Resource> pBuf, UINT firstElement, UINT numElements) noexcept;
+	ComPtr<ID3D11ShaderResourceView> CreateSRV_Texture2D(ID3D11Device* pDevice, std::string_view filePath);
+	ComPtr<ID3D11ShaderResourceView> CreateSRV_Texture2D(ID3D11Device* pDevice,  const aiTexture* pAiTexture);
 
 	template<typename T>
-	ComPtr<ID3D11Buffer> CreateDynConstBuf(ComPtr<ID3D11Device> pDevice, UINT maxNumElements) noexcept
+	ComPtr<ID3D11Buffer> CreateDynConstBuf(ID3D11Device* pDevice, UINT maxNumElements) noexcept
 	{
 		D3D11_BUFFER_DESC bufDesc{};
 		bufDesc.ByteWidth = sizeof(T) * maxNumElements;
@@ -44,7 +49,7 @@ namespace KhanDx
 	}
 
 	template<typename T>
-	ComPtr<ID3D11Buffer> CreateDynStructBuf(ComPtr<ID3D11Device> pDevice, UINT numElements) noexcept
+	ComPtr<ID3D11Buffer> CreateDynStructBuf(ID3D11Device* pDevice, UINT numElements) noexcept
 	{
 		D3D11_BUFFER_DESC bufDesc{};
 		bufDesc.ByteWidth = sizeof(T) * numElements;

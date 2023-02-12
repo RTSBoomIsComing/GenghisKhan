@@ -6,21 +6,21 @@ KhanRender::CubeRenderer::CubeRenderer(const Renderer& renderer)
 	:
 	Renderer(renderer)
 {
-	m_pVertexBuffer = KhanDx::CreateVertexBuffer(m_pDevice, vertices, sizeof(vertices));
-	m_pIndexBuffer = KhanDx::CreateIndexBuffer(m_pDevice, indices, sizeof(indices));
-	m_pPixelShader = KhanDx::CreatePixelShader(m_pDevice, "PS_BasicGeometry3d");
+	m_pVertexBuffer = KhanDx::CreateVertexBuffer(m_pDevice.Get(), vertices, sizeof(vertices));
+	m_pIndexBuffer = KhanDx::CreateIndexBuffer(m_pDevice.Get(), indices, sizeof(indices));
+	m_pPixelShader = KhanDx::CreatePixelShader(m_pDevice.Get(), "PS_BasicGeometry3d");
 
 	ComPtr<ID3DBlob> pBlob = KhanDx::CreateShaderBlob("VS_BasicGeometry3d");
-	m_pVertexShader = KhanDx::CreateVertexShader(m_pDevice, pBlob.Get());
-	m_pInputLayout = KhanDx::CreateInputLayout(m_pDevice, pBlob.Get(), elementDescs, ARRAYSIZE(elementDescs));
+	m_pVertexShader = KhanDx::CreateVertexShader(m_pDevice.Get(), pBlob.Get());
+	m_pInputLayout = KhanDx::CreateInputLayout(m_pDevice.Get(), pBlob.Get(), elementDescs, ARRAYSIZE(elementDescs));
 
-	m_pVSDynConstBuf = KhanDx::CreateDynConstBuf<DirectX::XMFLOAT4X4>(m_pDevice, 1000U);
+	m_pVSDynConstBuf = KhanDx::CreateDynConstBuf<DirectX::XMFLOAT4X4>(m_pDevice.Get(), 1000U);
 	//m_pVSDynStructBuf = KhanDx::CreateDynStructBuf<DirectX::XMFLOAT4X4>(m_pDevice, m_numInstance);
 	//m_pSRV = KhanDx::CreateSRV_StructBuf(m_pDevice, m_pVSDynStructBuf, 0U, m_numInstance);
 
 	m_pBlendState = nullptr; // blend off
-	m_pRasterizerState = KhanDx::CreateRasterizerState_Solid(m_pDevice);
-	m_pDepthStencilState = KhanDx::CreateDepthStencilState_Default(m_pDevice);
+	m_pRasterizerState = KhanDx::CreateRasterizerState_Solid(m_pDevice.Get());
+	m_pDepthStencilState = KhanDx::CreateDepthStencilState_Default(m_pDevice.Get());
 
 }
 

@@ -28,7 +28,7 @@ void KhanDx::CreateDeviceAndDeviceContext(ComPtr<ID3D11Device>& pDevice, ComPtr<
 	pDeviceContext = s_pDeviceContext;
 }
 
-ComPtr<IDXGISwapChain> KhanDx::CreateSwapChain(ComPtr<ID3D11Device> pDevice, HWND hWnd)
+ComPtr<IDXGISwapChain> KhanDx::CreateSwapChain(ID3D11Device* pDevice, HWND hWnd)
 {
 	ComPtr<IDXGISwapChain> pSwapChain;
 
@@ -56,13 +56,13 @@ ComPtr<IDXGISwapChain> KhanDx::CreateSwapChain(ComPtr<ID3D11Device> pDevice, HWN
 	swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapchainDesc.Flags = 0U;
 
-	hr = pFactory->CreateSwapChain(pDevice.Get(), &swapchainDesc, &pSwapChain);
+	hr = pFactory->CreateSwapChain(pDevice, &swapchainDesc, &pSwapChain);
 	ThrowIfFailed(hr, "Failed to create swap chain");
 
 	return pSwapChain;
 }
 
-ComPtr<ID3D11RenderTargetView> KhanDx::CreateRTV(ComPtr<ID3D11Device> pDevice, ComPtr<IDXGISwapChain> pSwapChain)
+ComPtr<ID3D11RenderTargetView> KhanDx::CreateRTV(ID3D11Device* pDevice, ComPtr<IDXGISwapChain> pSwapChain)
 {
 	ComPtr<ID3D11Resource> pBackBuffer;
 	HRESULT hr = pSwapChain->GetBuffer(0u, IID_PPV_ARGS(&pBackBuffer));
@@ -75,7 +75,7 @@ ComPtr<ID3D11RenderTargetView> KhanDx::CreateRTV(ComPtr<ID3D11Device> pDevice, C
 	return pRTV;
 }
 
-ComPtr<ID3D11DepthStencilView> KhanDx::CreateDSV(ComPtr<ID3D11Device> pDevice, UINT width, UINT height)
+ComPtr<ID3D11DepthStencilView> KhanDx::CreateDSV(ID3D11Device* pDevice, UINT width, UINT height)
 {
 	D3D11_TEXTURE2D_DESC texDesc = {};
 	texDesc.Width = width;

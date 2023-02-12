@@ -2,6 +2,7 @@
 #include "KhanRender/Renderer.h"
 #include <DirectXMath.h>
 #include <vector>
+#include <stb_image.h>
 
 namespace KhanRender
 {
@@ -11,6 +12,7 @@ namespace KhanRender
 		UINT NumIndices{};
 		UINT BaseVertexLocation{};
 		UINT StartIndexLocation{};
+		ComPtr<ID3D11ShaderResourceView> m_pSRV;
 	};
 
 	class MeshRenderer : public Renderer
@@ -24,16 +26,17 @@ namespace KhanRender
 		std::vector<Model> m_models;
 		
 	private: // about directx 11 components
-
 		ComPtr<ID3D11Buffer>			m_pVertexBuffer;
 		ComPtr<ID3D11Buffer>		    m_pIndexBuffer;
+		ComPtr<ID3D11Buffer>		    m_pVSDynConstBuf;
 		ComPtr<ID3D11PixelShader>	    m_pPixelShader;
 		ComPtr<ID3D11VertexShader>	    m_pVertexShader;
 		ComPtr<ID3D11InputLayout>	    m_pInputLayout;
-		ComPtr<ID3D11Buffer>		    m_pVSDynConstBuf;
 		ComPtr<ID3D11BlendState>	    m_pBlendState;
 		ComPtr<ID3D11RasterizerState>   m_pRasterizerState;
 		ComPtr<ID3D11DepthStencilState> m_pDepthStencilState;
+		ComPtr<ID3D11SamplerState>		m_pSamplerState;
+
 		//ComPtr<ID3D11Buffer>		    m_pVSDynStructBuf;
 		//ComPtr<ID3D11Buffer>		    m_pPSDynCBuf;
 		//ComPtr<ID3D11ShaderResourceView> m_pSRV;
