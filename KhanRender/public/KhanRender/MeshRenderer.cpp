@@ -8,6 +8,7 @@
 
 
 
+
 KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer)
 	:
 	Renderer(renderer)
@@ -26,7 +27,7 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer)
 	UINT accNumIndices{};
 	UINT numMeshes = scene->mNumMeshes;
 
-	for (UINT i{}; i < numMeshes; ++i)
+	for (UINT i{}; i < numMeshes; i++)
 	{
 		auto mesh = scene->mMeshes[i];
 		Model model{};
@@ -38,74 +39,40 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer)
 
 		accNumVertices += model.NumVertices;
 		accNumIndices += model.NumIndices;
+
+		auto material = scene->mMaterials[mesh->mMaterialIndex];
+		auto a = material->GetTextureCount(aiTextureType_DIFFUSE);
+		//material->GetTexture(aiTextureType_DIFFUSE)
+		//KHAN_INFO("a");
 	}
 
 	std::vector<UINT> m_indices; // I think this would be a member variable... but not now, just let it as a local variable
 	m_indices.reserve(accNumIndices);
-	for (UINT i{}; i < numMeshes; ++i)
+	for (UINT i{}; i < numMeshes; i++)
 	{
 		auto mesh = scene->mMeshes[i];
-		for (UINT j{}; j < mesh->mNumFaces; ++j)
+		for (UINT j{}; j < mesh->mNumFaces; j++)
 		{
 			aiFace face = mesh->mFaces[j];
 			m_indices.insert(m_indices.end(), face.mIndices, face.mIndices + face.mNumIndices);
 		}
 	}
 
-	std::vector<XMFLOAT3> m_vertexPositions; // I think this would be a member variable... but not now, just let it as a local variable
-	m_vertexPositions.reserve(accNumVertices);
-	for (UINT i{}; i < numMeshes; ++i)
+	std::vector<Vertex> m_vertices; // I think this would be a member variable... but not now, just let it as a local variable
+	m_vertices.reserve(accNumVertices);
+	for (UINT i{}; i < numMeshes; i++)
 	{
 		auto mesh = scene->mMeshes[i];
-		aiVector3D* First = mesh->mVertices;
-		aiVector3D* Last = mesh->mVertices + mesh->mNumVertices;
-		m_vertexPositions.insert(m_vertexPositions.end(), reinterpret_cast<XMFLOAT3*>(First), reinterpret_cast<XMFLOAT3*>(Last));
-	}
-
-	std::vector<XMFLOAT2> m_vtxTexCoords;
-	m_vtxTexCoords.reserve(accNumVertices);
-	for (UINT i{}; i < numMeshes; ++i)
-	{
-		auto mesh = scene->mMeshes[i];
-		for (UINT j{}; j < mesh->mNumVertices; ++j)
+		XMFLOAT3* xmVertices = reinterpret_cast<XMFLOAT3*>(mesh->mVertices);
+		XMFLOAT3* xmNormals = reinterpret_cast<XMFLOAT3*>(mesh->mNormals);
+		XMFLOAT3** xmTexCoords = reinterpret_cast<XMFLOAT3**>(mesh->mTextureCoords);
+		for (UINT j{}; j < mesh->mNumVertices; j++)
 		{
-			m_vtxTexCoords.emplace_back(mesh->mTextureCoords[0][j].x, mesh->mTextureCoords[0][j].y);
+			m_vertices.emplace_back(xmVertices[j], xmTexCoords[0][j], xmNormals[j]);
 		}
 	}
 
-	std::vector<XMFLOAT3> m_vtxNormals;
-	m_vtxNormals.reserve(accNumVertices);
-	for (UINT i{}; i < numMeshes; ++i)
-	{
-		auto mesh = scene->mMeshes[i];
-		aiVector3D* First = mesh->mNormals;
-		aiVector3D* Last  = mesh->mNormals + mesh->mNumVertices;
-		m_vtxNormals.insert(m_vtxNormals.end(), reinterpret_cast<XMFLOAT3*>(First), reinterpret_cast<XMFLOAT3*>(Last));
-	}
-
-	m_elementDescs.emplace_back("POSITION", 0U, DXGI_FORMAT_R32G32B32_FLOAT, (UINT)m_elementDescs.size(), 0U, D3D11_INPUT_PER_VERTEX_DATA, 0U);
-	m_elementDescs.emplace_back("TEXCOORD", 0U, DXGI_FORMAT_R32G32_FLOAT,	 (UINT)m_elementDescs.size(), 0U, D3D11_INPUT_PER_VERTEX_DATA, 0U);
-	m_elementDescs.emplace_back("NORMAL", 0U, DXGI_FORMAT_R32G32B32_FLOAT,	 (UINT)m_elementDescs.size(), 0U, D3D11_INPUT_PER_VERTEX_DATA, 0U);
-
-	UINT VertexStride = sizeof(m_vertexPositions[0]);
-	m_pVtxBufPosition = KhanDx::CreateVertexBuffer(m_pDevice, m_vertexPositions.data(), VertexStride * (UINT)m_vertexPositions.size());
-	m_vtxBufPtrs.push_back(m_pVtxBufPosition.Get());
-	m_vtxStrides.push_back(VertexStride);
-	m_vtxBufOffsets.push_back(0);
-	
-	VertexStride = sizeof(m_vtxTexCoords[0]);
-	m_pVtxBufTexCoord = KhanDx::CreateVertexBuffer(m_pDevice, m_vtxTexCoords.data(), VertexStride * (UINT)m_vtxTexCoords.size());
-	m_vtxBufPtrs.push_back(m_pVtxBufTexCoord.Get());
-	m_vtxStrides.push_back(VertexStride);
-	m_vtxBufOffsets.push_back(0);
-
-	VertexStride = sizeof(m_vtxNormals[0]);
-	m_pVtxBufNormal = KhanDx::CreateVertexBuffer(m_pDevice, m_vtxNormals.data(), VertexStride * (UINT)m_vtxNormals.size());
-	m_vtxBufPtrs.push_back(m_pVtxBufNormal.Get());
-	m_vtxStrides.push_back(VertexStride);
-	m_vtxBufOffsets.push_back(0);
-
-
+	m_pVertexBuffer = KhanDx::CreateVertexBuffer(m_pDevice, m_vertices.data(), sizeof(Vertex) * (UINT)m_vertices.size());
 	m_pIndexBuffer = KhanDx::CreateIndexBuffer(m_pDevice, m_indices.data(), sizeof(m_indices[0]) * (UINT)m_indices.size());
 
 	m_pPixelShader = KhanDx::CreatePixelShader(m_pDevice, "PS_3dModelFromAssimp");
@@ -145,8 +112,9 @@ void KhanRender::MeshRenderer::Update(std::vector<DirectX::XMMATRIX> const& worl
 
 void KhanRender::MeshRenderer::Render()
 {
-
-	m_pDeviceContext->IASetVertexBuffers(0U, (UINT)m_vtxBufPtrs.size(), m_vtxBufPtrs.data(), m_vtxStrides.data(), m_vtxBufOffsets.data());
+	UINT vertexStride = sizeof(Vertex);
+	UINT Offset{};
+	m_pDeviceContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &vertexStride, &Offset);
 	m_pDeviceContext->IASetInputLayout(m_pInputLayout.Get());
 	m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_pDeviceContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0U);
@@ -163,5 +131,5 @@ void KhanRender::MeshRenderer::Render()
 	{
 		m_pDeviceContext->DrawIndexedInstanced(model.NumIndices, m_numInstance, model.StartIndexLocation, model.BaseVertexLocation, 0U);
 	}
-	
+
 }
