@@ -6,17 +6,18 @@
 #include <assimp/postprocess.h>
 #include <KhanTools/Log.h>
 
-KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer)
+KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::filesystem::path SceneFilePath)
 	:
 	Renderer(renderer)
 {
 	using namespace DirectX;
-
+	//"D:\\Assets\\zelda\\zeldaPosed001.fbx"
 	// Load the model using Assimp
 	Assimp::Importer importer;
-	std::string SceneFilePath{ "..\\Mixamo\\akai_e_espiritu.fbx" };
+	//std::string SceneFilePath{ "..\\Mixamo\\akai_e_espiritu.fbx" };
 	//std::string SceneFilePath{ "..\\Mixamo\\X bot.fbx" };
-	const aiScene* pScene = importer.ReadFile(SceneFilePath, aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
+
+	const aiScene* pScene = importer.ReadFile(SceneFilePath.string(), aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
 	if (nullptr == pScene) {
 		KHAN_ERROR(importer.GetErrorString());
 		throw std::exception{ "Failed to import file using assimp" };
@@ -25,7 +26,7 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer)
 	UINT accNumVertices{};
 	UINT accNumIndices{};
 	UINT numMeshes = pScene->mNumMeshes;
-
+	m_models.reserve(numMeshes);
 	for (UINT i{}; i < numMeshes; i++)
 	{
 		auto pMesh = pScene->mMeshes[i];
@@ -45,17 +46,26 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer)
 		auto pMesh = pScene->mMeshes[i];
 		auto pMaterial = pScene->mMaterials[pMesh->mMaterialIndex];
 
-		if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0)
+		if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0) // here, we except texture count is 1. 
 		{
-			aiString filePath;
-			if (pMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &filePath) == AI_SUCCESS)
+			aiString aiPath;
+			if (pMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &aiPath) == aiReturn_SUCCESS)
 			{
-				const aiTexture* pAiTexture = pScene->GetEmbeddedTexture(filePath.C_Str());
+				const aiTexture* pAiTexture = pScene->GetEmbeddedTexture(aiPath.C_Str());
 				if (pAiTexture)
 				{
 					m_models[i].m_pSRV = KhanDx::CreateSRV_Texture2D(m_pDevice.Get(), pAiTexture);
 				}
-			}
+				else
+				{
+					std::filesystem::path textureFilePath = aiPath.C_Str();
+					if (SceneFilePath.has_parent_path() && textureFilePath.has_filename())
+					{
+						textureFilePath = SceneFilePath.parent_path() / textureFilePath.filename();
+						m_models[i].m_pSRV = KhanDx::CreateSRV_Texture2D(m_pDevice.Get(), textureFilePath);
+					}
+				}
+			}			
 		}
 	}
 

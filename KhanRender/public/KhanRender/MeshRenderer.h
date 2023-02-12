@@ -1,7 +1,12 @@
 #pragma once
 #include "KhanRender/Renderer.h"
 #include <DirectXMath.h>
+
+// standard libraries
 #include <vector>
+#include <filesystem>
+
+// additional dependencies
 #include <stb_image.h>
 
 namespace KhanRender
@@ -18,7 +23,7 @@ namespace KhanRender
 	class MeshRenderer : public Renderer
 	{
 	public:
-		MeshRenderer(const Renderer& renderer);
+		MeshRenderer(const Renderer& renderer, const std::filesystem::path SceneFilePath = "..\\Mixamo\\akai_e_espiritu.fbx");
 		void Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat);
 		void Render();
 	private: // about rendering infomations

@@ -22,6 +22,8 @@ using Microsoft::WRL::ComPtr;
 // standard libraries
 #include <format>
 #include <vector>
+#include <filesystem>
+#include <cassert>
 // additional dependencies
 #include <stb_image.h>
 #include <assimp/Importer.hpp>

@@ -201,72 +201,84 @@ ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_StructBuf(ID3D11Device* pDevi
 	return pSrv;
 }
 
-ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevice, std::string_view filePath)
+ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevice, std::filesystem::path filePath)
 {
-	unsigned char* pImageData{};
-	int imageX{};
-	int imageY{};
-	int imageChannels{};
-	pImageData = stbi_load(filePath.data(), &imageX, &imageY, &imageChannels, 4);
+	int width{}, height{}, channels{};
+	uint8_t* pImageData = stbi_load(filePath.string().data(), &width, &height, &channels, 0);
 	if (nullptr == pImageData)
 	{
-		KHAN_ERROR(std::format("Failed to load image using stb, File: {:s}", filePath));
-		throw std::exception("Failed to load image using stb");
+		KHAN_ERROR(std::format("Failed to stbi load, filePath: {:s}", filePath.string()));
+		throw std::exception("Failed to stbi load");
 	}
-
-	ComPtr<ID3D11Texture2D> pTexture2D;
-	D3D11_TEXTURE2D_DESC textureDesc{};
-	textureDesc.Width = imageX;
-	textureDesc.Height = imageY;
-	textureDesc.MipLevels = 1U;
-	textureDesc.ArraySize = 1U;
-	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-	textureDesc.SampleDesc.Count = 1U;
-	textureDesc.SampleDesc.Quality = 0U;
-	textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
-	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-	D3D11_SUBRESOURCE_DATA InitTextureData{};
-	InitTextureData.pSysMem = pImageData;
-	InitTextureData.SysMemPitch = imageX * imageChannels;
-
-	HRESULT hr = pDevice->CreateTexture2D(&textureDesc, &InitTextureData, &pTexture2D);
-	stbi_image_free(pImageData);
-
-	ThrowIfFailed(hr, "Failed to create texture");
-
-
 	ComPtr<ID3D11ShaderResourceView> pSrv;
-	hr = pDevice->CreateShaderResourceView(pTexture2D.Get(), nullptr, &pSrv);
-	ThrowIfFailed(hr, "Failed to create SRV");
+	try
+	{
+		pSrv = CreateSRV_Texture2D(pDevice, pImageData, width, height, channels);
+	}
+	catch (...)
+	{
+		stbi_image_free(pImageData);
+		throw std::exception("failed to create shader resource view");
+	}
+	stbi_image_free(pImageData);
 
 	return pSrv;
 }
 
 ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevice, const aiTexture* pAiTexture)
 {
-	int imageX{};
-	int imageY{};
-	int imageChannels{};
-	uint8_t* pImageData = stbi_load_from_memory(reinterpret_cast<const uint8_t*>(pAiTexture->pcData), pAiTexture->mWidth, &imageX, &imageY, &imageChannels, 0);
+	int width{}, height{}, channels{};
+	uint8_t* pImageData = stbi_load_from_memory(reinterpret_cast<const uint8_t*>(pAiTexture->pcData), pAiTexture->mWidth, &width, &height, &channels, 0);
+	if (nullptr == pImageData)
+	{
+		KHAN_ERROR("Failed to stbi load from memory");
+		throw std::exception("Failed to stbi load from memory");
+	}
 
-	// convert three channel image to four channel image
-	std::vector<uint8_t> imageRGBA;
-	imageRGBA.reserve(4Ui64 * imageX * imageY);
-
-	uint8_t* First = pImageData;
-	for (int i = 0; i < imageX * imageY; i++) {
-		uint8_t* Last = First + 3;
-		imageRGBA.insert(imageRGBA.end(), First, Last);
-		imageRGBA.push_back(255);
-		First = Last;
+	ComPtr<ID3D11ShaderResourceView> pSrv;
+	try
+	{
+		pSrv = CreateSRV_Texture2D(pDevice, pImageData, width, height, channels);
+	}
+	catch (...)
+	{
+		stbi_image_free(pImageData);
+		throw std::exception("failed to create shader resource view");
 	}
 
 	stbi_image_free(pImageData);
 
+	return pSrv;
+}
+
+ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevice, const uint8_t* pImageData, int width, int height, int channels)
+{
+	assert(channels >= 3 && "channels is less than three, is it possible?");
+	
+	// if channel is three, convert to four
+	std::vector<uint8_t> imageRGBA;
+	if (channels < 4)
+	{
+		imageRGBA.reserve(sizeof(uint8_t) * 4 * width * height);
+
+		const uint8_t* First = pImageData;
+		for (int i = 0; i < width * height; i++) {
+			const uint8_t* Last = First + channels;
+			imageRGBA.insert(imageRGBA.end(), First, Last);
+			for (int j{}; j < 4 - channels; j++) { imageRGBA.push_back(255); }
+			First = Last;
+		}
+
+		pImageData = imageRGBA.data();
+	}
+
+	D3D11_SUBRESOURCE_DATA InitTextureData{};
+	InitTextureData.pSysMem = pImageData;
+	InitTextureData.SysMemPitch = sizeof(uint8_t) * 4 * width;
+
 	D3D11_TEXTURE2D_DESC textureDesc{};
-	textureDesc.Width = imageX;
-	textureDesc.Height = imageY;
+	textureDesc.Width = width;
+	textureDesc.Height = height;
 	textureDesc.MipLevels = 1U;
 	textureDesc.ArraySize = 1U;
 	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -275,15 +287,9 @@ ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevi
 	textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
 	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 
-	D3D11_SUBRESOURCE_DATA InitTextureData{};
-	InitTextureData.pSysMem = imageRGBA.data();
-	InitTextureData.SysMemPitch = sizeof(uint8_t) * 4 * imageX;
-
 	ComPtr<ID3D11Texture2D> pTexture2D;
 	HRESULT hr = pDevice->CreateTexture2D(&textureDesc, &InitTextureData, &pTexture2D);
-
 	ThrowIfFailed(hr, "Failed to create texture");
-
 
 	ComPtr<ID3D11ShaderResourceView> pSrv;
 	hr = pDevice->CreateShaderResourceView(pTexture2D.Get(), nullptr, &pSrv);

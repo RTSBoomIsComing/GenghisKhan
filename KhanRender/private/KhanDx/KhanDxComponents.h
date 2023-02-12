@@ -5,6 +5,7 @@
 using Microsoft::WRL::ComPtr;
 #include <string_view>
 #include <tuple>
+#include <filesystem>
 
 struct aiTexture;
 
@@ -28,8 +29,10 @@ namespace KhanDx
 	ComPtr<ID3D11InputLayout> CreateInputLayout(ID3D11Device* pDevice, ComPtr<ID3DBlob> pBlob, const D3D11_INPUT_ELEMENT_DESC* elementDescs, UINT numElements) noexcept;
 
 	ComPtr<ID3D11ShaderResourceView> CreateSRV_StructBuf(ID3D11Device* pDevice, ComPtr<ID3D11Resource> pBuf, UINT firstElement, UINT numElements) noexcept;
-	ComPtr<ID3D11ShaderResourceView> CreateSRV_Texture2D(ID3D11Device* pDevice, std::string_view filePath);
+
+	ComPtr<ID3D11ShaderResourceView> CreateSRV_Texture2D(ID3D11Device* pDevice, std::filesystem::path filePath);
 	ComPtr<ID3D11ShaderResourceView> CreateSRV_Texture2D(ID3D11Device* pDevice,  const aiTexture* pAiTexture);
+	ComPtr<ID3D11ShaderResourceView> CreateSRV_Texture2D(ID3D11Device* pDevice, const uint8_t* pImageData, int width, int height, int channels);
 
 	template<typename T>
 	ComPtr<ID3D11Buffer> CreateDynConstBuf(ID3D11Device* pDevice, UINT maxNumElements) noexcept
