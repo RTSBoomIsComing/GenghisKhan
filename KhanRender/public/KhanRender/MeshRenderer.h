@@ -11,7 +11,7 @@
 
 namespace KhanRender
 {
-	struct Model
+	struct MeshInfo
 	{
 		UINT NumVertices{};
 		UINT NumIndices{};
@@ -23,12 +23,12 @@ namespace KhanRender
 	class MeshRenderer : public Renderer
 	{
 	public:
-		MeshRenderer(const Renderer& renderer, const std::filesystem::path SceneFilePath = "..\\Mixamo\\akai_e_espiritu.fbx");
+		MeshRenderer(const Renderer& renderer, const std::filesystem::path SceneFilePath = "..\\Mixamo\\Standing Idle 01.fbx");
 		void Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat);
 		void Render();
 	private: // about rendering infomations
 		UINT m_numInstance{};
-		std::vector<Model> m_models;
+		std::vector<MeshInfo> m_meshInfos;
 		
 	private: // about directx 11 components
 		ComPtr<ID3D11Buffer>			m_pVertexBuffer;

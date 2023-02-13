@@ -14,9 +14,10 @@ namespace KhanApp
 	{
 		friend LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 	public:
-
-	private:
-
+		void EndFrame() noexcept
+		{
+			mouse.EndFrame();
+		}
 
 	public:
 		Mouse mouse;

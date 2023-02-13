@@ -5,6 +5,7 @@
 // win 32 api
 #include "framework.h"
 #include <wrl/client.h>
+//#include <winuser.h>
 using Microsoft::WRL::ComPtr;
 
 // standard libraries

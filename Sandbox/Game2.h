@@ -44,5 +44,7 @@ protected:
 	RECT selectionRect{};
 	bool m_isCameraMoving{};
 	bool m_isSelectionRectDrawing{};
+	POINT m_MouseCursorPos{};
+	POINT m_MouseMoveRelative{};
 };
 

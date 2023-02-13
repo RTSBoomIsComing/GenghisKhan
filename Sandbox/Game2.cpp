@@ -48,27 +48,42 @@ void Game2::Run()
 	using namespace DirectX;
 	using namespace entt::literals;
 
-	auto [LBDown_X, LBDown_Y] = m_input.mouse.GetLastLeftDownPosition();
-	selectionRect.left = LBDown_X;
-	selectionRect.top = LBDown_Y;
+	POINT pt = m_input.mouse.GetPosition<MouseEvent::LEFT_DOWN>();
+	selectionRect.left = pt.x;
+	selectionRect.top = pt.y;
+	
+	m_MouseMoveRelative = m_input.mouse.GetPosition<MouseEvent::RelativeMove>();
 
-	auto [Move_X, Move_Y] = m_input.mouse.GetLastMovePosition();
-	selectionRect.right = Move_X;
-	selectionRect.bottom = Move_Y;
 
 	// camera movement control
 	m_cameraVelocity = {};
-	if (m_isMouseLocked)
+	if (m_input.keyboard.KeyStates[VK_MENU])
 	{
-		if (Move_X == 0) m_cameraVelocity.x += -1.0F;
-		if (Move_Y == 0) m_cameraVelocity.y += +1.0F;
-		if (Move_X == m_window_width - 1)  m_cameraVelocity.x += +1.0F;
-		if (Move_Y == m_window_height - 1) m_cameraVelocity.y += -1.0F;
+		m_cameraRotation.x += m_MouseMoveRelative.y * 0.002F;
+		m_cameraRotation.y += m_MouseMoveRelative.x * 0.001F;
 	}
-	if (m_input.keyboard.KeyStates['A']) m_cameraVelocity.x += -1.0F;
-	if (m_input.keyboard.KeyStates['D']) m_cameraVelocity.x += +1.0F;
-	if (m_input.keyboard.KeyStates['S']) m_cameraVelocity.y += -1.0F;
-	if (m_input.keyboard.KeyStates['W']) m_cameraVelocity.y += +1.0F;
+	else
+	{
+		m_MouseCursorPos = m_input.mouse.GetPosition<MouseEvent::MOVE>();
+		selectionRect.right = m_MouseCursorPos.x;
+		selectionRect.bottom = m_MouseCursorPos.y;
+
+		if (m_isMouseLocked)
+		{
+			if (m_MouseCursorPos.x == 0) { m_cameraVelocity.x += -1.0F; }
+			if (m_MouseCursorPos.y == 0) { m_cameraVelocity.y += +1.0F; }
+			if (m_MouseCursorPos.x == m_window_width - 1) { m_cameraVelocity.x += +1.0F; }
+			if (m_MouseCursorPos.y == m_window_height - 1) { m_cameraVelocity.y += -1.0F; }
+		}
+	}
+
+
+
+
+	if (m_input.keyboard.KeyStates['A']) { m_cameraVelocity.x += -1.0F; }
+	if (m_input.keyboard.KeyStates['D']) { m_cameraVelocity.x += +1.0F; }
+	if (m_input.keyboard.KeyStates['S']) { m_cameraVelocity.y += -1.0F; }
+	if (m_input.keyboard.KeyStates['W']) { m_cameraVelocity.y += +1.0F; }
 
 	KhanECS::System::SetCameraRotation(m_reg, m_cameraRotation);
 	KhanECS::System::MouseEdgeScroll(m_reg, m_cameraVelocity);
@@ -95,6 +110,8 @@ void Game2::Run()
 
 	m_imGuiRenderer->Render();
 	m_mainRenderer.RenderEnd();
+
+	m_input.EndFrame();
 }
 
 void Game2::OnResizeWindow(UINT width, UINT height) noexcept
@@ -126,6 +143,7 @@ void Game2::OnImGuiRender()
 		ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
 		ImGui::Checkbox("Another Window", &show_another_window);
 
+		
 		ImGui::SliderFloat3("camera rot", reinterpret_cast<float*>(&m_cameraRotation), -XM_PI, XM_PI);
 		ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
@@ -185,4 +203,13 @@ void Game2::BindActionsToInput() noexcept
 		m_input.mouse.OnRightButtonUp.InstantFn = nullptr;
 	};
 
+	m_input.keyboard.OnKeyDown[VK_MENU].DefaultFn = [&]() { 
+		while (::ShowCursor(false) >= 0); 
+	};
+	m_input.keyboard.OnKeyUp[VK_MENU].DefaultFn = [&]() { 
+		POINT pt = m_MouseCursorPos;
+		::ClientToScreen(m_window_handle, &pt);
+		::SetCursorPos(pt.x, pt.y);
+		while (::ShowCursor(true) < 0); 
+	};
 }

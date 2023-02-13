@@ -2,11 +2,17 @@
 #include "Delegate.h"
 #include <bitset>
 
+enum class MouseEvent
+{
+	LEFT_DOWN, LEFT_UP, RIGHT_DOWN, RIGHT_UP, MIDDLE_DOWN, MIDDLE_UP, MOVE, RelativeMove, MAX
+};
+
 namespace KhanApp
 {
 	class Mouse
 	{
 		friend LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+		friend class InputManager;
 	public:
 		// Return types of funcions bound to Delegate are void
 		Delegate<int, int> OnLeftButtonDown{};
@@ -18,11 +24,7 @@ namespace KhanApp
 		Delegate<int, int> OnMouseMove{};
 
 	private:
-		enum class EventType
-		{
-			LEFT_DOWN, LEFT_UP, RIGHT_DOWN, RIGHT_UP, MIDDLE_DOWN, MIDDLE_UP, MOVE, MAX
-		};
-		POINTS Positions[static_cast<int>(EventType::MAX)]{};
+		POINTS Positions[static_cast<int>(MouseEvent::MAX)]{};
 
 		enum class ButtonType
 		{
@@ -30,16 +32,18 @@ namespace KhanApp
 		};
 		std::bitset<static_cast<int>(ButtonType::MAX)> ButtonStates{};
 
-
+		void EndFrame()
+		{
+			Positions[static_cast<int>(MouseEvent::RelativeMove)] = {};
+		}
 
 	public:
-		POINTS GetLastMovePosition() const noexcept { return Positions[static_cast<int>(EventType::MOVE)]; }
-		POINTS GetLastLeftDownPosition() const noexcept { return Positions[static_cast<int>(EventType::LEFT_DOWN)]; }
-		POINTS GetLastLeftUpPosition() const noexcept { return Positions[static_cast<int>(EventType::LEFT_UP)]; }
-		POINTS GetLastRightDownPosition() const noexcept { return Positions[static_cast<int>(EventType::RIGHT_DOWN)]; }
-		POINTS GetLastRightUpPosition() const noexcept { return Positions[static_cast<int>(EventType::RIGHT_UP)]; }
-		POINTS GetLastMiddleDownPosition() const noexcept { return Positions[static_cast<int>(EventType::MIDDLE_DOWN)]; }
-		POINTS GetLastMiddleUpPosition() const noexcept { return Positions[static_cast<int>(EventType::MIDDLE_UP)]; }
+		template<MouseEvent T>
+		POINT GetPosition() noexcept 
+		{
+			POINTS pt = Positions[static_cast<int>(T)];
+			return { pt.x, pt.y };
+		}
 
 		bool IsLeftButtonDown() const noexcept { return ButtonStates[static_cast<int>(ButtonType::LEFT)]; }
 		bool IsRightButtonDown() const noexcept { return ButtonStates[static_cast<int>(ButtonType::RIGHT)]; }

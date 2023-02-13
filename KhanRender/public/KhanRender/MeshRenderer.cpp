@@ -22,19 +22,19 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::file
 	UINT accNumVertices{};
 	UINT accNumIndices{};
 	UINT numMeshes = pScene->mNumMeshes;
-	m_models.reserve(numMeshes);
+	m_meshInfos.reserve(numMeshes);
 	for (UINT i{}; i < numMeshes; i++)
 	{
 		auto pMesh = pScene->mMeshes[i];
-		Model model{};
-		model.NumVertices = pMesh->mNumVertices;
-		model.NumIndices = pMesh->mNumFaces * 3;
-		model.BaseVertexLocation = accNumVertices;
-		model.StartIndexLocation = accNumIndices;
-		m_models.push_back(model);
+		MeshInfo meshInfo{};
+		meshInfo.NumVertices = pMesh->mNumVertices;
+		meshInfo.NumIndices = pMesh->mNumFaces * 3;
+		meshInfo.BaseVertexLocation = accNumVertices;
+		meshInfo.StartIndexLocation = accNumIndices;
+		m_meshInfos.push_back(meshInfo);
 
-		accNumVertices += model.NumVertices;
-		accNumIndices += model.NumIndices;
+		accNumVertices += meshInfo.NumVertices;
+		accNumIndices += meshInfo.NumIndices;
 	}
 
 	for (UINT i{}; i < numMeshes; i++)
@@ -42,7 +42,7 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::file
 		auto pMesh = pScene->mMeshes[i];
 		auto pMaterial = pScene->mMaterials[pMesh->mMaterialIndex];
 
-		if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) == 0) { continue; }
+		if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) < 1) { continue; }
 
 		aiString aiPath;
 		if (pMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &aiPath) != aiReturn_SUCCESS) { continue; }
@@ -50,7 +50,7 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::file
 		const aiTexture* pAiTexture = pScene->GetEmbeddedTexture(aiPath.C_Str());
 		if (pAiTexture)
 		{
-			m_models[i].m_pSRV = KhanDx::CreateSRV_Texture2D(m_pDevice.Get(), pAiTexture);
+			m_meshInfos[i].m_pSRV = KhanDx::CreateSRV_Texture2D(m_pDevice.Get(), pAiTexture);
 		}
 		else
 		{
@@ -58,7 +58,7 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::file
 			assert(SceneFilePath.has_parent_path() && textureFilePath.has_filename() && "Something wrong with file path");
 
 			textureFilePath = SceneFilePath.parent_path() / textureFilePath.filename();
-			m_models[i].m_pSRV = KhanDx::CreateSRV_Texture2D(m_pDevice.Get(), textureFilePath);
+			m_meshInfos[i].m_pSRV = KhanDx::CreateSRV_Texture2D(m_pDevice.Get(), textureFilePath);
 		}
 	}
 
@@ -146,7 +146,7 @@ void KhanRender::MeshRenderer::Render()
 	m_pDeviceContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 1U);
 	m_pDeviceContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xFFFFFFFF);
 	m_pDeviceContext->PSSetSamplers(0, 1, m_pSamplerState.GetAddressOf());
-	for (auto& model : m_models)
+	for (auto& model : m_meshInfos)
 	{
 		m_pDeviceContext->PSSetShaderResources(0U, 1U, model.m_pSRV.GetAddressOf());
 		m_pDeviceContext->DrawIndexedInstanced(model.NumIndices, m_numInstance, model.StartIndexLocation, model.BaseVertexLocation, 0U);

@@ -73,8 +73,6 @@ void KhanApp::Window::EnableMouseLockToWindow()
 
 void KhanApp::Window::DisableMouseLockToWindow()
 {
-	if (!m_isMouseLocked) return;
-
 	if (!::ClipCursor(nullptr))
 	{
 		KHAN_ERROR("failed to clip cursor");
