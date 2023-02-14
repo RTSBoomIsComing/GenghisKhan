@@ -7,6 +7,7 @@
 #include <KhanRender/CubeRenderer.h>
 #include <KhanRender/ImGuiRenderer.h>
 #include <KhanRender/MeshRenderer.h>
+#include <KhanRender/SkeletalMeshRenderer.h>
 
 #include <KhanECS/Camera.h>
 #include <KhanECS/Cube.h>
@@ -24,9 +25,9 @@ Game2::Game2()
 	BindActionsToInput();
 	m_imGuiRenderer = std::make_unique<KhanRender::ImGuiRenderer>(m_window_handle, m_mainRenderer, std::bind(&Game2::OnImGuiRender, this));
 	//m_cubeRenderer = std::make_unique<KhanRender::CubeRenderer>(m_mainRenderer);
-	m_ArcherRenderer = std::make_unique<KhanRender::MeshRenderer>(m_mainRenderer, "D:\Assets\\Mixamo\\akai_e_espiritu.fbx");
-	m_KnightRenderer = std::make_unique<KhanRender::MeshRenderer>(m_mainRenderer, "D:\Assets\\Mixamo\\Knight D Pelegrini.fbx");
-	m_PaladinRenderer = std::make_unique<KhanRender::MeshRenderer>(m_mainRenderer, "D:\Assets\\Mixamo\\Paladin J Nordstrom.fbx");
+	m_ArcherRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\akai_e_espiritu.fbx");
+	m_KnightRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Knight D Pelegrini.fbx");
+	m_PaladinRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Paladin J Nordstrom.fbx");
 
 	auto entity = KhanECS::Entity::MakeCamera(m_reg);
 

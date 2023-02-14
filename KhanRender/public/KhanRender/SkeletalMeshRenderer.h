@@ -7,28 +7,22 @@
 #include <filesystem>
 
 // additional dependencies
-#include <stb_image.h>
+//#include <stb_image.h>
 
 namespace KhanRender
 {
-	struct MeshInfo
-	{
-		UINT NumVertices{};
-		UINT NumIndices{};
-		UINT BaseVertexLocation{};
-		UINT StartIndexLocation{};
-		ComPtr<ID3D11ShaderResourceView> m_pSRV;
-	};
-	struct VertexInfo
-	{
-		std::vector<DirectX::XMFLOAT3> Positions;
-		std::vector<DirectX::XMFLOAT2> TexCoords;
-		std::vector<DirectX::XMFLOAT3> Normals;
-		std::vector<DirectX::XMUINT4>  BlendIndices;
-		std::vector<DirectX::XMFLOAT4> BlendWeights;
-	};
+
+
 	class SkeletalMeshRenderer : public Renderer
 	{
+		struct MeshInfo
+		{
+			UINT NumVertices{};
+			UINT NumIndices{};
+			UINT BaseVertexLocation{};
+			UINT StartIndexLocation{};
+			ComPtr<ID3D11ShaderResourceView> m_pSRV;
+		};
 	public:
 		SkeletalMeshRenderer(const Renderer& renderer, const std::filesystem::path SceneFilePath);
 		void Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat);
@@ -36,12 +30,23 @@ namespace KhanRender
 	private: // about rendering infomations
 		UINT m_numInstance{};
 		std::vector<MeshInfo> m_meshInfos;
-		
+
+		std::vector<ID3D11Buffer*> m_VBuf_Ptrs;
+		std::vector<uint32_t> m_VBuf_Strides;
+		std::vector<uint32_t> m_VBuf_Offsets;
+
+		std::vector<ID3D11Buffer*> m_CBuf_VS_Ptrs;
+
+
 	private: // about directx 11 components
-		ComPtr<ID3D11Buffer>			m_pVertexBuffer;
+		ComPtr<ID3D11Buffer>			m_pVBuf_Positions;
+		ComPtr<ID3D11Buffer>			m_pVBuf_TexCoords;
+		ComPtr<ID3D11Buffer>			m_pVBuf_Normals;
+
+		ComPtr<ID3D11Buffer>		    m_pCBuf_VS_Worlds;
+		ComPtr<ID3D11Buffer>		    m_pCBuf_VS_ViewProjection;
 
 		ComPtr<ID3D11Buffer>		    m_pIndexBuffer;
-		ComPtr<ID3D11Buffer>		    m_pVSDynConstBuf;
 		ComPtr<ID3D11PixelShader>	    m_pPixelShader;
 		ComPtr<ID3D11VertexShader>	    m_pVertexShader;
 		ComPtr<ID3D11InputLayout>	    m_pInputLayout;
@@ -56,9 +61,12 @@ namespace KhanRender
 
 		std::vector<D3D11_INPUT_ELEMENT_DESC> m_elementDescs
 		{
-			{ "POSITION", 0U, DXGI_FORMAT_R32G32B32_FLOAT, 0U, 0U, D3D11_INPUT_PER_VERTEX_DATA, 0U },
-			{ "TEXCOORD", 0U, DXGI_FORMAT_R32G32_FLOAT,    0U, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0U },
-			{ "NORMAL",   0U, DXGI_FORMAT_R32G32B32_FLOAT, 0U, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0U },
+			{ "POSITION",     0U, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD",     0U, DXGI_FORMAT_R32G32B32_FLOAT,    1, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL",       0U, DXGI_FORMAT_R32G32B32_FLOAT, 2, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "BLENDINDICES", 0U, DXGI_FORMAT_R32G32B32A32_UINT, 3, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "BLENDWEIGHT",  0U, DXGI_FORMAT_R32G32B32A32_FLOAT, 4, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+
 		};
 
 		struct Vertex

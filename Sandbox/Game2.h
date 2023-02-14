@@ -13,6 +13,7 @@ namespace KhanRender
 	class ImGuiRenderer;
 	class CubeRenderer;
 	class MeshRenderer;
+	class SkeletalMeshRenderer;
 }
 
 class Game2 : public KhanApp::Application
@@ -33,9 +34,9 @@ protected:
 	KhanRender::MainRenderer m_mainRenderer;
 	std::unique_ptr <KhanRender::ImGuiRenderer> m_imGuiRenderer;
 	std::unique_ptr <KhanRender::CubeRenderer> m_cubeRenderer;
-	std::unique_ptr <KhanRender::MeshRenderer> m_ArcherRenderer;
-	std::unique_ptr <KhanRender::MeshRenderer> m_KnightRenderer;
-	std::unique_ptr <KhanRender::MeshRenderer> m_PaladinRenderer;
+	std::unique_ptr <KhanRender::SkeletalMeshRenderer> m_ArcherRenderer;
+	std::unique_ptr <KhanRender::SkeletalMeshRenderer> m_KnightRenderer;
+	std::unique_ptr <KhanRender::SkeletalMeshRenderer> m_PaladinRenderer;
 protected:
 	entt::registry m_reg;
 

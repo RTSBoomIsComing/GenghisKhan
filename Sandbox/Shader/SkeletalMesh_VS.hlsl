@@ -1,21 +1,25 @@
-const int MAX_INSTSANCES = 500;
-const int MAX_BONES = 100;
+static const int MAX_INSTSANCES = 1000;
+static const int MAX_BONES = 100;
 
-cbuffer ConstantsForBlending : register(b0)
+cbuffer ConstantsForInstancing : register(b0)
+{
+	matrix Worlds[MAX_INSTSANCES];
+};
+
+cbuffer ConstantsOther : register(b1)
+{
+	matrix ViewProjection;
+}
+
+cbuffer ConstantsForBlending : register(b2)
 {
 	matrix Bones[MAX_BONES];
 }
 
-cbuffer ConstantsForInstancing : register(b1)
-{
-	matrix Worlds[MAX_INSTSANCES];
-	matrix ViewProjections[MAX_INSTSANCES];
-};
-
 struct VS_INPUT
 {
 	float3 pos : POSITION;
-	float2 tex : TEXCOORD;
+	float3 tex : TEXCOORD;
 	float3 normal : NORMAL;
 	uint4  blendIndices : BLENDINDICES;
 	float4 blendWeights : BLENDWEIGHT;
@@ -47,10 +51,14 @@ VS_OUTPUT main(VS_INPUT input, uint vertexID : SV_VertexID, uint InstanceId : SV
 		accNormal += input.blendWeights[i] * transformedNormal;
 	}
 
+	// when disable bone transform
+	accPosition = float4(input.pos, 1.0F);
+	accNormal = float4(input.normal, 0.0F);
+
 	const matrix world = Worlds[InstanceId];
-	const matrix viewProjection = ViewProjections[InstanceId];
+	const matrix viewProjection = ViewProjection;
 	output.pos		= mul(accPosition, mul(world, viewProjection)); // mul pos * W * V * P
-	output.tex		= input.tex;
+	output.tex		= input.tex.xy;
 	output.normal	= mul(accNormal, world).xyz;
 	output.InstanceId = InstanceId;
 	return output;
