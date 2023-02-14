@@ -1,12 +1,12 @@
 #include "pch.h"
-#include "MeshRenderer.h"
+#include "SkeletalMeshRenderer.h"
 #include "KhanDx/KhanDxComponents.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <KhanTools/Log.h>
 
-KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::filesystem::path SceneFilePath)
+KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer, const std::filesystem::path SceneFilePath)
 	:
 	Renderer(renderer)
 {
@@ -91,6 +91,31 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::file
 		}
 	}
 	
+	UINT accNumWeights{};
+	for (UINT i{}; i < numMeshes; i++)
+	{
+		auto* pMesh = pScene->mMeshes[i];
+		UINT numBones = pMesh->mNumBones;
+
+		std::vector<XMFLOAT4X4> offsetMatrices(numBones);
+		for (UINT j{}; j < numBones; j++)
+		{
+			auto* bone = pMesh->mBones[j];
+			XMFLOAT4X4* pOffMat = reinterpret_cast<XMFLOAT4X4*>(&bone->mOffsetMatrix);
+			std::copy(pOffMat, pOffMat + 1, &offsetMatrices[j]);
+
+
+			UINT numWeights = bone->mNumWeights;	
+			auto* weights = bone->mWeights;
+			for (UINT k{}; k < numWeights; k++)
+			{
+				float weight = weights[k].mWeight;
+			}
+			accNumWeights += numWeights;
+		}
+	}
+
+
 	m_pVertexBuffer = KhanDx::CreateVertexBuffer(m_pDevice.Get(), m_vertices.data(), sizeof(Vertex) * (UINT)m_vertices.size());
 	m_pIndexBuffer = KhanDx::CreateIndexBuffer(m_pDevice.Get(), m_indices.data(), sizeof(m_indices[0]) * (UINT)m_indices.size());
 
@@ -111,7 +136,7 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::file
 	m_pSamplerState = KhanDx::CreateSamplerState_Basic(m_pDevice.Get());
 }
 
-void KhanRender::MeshRenderer::Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat)
+void KhanRender::SkeletalMeshRenderer::Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat)
 {
 	using namespace DirectX;
 
@@ -129,7 +154,7 @@ void KhanRender::MeshRenderer::Update(std::vector<DirectX::XMMATRIX> const& worl
 	m_pDeviceContext->Unmap(m_pVSDynConstBuf.Get(), 0U);
 }
 
-void KhanRender::MeshRenderer::Render()
+void KhanRender::SkeletalMeshRenderer::Render()
 {
 	UINT vertexStride = sizeof(Vertex);
 	UINT Offset{};
