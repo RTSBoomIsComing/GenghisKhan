@@ -1,5 +1,5 @@
 static const int MAX_INSTSANCES = 1000;
-static const int MAX_BONES = 100;
+static const int MAX_BONES = 1000;
 
 cbuffer ConstantsForInstancing : register(b0)
 {
@@ -44,7 +44,7 @@ VS_OUTPUT main(VS_INPUT input, uint vertexID : SV_VertexID, uint InstanceId : SV
 		if (boneIndex == -1) { break; }
 		const matrix boneTransform = Bones[boneIndex];
 
-		const float4 transformedPosition = mul(float4(input.pos, 0.0F), boneTransform);
+		const float4 transformedPosition = mul(float4(input.pos, 1.0F), boneTransform);
 		accPosition += input.blendWeights[i] * transformedPosition;
 
 		const float4 transformedNormal = mul(float4(input.normal, 0.0F), boneTransform);
@@ -52,8 +52,8 @@ VS_OUTPUT main(VS_INPUT input, uint vertexID : SV_VertexID, uint InstanceId : SV
 	}
 
 	// when disable bone transform
-	accPosition = float4(input.pos, 1.0F);
-	accNormal = float4(input.normal, 0.0F);
+	//accPosition = float4(input.pos, 1.0F);
+	//accNormal = float4(input.normal, 0.0F);
 
 	const matrix world = Worlds[InstanceId];
 	const matrix viewProjection = ViewProjection;

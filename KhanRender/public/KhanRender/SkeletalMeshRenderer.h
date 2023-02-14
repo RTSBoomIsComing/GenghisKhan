@@ -42,9 +42,12 @@ namespace KhanRender
 		ComPtr<ID3D11Buffer>			m_pVBuf_Positions;
 		ComPtr<ID3D11Buffer>			m_pVBuf_TexCoords;
 		ComPtr<ID3D11Buffer>			m_pVBuf_Normals;
+		ComPtr<ID3D11Buffer>			m_pVBuf_BlendIndices;
+		ComPtr<ID3D11Buffer>			m_pVBuf_BlendWeight;
 
 		ComPtr<ID3D11Buffer>		    m_pCBuf_VS_Worlds;
 		ComPtr<ID3D11Buffer>		    m_pCBuf_VS_ViewProjection;
+		ComPtr<ID3D11Buffer>		    m_pCBuf_VS_Bones;
 
 		ComPtr<ID3D11Buffer>		    m_pIndexBuffer;
 		ComPtr<ID3D11PixelShader>	    m_pPixelShader;
