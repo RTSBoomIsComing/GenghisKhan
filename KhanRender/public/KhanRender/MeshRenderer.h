@@ -23,7 +23,7 @@ namespace KhanRender
 	class MeshRenderer : public Renderer
 	{
 	public:
-		MeshRenderer(const Renderer& renderer, const std::filesystem::path SceneFilePath = "..\\Mixamo\\Standing Idle 01.fbx");
+		MeshRenderer(const Renderer& renderer, const std::filesystem::path SceneFilePath);
 		void Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat);
 		void Render();
 	private: // about rendering infomations

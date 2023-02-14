@@ -11,6 +11,7 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::file
 	Renderer(renderer)
 {
 	using namespace DirectX;
+
 	// Load the model using Assimp
 	Assimp::Importer importer;
 	const aiScene* pScene = importer.ReadFile(SceneFilePath.string(), aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
@@ -21,11 +22,12 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::file
 
 	UINT accNumVertices{};
 	UINT accNumIndices{};
+	UINT accNumBones{};
 	UINT numMeshes = pScene->mNumMeshes;
 	m_meshInfos.reserve(numMeshes);
 	for (UINT i{}; i < numMeshes; i++)
 	{
-		auto pMesh = pScene->mMeshes[i];
+		auto* pMesh = pScene->mMeshes[i];
 		MeshInfo meshInfo{};
 		meshInfo.NumVertices = pMesh->mNumVertices;
 		meshInfo.NumIndices = pMesh->mNumFaces * 3;
@@ -35,12 +37,13 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::file
 
 		accNumVertices += meshInfo.NumVertices;
 		accNumIndices += meshInfo.NumIndices;
+		accNumBones += pMesh->mNumBones;
 	}
 
 	for (UINT i{}; i < numMeshes; i++)
 	{
-		auto pMesh = pScene->mMeshes[i];
-		auto pMaterial = pScene->mMaterials[pMesh->mMaterialIndex];
+		auto* pMesh = pScene->mMeshes[i];
+		auto* pMaterial = pScene->mMaterials[pMesh->mMaterialIndex];
 
 		if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) < 1) { continue; }
 
@@ -66,7 +69,7 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::file
 	m_indices.reserve(accNumIndices);
 	for (UINT i{}; i < numMeshes; i++)
 	{
-		auto pMesh = pScene->mMeshes[i];
+		auto* pMesh = pScene->mMeshes[i];
 		for (UINT j{}; j < pMesh->mNumFaces; j++)
 		{
 			aiFace face = pMesh->mFaces[j];
@@ -78,7 +81,7 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::file
 	m_vertices.reserve(accNumVertices);
 	for (UINT i{}; i < numMeshes; i++)
 	{
-		auto pMesh = pScene->mMeshes[i];
+		auto* pMesh = pScene->mMeshes[i];
 		XMFLOAT3* xmVertices = reinterpret_cast<XMFLOAT3*>(pMesh->mVertices);
 		XMFLOAT3* xmNormals = reinterpret_cast<XMFLOAT3*>(pMesh->mNormals);
 		XMFLOAT3** xmTexCoords = reinterpret_cast<XMFLOAT3**>(pMesh->mTextureCoords);
@@ -87,6 +90,31 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::file
 			m_vertices.emplace_back(xmVertices[j], xmTexCoords[0][j], xmNormals[j]);
 		}
 	}
+	
+	UINT accNumWeights{};
+	for (UINT i{}; i < numMeshes; i++)
+	{
+		auto* pMesh = pScene->mMeshes[i];
+		UINT numBones = pMesh->mNumBones;
+
+		std::vector<XMFLOAT4X4> offsetMatrices(numBones);
+		for (UINT j{}; j < numBones; j++)
+		{
+			auto* bone = pMesh->mBones[j];
+			XMFLOAT4X4* pOffMat = reinterpret_cast<XMFLOAT4X4*>(&bone->mOffsetMatrix);
+			std::copy(pOffMat, pOffMat + 1, &offsetMatrices[j]);
+
+
+			UINT numWeights = bone->mNumWeights;	
+			auto* weights = bone->mWeights;
+			for (UINT k{}; k < numWeights; k++)
+			{
+				float weight = weights[k].mWeight;
+			}
+			accNumWeights += numWeights;
+		}
+	}
+
 
 	m_pVertexBuffer = KhanDx::CreateVertexBuffer(m_pDevice.Get(), m_vertices.data(), sizeof(Vertex) * (UINT)m_vertices.size());
 	m_pIndexBuffer = KhanDx::CreateIndexBuffer(m_pDevice.Get(), m_indices.data(), sizeof(m_indices[0]) * (UINT)m_indices.size());

@@ -11,6 +11,7 @@
 #include <KhanECS/Camera.h>
 #include <KhanECS/Cube.h>
 #include <KhanECS/PlayerControl.h>
+#include <KhanECS/Character.h>
 #include <KhanECS/Systems.h>
 
 // standard libraries
@@ -22,8 +23,10 @@ Game2::Game2()
 {
 	BindActionsToInput();
 	m_imGuiRenderer = std::make_unique<KhanRender::ImGuiRenderer>(m_window_handle, m_mainRenderer, std::bind(&Game2::OnImGuiRender, this));
-	m_cubeRenderer = std::make_unique<KhanRender::CubeRenderer>(m_mainRenderer);
-	m_meshRenderer = std::make_unique<KhanRender::MeshRenderer>(m_mainRenderer);
+	//m_cubeRenderer = std::make_unique<KhanRender::CubeRenderer>(m_mainRenderer);
+	m_ArcherRenderer = std::make_unique<KhanRender::MeshRenderer>(m_mainRenderer, "D:\Assets\\Mixamo\\akai_e_espiritu.fbx");
+	m_KnightRenderer = std::make_unique<KhanRender::MeshRenderer>(m_mainRenderer, "D:\Assets\\Mixamo\\Knight D Pelegrini.fbx");
+	m_PaladinRenderer = std::make_unique<KhanRender::MeshRenderer>(m_mainRenderer, "D:\Assets\\Mixamo\\Paladin J Nordstrom.fbx");
 
 	auto entity = KhanECS::Entity::MakeCamera(m_reg);
 
@@ -31,9 +34,20 @@ Game2::Game2()
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<int> die(-1500, 1500);
 
-	for (int i{}; i < 100; ++i)
+	for (int i{}; i < 10; ++i)
 	{
-		auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{ (float)die(gen), -200.0F, 500.0F + die(gen) });
+		auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ (float)die(gen), 0.0F, 500.0F + die(gen) });
+		m_reg.emplace<KhanECS::Component::Archer>(e);
+	}
+	for (int i{}; i < 10; ++i)
+	{
+		auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ (float)die(gen), 0.0F, 500.0F + die(gen) });
+		m_reg.emplace<KhanECS::Component::Paladin>(e);
+	}
+	for (int i{}; i < 10; ++i)
+	{
+		auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ (float)die(gen), 0.0F, 500.0F + die(gen) });
+		m_reg.emplace<KhanECS::Component::Knight>(e);
 	}
 
 //	auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{0.0F, 0.0F, 100.0F});
@@ -54,11 +68,14 @@ void Game2::Run()
 	
 	m_MouseMoveRelative = m_input.mouse.GetPosition<MouseEvent::RelativeMove>();
 
-
-	// camera movement control
+	// camera control by mouse
 	m_cameraVelocity = {};
 	if (m_input.keyboard.KeyStates[VK_MENU])
 	{
+		pt = m_MouseCursorPos;
+		::ClientToScreen(m_window_handle, &pt);
+		::SetCursorPos(pt.x, pt.y);
+		m_isSelectionRectDrawing = false;
 		m_cameraRotation.x += m_MouseMoveRelative.y * 0.002F;
 		m_cameraRotation.y += m_MouseMoveRelative.x * 0.001F;
 	}
@@ -77,9 +94,7 @@ void Game2::Run()
 		}
 	}
 
-
-
-
+	// camera control by keyboard
 	if (m_input.keyboard.KeyStates['A']) { m_cameraVelocity.x += -1.0F; }
 	if (m_input.keyboard.KeyStates['D']) { m_cameraVelocity.x += +1.0F; }
 	if (m_input.keyboard.KeyStates['S']) { m_cameraVelocity.y += -1.0F; }
@@ -90,15 +105,22 @@ void Game2::Run()
 	XMMATRIX viewProjMat = KhanECS::System::GetViewMatrix(m_reg) * KhanECS::System::GetProjectionMatrix(m_aspectRatio);
 
 
-	std::vector<XMMATRIX> cubeWorldMatrices = std::move(KhanECS::System::GetWorldMatrices<KhanECS::Component::Cube>(m_reg));
+	std::vector<XMMATRIX> worldMatrices = std::move(KhanECS::System::GetWorldMatrices<KhanECS::Component::Archer>(m_reg));
+	m_ArcherRenderer->Update(worldMatrices, viewProjMat);
 
-	//m_cubeRenderer->Update(cubeWorldMatrices, viewProjMat);
-	m_meshRenderer->Update(cubeWorldMatrices, viewProjMat);
+	worldMatrices = std::move(KhanECS::System::GetWorldMatrices<KhanECS::Component::Paladin>(m_reg));
+	m_PaladinRenderer->Update(worldMatrices, viewProjMat);
+
+	worldMatrices = std::move(KhanECS::System::GetWorldMatrices<KhanECS::Component::Knight>(m_reg));
+	m_KnightRenderer->Update(worldMatrices, viewProjMat);
+	//m_cubeRenderer->Update(worldMatrices, viewProjMat);
 
 
 	m_mainRenderer.RenderBegin(clear_color);
 	//m_cubeRenderer->Render();
-	m_meshRenderer->Render();
+	m_ArcherRenderer->Render();
+	m_PaladinRenderer->Render();
+	m_KnightRenderer->Render();
 
 	static auto selectionRect_renderer = KhanRender::SelectionRectRenderer(m_mainRenderer);
 	if (m_isSelectionRectDrawing && m_isMouseLocked)
@@ -106,7 +128,6 @@ void Game2::Run()
 		selectionRect_renderer.Update(selectionRect, m_window_width, m_window_height);
 		selectionRect_renderer.Render();
 	}
-
 
 	m_imGuiRenderer->Render();
 	m_mainRenderer.RenderEnd();
@@ -143,7 +164,6 @@ void Game2::OnImGuiRender()
 		ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
 		ImGui::Checkbox("Another Window", &show_another_window);
 
-		
 		ImGui::SliderFloat3("camera rot", reinterpret_cast<float*>(&m_cameraRotation), -XM_PI, XM_PI);
 		ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 

@@ -228,7 +228,8 @@ ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevi
 ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevice, const aiTexture* pAiTexture)
 {
 	int width{}, height{}, channels{};
-	uint8_t* pImageData = stbi_load_from_memory(reinterpret_cast<const uint8_t*>(pAiTexture->pcData), pAiTexture->mWidth, &width, &height, &channels, 0);
+	int len = pAiTexture->mHeight == 0 ? pAiTexture->mWidth : pAiTexture->mWidth * pAiTexture->mHeight;
+	uint8_t* pImageData = stbi_load_from_memory(reinterpret_cast<const uint8_t*>(pAiTexture->pcData), len, &width, &height, &channels, 0);
 	if (nullptr == pImageData)
 	{
 		KHAN_ERROR("Failed to stbi load from memory");
@@ -257,15 +258,14 @@ ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevi
 	
 	// if channel is three, convert to four
 	std::vector<uint8_t> imageRGBA;
-	if (channels < 4)
+	if (channels == 3)
 	{
-		imageRGBA.reserve(sizeof(uint8_t) * 4 * width * height);
-
+		imageRGBA.resize(4Ui64 * width * height, 255);
 		const uint8_t* First = pImageData;
+
 		for (int i = 0; i < width * height; i++) {
 			const uint8_t* Last = First + channels;
-			imageRGBA.insert(imageRGBA.end(), First, Last);
-			for (int j{}; j < 4 - channels; j++) { imageRGBA.push_back(255); }
+			std::copy(First, Last, imageRGBA.begin() + 4Ui64 * i);
 			First = Last;
 		}
 
@@ -281,7 +281,7 @@ ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevi
 	textureDesc.Height = height;
 	textureDesc.MipLevels = 1U;
 	textureDesc.ArraySize = 1U;
-	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; 
 	textureDesc.SampleDesc.Count = 1U;
 	textureDesc.SampleDesc.Quality = 0U;
 	textureDesc.Usage = D3D11_USAGE_IMMUTABLE;

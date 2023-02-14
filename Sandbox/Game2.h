@@ -33,7 +33,9 @@ protected:
 	KhanRender::MainRenderer m_mainRenderer;
 	std::unique_ptr <KhanRender::ImGuiRenderer> m_imGuiRenderer;
 	std::unique_ptr <KhanRender::CubeRenderer> m_cubeRenderer;
-	std::unique_ptr <KhanRender::MeshRenderer> m_meshRenderer;
+	std::unique_ptr <KhanRender::MeshRenderer> m_ArcherRenderer;
+	std::unique_ptr <KhanRender::MeshRenderer> m_KnightRenderer;
+	std::unique_ptr <KhanRender::MeshRenderer> m_PaladinRenderer;
 protected:
 	entt::registry m_reg;
 
