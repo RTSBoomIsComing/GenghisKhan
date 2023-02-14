@@ -25,7 +25,7 @@ Game2::Game2()
 	BindActionsToInput();
 	m_imGuiRenderer = std::make_unique<KhanRender::ImGuiRenderer>(m_window_handle, m_mainRenderer, std::bind(&Game2::OnImGuiRender, this));
 	//m_cubeRenderer = std::make_unique<KhanRender::CubeRenderer>(m_mainRenderer);
-	m_ArcherRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\akai_e_espiritu.fbx");
+	m_ArcherRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Standing Idle 01.fbx");
 	m_KnightRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Knight D Pelegrini.fbx");
 	m_PaladinRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Paladin J Nordstrom.fbx");
 
@@ -35,23 +35,24 @@ Game2::Game2()
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<int> die(-1500, 1500);
 
-	for (int i{}; i < 10; ++i)
-	{
-		auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ (float)die(gen), 0.0F, 500.0F + die(gen) });
-		m_reg.emplace<KhanECS::Component::Archer>(e);
-	}
-	for (int i{}; i < 10; ++i)
-	{
-		auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ (float)die(gen), 0.0F, 500.0F + die(gen) });
-		m_reg.emplace<KhanECS::Component::Paladin>(e);
-	}
-	for (int i{}; i < 10; ++i)
-	{
-		auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ (float)die(gen), 0.0F, 500.0F + die(gen) });
-		m_reg.emplace<KhanECS::Component::Knight>(e);
-	}
+	//for (int i{}; i < 10; ++i)
+	//{
+	//	auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ (float)die(gen), 0.0F, 500.0F + die(gen) });
+	//	m_reg.emplace<KhanECS::Component::Archer>(e);
+	//}
+	//for (int i{}; i < 10; ++i)
+	//{
+	//	auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ (float)die(gen), 0.0F, 500.0F + die(gen) });
+	//	m_reg.emplace<KhanECS::Component::Paladin>(e);
+	//}
+	//for (int i{}; i < 10; ++i)
+	//{
+	//	auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ (float)die(gen), 0.0F, 500.0F + die(gen) });
+	//	m_reg.emplace<KhanECS::Component::Knight>(e);
+	//}
 
-//	auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{0.0F, 0.0F, 100.0F});
+	auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{0.0F, 0.0F, 100.0F});
+	m_reg.emplace<KhanECS::Component::Archer>(e);
 }
 
 Game2::~Game2() noexcept

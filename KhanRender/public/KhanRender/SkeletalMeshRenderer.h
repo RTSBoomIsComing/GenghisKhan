@@ -36,7 +36,7 @@ namespace KhanRender
 		std::vector<uint32_t> m_VBuf_Offsets;
 
 		std::vector<ID3D11Buffer*> m_CBuf_VS_Ptrs;
-
+		std::vector<DirectX::XMFLOAT4X4> c_bones;
 
 	private: // about directx 11 components
 		ComPtr<ID3D11Buffer>			m_pVBuf_Positions;

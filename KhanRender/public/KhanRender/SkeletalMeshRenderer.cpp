@@ -14,7 +14,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 
 	// Load the model using Assimp
 	Assimp::Importer importer;
-	const aiScene* pScene = importer.ReadFile(SceneFilePath.string(), aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
+	const aiScene* pScene = importer.ReadFile(SceneFilePath.string(), aiProcess_Triangulate | aiProcess_ConvertToLeftHanded | aiProcess_PopulateArmatureData);
 	if (nullptr == pScene) {
 		KHAN_ERROR(importer.GetErrorString());
 		throw std::exception{ "Failed to import file using assimp" };
@@ -114,7 +114,6 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 
 	constexpr uint64_t MAX_BONE_WEIGHTS = 4;
 
-	std::vector<XMFLOAT4X4> c_bones;
 	c_bones.reserve(accNumBones);
 
 	std::vector<uint32_t> v_boneIndices;
@@ -134,12 +133,18 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 			auto* pBone = pMesh->mBones[j];
 			const XMFLOAT4X4* pOffsetMatrix = reinterpret_cast<XMFLOAT4X4*>(&pBone->mOffsetMatrix);
 			c_bones.insert(c_bones.end(), pOffsetMatrix, pOffsetMatrix + 1);
+			
+			//TODO
+			// mNode := current node of current bone
+			// mArmature := parent of mNode
+			auto a = pBone->mArmature->mTransformation;
+			auto b = pBone->mNode->mTransformation;
 
 			const UINT numWeights = pBone->mNumWeights;
 			for (UINT k{}; k < numWeights; k++)
 			{
 				auto weightInfo = pBone->mWeights[k];
-				
+
 				const uint64_t affectedVertexId = weightInfo.mVertexId * MAX_BONE_WEIGHTS;
 				const float weight = weightInfo.mWeight;
 
@@ -156,6 +161,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 			boneIndex++;
 		}
 	}
+
 
 	m_VBuf_Strides.push_back(sizeof(v_positions[0]));
 	m_pVBuf_Positions = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_positions.data(), (UINT)v_positions.size() * m_VBuf_Strides.back());
@@ -236,6 +242,10 @@ void KhanRender::SkeletalMeshRenderer::Update(std::vector<DirectX::XMMATRIX> con
 
 	// Bone Matrix Update, maybe seperate AnimUpdate function is needed
 	// TODO
+	mappedResource = {};
+	m_pDeviceContext->Map(m_pCBuf_VS_Bones.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	::memcpy(mappedResource.pData, c_bones.data(), sizeof(XMFLOAT4X4) * c_bones.size());
+	m_pDeviceContext->Unmap(m_pCBuf_VS_Bones.Get(), 0);
 }
 
 void KhanRender::SkeletalMeshRenderer::Render()

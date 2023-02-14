@@ -36,30 +36,38 @@ struct VS_OUTPUT
 VS_OUTPUT main(VS_INPUT input, uint vertexID : SV_VertexID, uint InstanceId : SV_InstanceID)
 {
 	VS_OUTPUT output;
-	float4 accPosition = float4(0.0F, 0.0F, 0.0F, 1.0F); // position,  w = 1
-	float4 accNormal = float4(0.0F, 0.0F, 0.0F, 0.0F);   // driection, w = 0
-	for (int i = 0; i < 4; i++)
+	float3 accPosition = float3(0.0F, 0.0F, 0.0F); // position,  w = 1
+	float3 accNormal = float3(0.0F, 0.0F, 0.0F);   // driection, w = 0
+	int i = 0;
+	for (; i < 4; i++)
 	{
 		const uint boneIndex = input.blendIndices[i];
-		if (boneIndex == -1) { break; }
+		if (boneIndex >= MAX_BONES) { break; }
 		const matrix boneTransform = Bones[boneIndex];
 
-		const float4 transformedPosition = mul(float4(input.pos, 1.0F), boneTransform);
-		accPosition += input.blendWeights[i] * transformedPosition;
+		const float4 localPosition = mul(float4(input.pos, 1.0F), boneTransform);
+		accPosition += (input.blendWeights[i] * localPosition).xyz;
 
-		const float4 transformedNormal = mul(float4(input.normal, 0.0F), boneTransform);
-		accNormal += input.blendWeights[i] * transformedNormal;
+		const float4 localNormal = mul(float4(input.normal, 0.0F), boneTransform);
+		accNormal += (input.blendWeights[i] * localNormal).xyz;
 	}
 
 	// when disable bone transform
-	//accPosition = float4(input.pos, 1.0F);
-	//accNormal = float4(input.normal, 0.0F);
+	//accPosition = float3(input.pos);
+	//accNormal = float3(input.normal);
 
-	const matrix world = Worlds[InstanceId];
-	const matrix viewProjection = ViewProjection;
-	output.pos		= mul(accPosition, mul(world, viewProjection)); // mul pos * W * V * P
-	output.tex		= input.tex.xy;
-	output.normal	= mul(accNormal, world).xyz;
+
+	if (i == 0)
+	{
+		accPosition = input.pos;
+		accNormal   = input.normal;
+	}
+
+	const matrix World = Worlds[InstanceId];
+
+	output.pos		  = mul(float4(accPosition, 1.0F), mul(World, ViewProjection)); // mul pos * W * V * P
+	output.tex		  = input.tex.xy;
+	output.normal     = mul(float4(normalize(accNormal), 0.0F), World).xyz;
 	output.InstanceId = InstanceId;
 	return output;
 }
