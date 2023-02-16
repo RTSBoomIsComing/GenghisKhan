@@ -25,7 +25,7 @@ namespace KhanRender
 		};
 	public:
 		SkeletalMeshRenderer(const Renderer& renderer, const std::filesystem::path SceneFilePath);
-		void Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat);
+		void Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat, float debugScalar);
 		void Render();
 	private: // about rendering infomations
 		UINT m_numInstance{};
@@ -36,7 +36,9 @@ namespace KhanRender
 		std::vector<uint32_t> m_VBuf_Offsets;
 
 		std::vector<ID3D11Buffer*> m_CBuf_VS_Ptrs;
-		std::vector<DirectX::XMFLOAT4X4> c_bones;
+
+
+		std::vector<DirectX::XMFLOAT4X4> m_bones;
 
 	private: // about directx 11 components
 		ComPtr<ID3D11Buffer>			m_pVBuf_Positions;

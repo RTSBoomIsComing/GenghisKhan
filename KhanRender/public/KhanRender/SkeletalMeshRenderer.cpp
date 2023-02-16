@@ -14,11 +14,15 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 
 	// Load the model using Assimp
 	Assimp::Importer importer;
-	const aiScene* pScene = importer.ReadFile(SceneFilePath.string(), aiProcess_Triangulate | aiProcess_ConvertToLeftHanded | aiProcess_PopulateArmatureData);
+	importer.SetPropertyInteger(AI_CONFIG_PP_LBW_MAX_WEIGHTS, 4);
+	importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
+	const aiScene* pScene = importer.ReadFile(SceneFilePath.string(), aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_ConvertToLeftHanded | aiProcess_PopulateArmatureData | aiProcess_LimitBoneWeights | aiProcess_JoinIdenticalVertices | aiProcess_SortByPType | aiProcess_GenUVCoords | aiProcess_GenNormals | aiProcess_ValidateDataStructure);
 	if (nullptr == pScene) {
 		KHAN_ERROR(importer.GetErrorString());
 		throw std::exception{ "Failed to import file using assimp" };
 	}
+
+
 
 	UINT accNumVertices{};
 	UINT accNumIndices{};
@@ -60,7 +64,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 			std::filesystem::path textureFilePath = aiPath.C_Str();
 			assert(SceneFilePath.has_parent_path() && textureFilePath.has_filename() && "Something wrong with file path");
 
-			textureFilePath = SceneFilePath.parent_path() / textureFilePath.filename();
+			textureFilePath = SceneFilePath.parent_path() / std::filesystem::path{ "textures" } / textureFilePath.filename();
 			m_meshInfos[i].m_pSRV = KhanDx::CreateSRV_Texture2D(m_pDevice.Get(), textureFilePath);
 		}
 	}
@@ -95,9 +99,11 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 		auto* pMesh = pScene->mMeshes[i];
 		int numVertices = pMesh->mNumVertices;
 		XMFLOAT3* First = reinterpret_cast<XMFLOAT3*>(pMesh->mTextureCoords[0]);
+		if (nullptr == First) break;
 		XMFLOAT3* Last = First + numVertices;
 		v_texCoords.insert(v_texCoords.end(), First, Last);
 	}
+	v_texCoords.resize(accNumVertices);
 
 	std::vector<XMFLOAT3> v_normals;
 	v_normals.reserve(accNumVertices);
@@ -109,12 +115,12 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 		XMFLOAT3* Last = First + numVertices;
 		v_normals.insert(v_normals.end(), First, Last);
 	}
-
+	v_normals.resize(accNumVertices);
 
 
 	constexpr uint64_t MAX_BONE_WEIGHTS = 4;
 
-	c_bones.reserve(accNumBones);
+	m_bones.resize(accNumBones);
 
 	std::vector<uint32_t> v_boneIndices;
 	v_boneIndices.resize(accNumVertices * MAX_BONE_WEIGHTS, -1);
@@ -131,14 +137,25 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 		for (UINT j{}; j < numBones; j++)
 		{
 			auto* pBone = pMesh->mBones[j];
-			const XMFLOAT4X4* pOffsetMatrix = reinterpret_cast<XMFLOAT4X4*>(&pBone->mOffsetMatrix);
-			c_bones.insert(c_bones.end(), pOffsetMatrix, pOffsetMatrix + 1);
-			
-			//TODO
-			// mNode := current node of current bone
-			// mArmature := parent of mNode
-			auto a = pBone->mArmature->mTransformation;
-			auto b = pBone->mNode->mTransformation;
+			//const XMFLOAT4X4* pOffsetMatrix = reinterpret_cast<XMFLOAT4X4*>(&pBone->mOffsetMatrix);
+			//std::copy(pOffsetMatrix, pOffsetMatrix + 1, &m_bones[boneIndex].InverseBind);
+
+			 //mNode := current node of current bone
+			 //mArmature := parent of mNode
+
+			for (aiNode* currentNode = pBone->mNode; currentNode != nullptr; currentNode = currentNode->mParent)
+			{
+				XMStoreFloat4x4(&m_bones[boneIndex],
+					XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&currentNode->mTransformation))
+					* XMLoadFloat4x4(&m_bones[boneIndex])); // assimp matrix is column major so parant * child is right!
+			}
+			XMStoreFloat4x4(&m_bones[boneIndex],
+				XMLoadFloat4x4(&m_bones[boneIndex]) * XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&pBone->mOffsetMatrix))); // dont transpose, beacause assimp matrix is column major
+
+
+			//XMStoreFloat4x4(&m_bones[boneIndex], XMMatrixTranspose(XMLoadFloat4x4(&m_bones[boneIndex])));
+
+
 
 			const UINT numWeights = pBone->mNumWeights;
 			for (UINT k{}; k < numWeights; k++)
@@ -150,7 +167,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 
 				for (int l{}; l < MAX_BONE_WEIGHTS; l++)
 				{
-					if (v_boneIndices[affectedVertexId + l] == -1)
+					if (v_weights[affectedVertexId + l] == 0)
 					{
 						v_boneIndices[affectedVertexId + l] = boneIndex;
 						v_weights[affectedVertexId + l] = weight;
@@ -161,7 +178,6 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 			boneIndex++;
 		}
 	}
-
 
 	m_VBuf_Strides.push_back(sizeof(v_positions[0]));
 	m_pVBuf_Positions = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_positions.data(), (UINT)v_positions.size() * m_VBuf_Strides.back());
@@ -196,9 +212,9 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	m_pVertexShader = KhanDx::CreateVertexShader(m_pDevice.Get(), pBlob.Get());
 	m_pInputLayout = KhanDx::CreateInputLayout(m_pDevice.Get(), pBlob.Get(), m_elementDescs.data(), (UINT)m_elementDescs.size());
 
-	m_pCBuf_VS_Worlds = KhanDx::CreateDynConstBuf<DirectX::XMFLOAT4X4>(m_pDevice.Get(), 1000);
-	m_pCBuf_VS_ViewProjection = KhanDx::CreateDynConstBuf<DirectX::XMFLOAT4X4>(m_pDevice.Get(), 1);
-	m_pCBuf_VS_Bones = KhanDx::CreateDynConstBuf<DirectX::XMFLOAT4X4>(m_pDevice.Get(), 1000);
+	m_pCBuf_VS_Worlds = KhanDx::CreateDynConstBuf<XMFLOAT4X4>(m_pDevice.Get(), 1000);
+	m_pCBuf_VS_ViewProjection = KhanDx::CreateDynConstBuf<XMFLOAT4X4>(m_pDevice.Get(), 2);
+	m_pCBuf_VS_Bones = KhanDx::CreateDynConstBuf<XMFLOAT4X4>(m_pDevice.Get(), 1000);
 
 	m_CBuf_VS_Ptrs.push_back(m_pCBuf_VS_Worlds.Get());
 	m_CBuf_VS_Ptrs.push_back(m_pCBuf_VS_ViewProjection.Get());
@@ -214,7 +230,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	m_pSamplerState = KhanDx::CreateSamplerState_Basic(m_pDevice.Get());
 }
 
-void KhanRender::SkeletalMeshRenderer::Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat)
+void KhanRender::SkeletalMeshRenderer::Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat, float debugScalar)
 {
 	using namespace DirectX;
 
@@ -232,19 +248,22 @@ void KhanRender::SkeletalMeshRenderer::Update(std::vector<DirectX::XMMATRIX> con
 	m_pDeviceContext->Unmap(m_pCBuf_VS_Worlds.Get(), 0);
 
 	// ConstantBuffer for View * Projection matrix
-	XMFLOAT4X4 TransposedViewProjMat{};
-	XMStoreFloat4x4(&TransposedViewProjMat, XMMatrixTranspose(viewProjMat));
+	XMFLOAT4X4 TransposedViewProjMat[2]{};
+	XMStoreFloat4x4(&TransposedViewProjMat[0], XMMatrixTranspose(viewProjMat));
+
+	// for DebugScalar
+	TransposedViewProjMat[1]._11 = debugScalar;
 
 	mappedResource = {};
 	m_pDeviceContext->Map(m_pCBuf_VS_ViewProjection.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	::memcpy(mappedResource.pData, &TransposedViewProjMat, sizeof(XMFLOAT4X4));
+	::memcpy(mappedResource.pData, &TransposedViewProjMat, sizeof(XMFLOAT4X4) * 2);
 	m_pDeviceContext->Unmap(m_pCBuf_VS_ViewProjection.Get(), 0);
 
 	// Bone Matrix Update, maybe seperate AnimUpdate function is needed
 	// TODO
 	mappedResource = {};
 	m_pDeviceContext->Map(m_pCBuf_VS_Bones.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	::memcpy(mappedResource.pData, c_bones.data(), sizeof(XMFLOAT4X4) * c_bones.size());
+	::memcpy(mappedResource.pData, m_bones.data(), sizeof(XMFLOAT4X4) * m_bones.size());
 	m_pDeviceContext->Unmap(m_pCBuf_VS_Bones.Get(), 0);
 }
 

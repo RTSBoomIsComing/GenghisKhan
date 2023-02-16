@@ -9,6 +9,7 @@ cbuffer ConstantsForInstancing : register(b0)
 cbuffer ConstantsOther : register(b1)
 {
 	matrix ViewProjection;
+	matrix DEBUGSCALAR;
 }
 
 cbuffer ConstantsForBlending : register(b2)
@@ -36,38 +37,48 @@ struct VS_OUTPUT
 VS_OUTPUT main(VS_INPUT input, uint vertexID : SV_VertexID, uint InstanceId : SV_InstanceID)
 {
 	VS_OUTPUT output;
-	float3 accPosition = float3(0.0F, 0.0F, 0.0F); // position,  w = 1
-	float3 accNormal = float3(0.0F, 0.0F, 0.0F);   // driection, w = 0
-	int i = 0;
-	for (; i < 4; i++)
+	float4 accPosition = float4(0.0F, 0.0F, 0.0F, 0.0F);
+	float3 accNormal = float3(0.0F, 0.0F, 0.0F);
+
+	for (int i = 0; i < 4; i++)
 	{
-		const uint boneIndex = input.blendIndices[i];
-		if (boneIndex >= MAX_BONES) { break; }
-		const matrix boneTransform = Bones[boneIndex];
+		const float  blendWeight  = input.blendWeights[i];
+		const int affectingBoneId = input.blendIndices[i];
+		if (blendWeight < 0.00001F) { break; }
+		
+		const matrix boneTransform = Bones[affectingBoneId];
+		
 
-		const float4 localPosition = mul(float4(input.pos, 1.0F), boneTransform);
-		accPosition += (input.blendWeights[i] * localPosition).xyz;
+		const float4 localPosition = mul(float4(input.pos, 1.0F), boneTransform) * blendWeight/**/;
 
-		const float4 localNormal = mul(float4(input.normal, 0.0F), boneTransform);
-		accNormal += (input.blendWeights[i] * localNormal).xyz;
+		accPosition += localPosition;
+
+
+		const float3 localNormal = mul(float4(input.normal, 0.0F), boneTransform).xyz;
+
+		accNormal += localNormal;
 	}
 
-	// when disable bone transform
-	//accPosition = float3(input.pos);
-	//accNormal = float3(input.normal);
+//	accPosition.w = 1.0F;
+	// if w sum is not 1.0F, normalize
 
-
-	if (i == 0)
+	if (accPosition.w != 0.0F)
 	{
-		accPosition = input.pos;
-		accNormal   = input.normal;
+		accPosition /= accPosition.w;
 	}
+	else
+	{
+		accPosition = float4(input.pos, 1.0F);
+		accNormal = input.normal;
+	}
+	
+	
 
 	const matrix World = Worlds[InstanceId];
 
-	output.pos		  = mul(float4(accPosition, 1.0F), mul(World, ViewProjection)); // mul pos * W * V * P
+	output.pos		  = mul(accPosition, mul(World, ViewProjection)); // mul pos * W * V * P
 	output.tex		  = input.tex.xy;
-	output.normal     = mul(float4(normalize(accNormal), 0.0F), World).xyz;
+	output.normal = mul(float4(normalize(accNormal), 0.0F), World).xyz;
 	output.InstanceId = InstanceId;
 	return output;
 }

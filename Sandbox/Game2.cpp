@@ -18,6 +18,7 @@
 // standard libraries
 #include <random>
 
+float DEBUGSCALAR{};
 Game2::Game2()
 	:
 	m_mainRenderer(m_window_handle, m_window_width, m_window_height)
@@ -25,9 +26,9 @@ Game2::Game2()
 	BindActionsToInput();
 	m_imGuiRenderer = std::make_unique<KhanRender::ImGuiRenderer>(m_window_handle, m_mainRenderer, std::bind(&Game2::OnImGuiRender, this));
 	//m_cubeRenderer = std::make_unique<KhanRender::CubeRenderer>(m_mainRenderer);
-	m_ArcherRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Standing Idle 01.fbx");
-	m_KnightRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Knight D Pelegrini.fbx");
-	m_PaladinRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Paladin J Nordstrom.fbx");
+	m_ArcherRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Paladin J Nordstrom.fbx");
+	//m_KnightRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Knight D Pelegrini.fbx");
+	//m_PaladinRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Paladin J Nordstrom.fbx");
 
 	auto entity = KhanECS::Entity::MakeCamera(m_reg);
 
@@ -51,7 +52,7 @@ Game2::Game2()
 	//	m_reg.emplace<KhanECS::Component::Knight>(e);
 	//}
 
-	auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{0.0F, 0.0F, 100.0F});
+	auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{0.0F, 0.0F, 10.0F});
 	m_reg.emplace<KhanECS::Component::Archer>(e);
 }
 
@@ -108,21 +109,21 @@ void Game2::Run()
 
 
 	std::vector<XMMATRIX> worldMatrices = std::move(KhanECS::System::GetWorldMatrices<KhanECS::Component::Archer>(m_reg));
-	m_ArcherRenderer->Update(worldMatrices, viewProjMat);
+	m_ArcherRenderer->Update(worldMatrices, viewProjMat, DEBUGSCALAR);
 
 	worldMatrices = std::move(KhanECS::System::GetWorldMatrices<KhanECS::Component::Paladin>(m_reg));
-	m_PaladinRenderer->Update(worldMatrices, viewProjMat);
+	//m_PaladinRenderer->Update(worldMatrices, viewProjMat);
 
 	worldMatrices = std::move(KhanECS::System::GetWorldMatrices<KhanECS::Component::Knight>(m_reg));
-	m_KnightRenderer->Update(worldMatrices, viewProjMat);
+	//m_KnightRenderer->Update(worldMatrices, viewProjMat);
 	//m_cubeRenderer->Update(worldMatrices, viewProjMat);
 
 
 	m_mainRenderer.RenderBegin(clear_color);
 	//m_cubeRenderer->Render();
 	m_ArcherRenderer->Render();
-	m_PaladinRenderer->Render();
-	m_KnightRenderer->Render();
+	//m_PaladinRenderer->Render();
+	//m_KnightRenderer->Render();
 
 	static auto selectionRect_renderer = KhanRender::SelectionRectRenderer(m_mainRenderer);
 	if (m_isSelectionRectDrawing && m_isMouseLocked)
@@ -165,7 +166,8 @@ void Game2::OnImGuiRender()
 		ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
 		ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
 		ImGui::Checkbox("Another Window", &show_another_window);
-
+		
+		ImGui::SliderFloat("DebugScalar", &DEBUGSCALAR, 0.0F, 500.F);
 		ImGui::SliderFloat3("camera rot", reinterpret_cast<float*>(&m_cameraRotation), -XM_PI, XM_PI);
 		ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
