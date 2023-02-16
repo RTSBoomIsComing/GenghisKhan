@@ -49,7 +49,7 @@ VS_OUTPUT main(VS_INPUT input, uint vertexID : SV_VertexID, uint InstanceId : SV
 		const matrix boneTransform = Bones[affectingBoneId];
 		
 
-		const float4 localPosition = mul(float4(input.pos, 1.0F), boneTransform) * blendWeight/**/;
+		const float4 localPosition = mul(float4(input.pos, 1.0F), boneTransform) * blendWeight;
 
 		accPosition += localPosition;
 

@@ -143,6 +143,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 			 //mNode := current node of current bone
 			 //mArmature := parent of mNode
 
+			XMStoreFloat4x4(&m_bones[boneIndex], XMMatrixIdentity());
 			for (aiNode* currentNode = pBone->mNode; currentNode != nullptr; currentNode = currentNode->mParent)
 			{
 				XMStoreFloat4x4(&m_bones[boneIndex],

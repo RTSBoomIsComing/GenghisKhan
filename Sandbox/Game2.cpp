@@ -26,7 +26,7 @@ Game2::Game2()
 	BindActionsToInput();
 	m_imGuiRenderer = std::make_unique<KhanRender::ImGuiRenderer>(m_window_handle, m_mainRenderer, std::bind(&Game2::OnImGuiRender, this));
 	//m_cubeRenderer = std::make_unique<KhanRender::CubeRenderer>(m_mainRenderer);
-	m_ArcherRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Paladin J Nordstrom.fbx");
+	m_ArcherRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Standing Idle 01.fbx");
 	//m_KnightRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Knight D Pelegrini.fbx");
 	//m_PaladinRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Paladin J Nordstrom.fbx");
 
