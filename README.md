@@ -24,14 +24,16 @@ So you don't need to install libraries manually,
 Once you build visual studio solution all the libraries installed automatically.
 
 ## Results of work so far
-![Results](https://user-images.githubusercontent.com/61501369/218304602-974cc435-3d03-4617-ab62-ff7fe6c87f7f.png)
+![Results](https://user-images.githubusercontent.com/61501369/219645756-42cc0112-e808-413d-9d1b-8a2f19794e43.png)
+It was really hard work...
 
 ## Done
 - Input binding with keyboard and mouse
 - Draw a selection rectangle with mouse 
 - Camera movement with both mouse and keyboard
 - Make Renderer allow instancing with either constant buffer or structured buffer (shader resource view)
-- Import and render a 3d mesh(model) from file using Assimp library
+- Import and render a 3d static mesh(model) using Assimp library
+- Render skeletal mesh and make it pose (animate)
 
 ## TODO
 - add object-selecting(picking) function using selection rectangle or mouse click... -> need ray casting
