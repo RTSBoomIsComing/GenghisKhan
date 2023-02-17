@@ -39,6 +39,8 @@ namespace KhanRender
 
 
 		std::vector<DirectX::XMFLOAT4X4> m_bones;
+		std::vector<DirectX::XMFLOAT4X4> m_boneOffsets;
+		std::vector<DirectX::XMFLOAT4X4> m_nodeTransforms;
 
 	private: // about directx 11 components
 		ComPtr<ID3D11Buffer>			m_pVBuf_Positions;

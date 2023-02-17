@@ -1,10 +1,17 @@
 #include "pch.h"
 #include "SkeletalMeshRenderer.h"
 #include "KhanDx/KhanDxComponents.h"
+
+#include <KhanTools/Log.h>
+
+// standard libraries
+#include <unordered_map>
+#include <array>
+// additional dependencies
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <KhanTools/Log.h>
+
 
 KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer, const std::filesystem::path SceneFilePath)
 	:
@@ -16,17 +23,18 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	Assimp::Importer importer;
 	importer.SetPropertyInteger(AI_CONFIG_PP_LBW_MAX_WEIGHTS, 4);
 	importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
-	const aiScene* pScene = importer.ReadFile(SceneFilePath.string(), aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_ConvertToLeftHanded | aiProcess_PopulateArmatureData | aiProcess_LimitBoneWeights | aiProcess_JoinIdenticalVertices | aiProcess_SortByPType | aiProcess_GenUVCoords | aiProcess_GenNormals | aiProcess_ValidateDataStructure);
+	const aiScene* pScene = importer.ReadFile(SceneFilePath.string(), aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_ConvertToLeftHanded | aiProcess_PopulateArmatureData | aiProcess_LimitBoneWeights |  aiProcess_GenUVCoords | aiProcess_GenNormals);
 	if (nullptr == pScene) {
 		KHAN_ERROR(importer.GetErrorString());
 		throw std::exception{ "Failed to import file using assimp" };
 	}
 
-
+	// uint32_t accNumBones is not correct, Because several meshes have one bone redundantly, 
+	// So e.g seven meshes has same 60 bones then accNumBones = 7 * 60 = 420
+	// 
 
 	UINT accNumVertices{};
 	UINT accNumIndices{};
-	UINT accNumBones{};
 	UINT numMeshes = pScene->mNumMeshes;
 	m_meshInfos.reserve(numMeshes);
 	for (UINT i{}; i < numMeshes; i++)
@@ -41,7 +49,6 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 
 		accNumVertices += meshInfo.NumVertices;
 		accNumIndices += meshInfo.NumIndices;
-		accNumBones += pMesh->mNumBones;
 	}
 
 	for (UINT i{}; i < numMeshes; i++)
@@ -118,17 +125,21 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	v_normals.resize(accNumVertices);
 
 
-	constexpr uint64_t MAX_BONE_WEIGHTS = 4;
+	constexpr uint32_t MaxNumBoneWeights{ 4 };
+	constexpr uint32_t MaxNumBones{ 100 };
+	m_bones.reserve(100); // I think maybe the number of bones are not more than 100
+	//m_boneOffsets.resize(MaxNumBones);
 
-	m_bones.resize(accNumBones);
+	std::vector<std::array<uint32_t, MaxNumBoneWeights>> v_boneIndices;
+	v_boneIndices.resize(accNumVertices);
 
-	std::vector<uint32_t> v_boneIndices;
-	v_boneIndices.resize(accNumVertices * MAX_BONE_WEIGHTS, -1);
+	std::vector<std::array<float, MaxNumBoneWeights>> v_weights;
+	v_weights.resize(accNumVertices);
 
-	std::vector<float> v_weights;
-	v_weights.resize(accNumVertices * MAX_BONE_WEIGHTS);
 
-	UINT boneIndex{};
+
+	std::unordered_map<aiNode*, uint32_t> nodeBonePair;
+	UINT accBoneIndex{};
 	for (UINT i{}; i < numMeshes; i++)
 	{
 		auto* pMesh = pScene->mMeshes[i];
@@ -137,48 +148,95 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 		for (UINT j{}; j < numBones; j++)
 		{
 			auto* pBone = pMesh->mBones[j];
-			//const XMFLOAT4X4* pOffsetMatrix = reinterpret_cast<XMFLOAT4X4*>(&pBone->mOffsetMatrix);
-			//std::copy(pOffsetMatrix, pOffsetMatrix + 1, &m_bones[boneIndex].InverseBind);
 
-			 //mNode := current node of current bone
-			 //mArmature := parent of mNode
-
-			XMStoreFloat4x4(&m_bones[boneIndex], XMMatrixIdentity());
-			for (aiNode* currentNode = pBone->mNode; currentNode != nullptr; currentNode = currentNode->mParent)
+			//mNode := current node of current bone
+			//mArmature := parent of mNode
+			uint32_t currentBoneIndex{};
+			if (nodeBonePair.contains(pBone->mNode))
 			{
-				XMStoreFloat4x4(&m_bones[boneIndex],
-					XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&currentNode->mTransformation))
-					* XMLoadFloat4x4(&m_bones[boneIndex])); // assimp matrix is column major so parant * child is right!
+				currentBoneIndex = nodeBonePair[pBone->mNode];
 			}
-			XMStoreFloat4x4(&m_bones[boneIndex],
-				XMLoadFloat4x4(&m_bones[boneIndex]) * XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&pBone->mOffsetMatrix))); // dont transpose, beacause assimp matrix is column major
+			else
+			{
+				currentBoneIndex = ++accBoneIndex; //accBoneIndex is replacable with m_bone.size();
+				nodeBonePair[pBone->mNode] = currentBoneIndex;
 
 
-			//XMStoreFloat4x4(&m_bones[boneIndex], XMMatrixTranspose(XMLoadFloat4x4(&m_bones[boneIndex])));
+				XMFLOAT4X4 boneTransform{};
+				XMStoreFloat4x4(&boneTransform, XMMatrixIdentity());
 
+				for (aiNode* currentNode = pBone->mNode; currentNode != nullptr; currentNode = currentNode->mParent)
+				{
+					XMStoreFloat4x4(&boneTransform,
+						XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&currentNode->mTransformation))
+						* XMLoadFloat4x4(&boneTransform)); // assimp matrix is column major so parant * child is right!
+				}
+				m_bones.push_back(boneTransform);
+				XMStoreFloat4x4(&m_bones.back(),
+					XMLoadFloat4x4(&m_bones.back()) * XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&pBone->mOffsetMatrix))); // do not transpose, beacause assimp matrix is column major
 
-
+				//XMStoreFloat4x4(&m_boneOffsets[boneIndex], XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&pBone->mOffsetMatrix)));
+			}
 			const UINT numWeights = pBone->mNumWeights;
 			for (UINT k{}; k < numWeights; k++)
 			{
 				auto weightInfo = pBone->mWeights[k];
 
-				const uint64_t affectedVertexId = weightInfo.mVertexId * MAX_BONE_WEIGHTS;
+				const uint64_t affectedVertexId = weightInfo.mVertexId + m_meshInfos[i].BaseVertexLocation;
 				const float weight = weightInfo.mWeight;
 
-				for (int l{}; l < MAX_BONE_WEIGHTS; l++)
+				for (int l{}; l < MaxNumBoneWeights; l++)
 				{
-					if (v_weights[affectedVertexId + l] == 0)
+					if (v_weights[affectedVertexId][l] == 0)
 					{
-						v_boneIndices[affectedVertexId + l] = boneIndex;
-						v_weights[affectedVertexId + l] = weight;
+						v_boneIndices[affectedVertexId][l] = currentBoneIndex;
+						v_weights[affectedVertexId][l] = weight;
 						break;
 					}
 				}
 			}
-			boneIndex++;
 		}
 	}
+
+	//int numAnimations = pScene->mNumAnimations;
+	//for (int i{}; i < numAnimations; i++)
+	//{
+	//	auto* pAnim = pScene->mAnimations[i];
+	//	const double duration = pAnim->mDuration;
+	//	const double ticksPerSecond = pAnim->mTicksPerSecond;
+	//	const uint32_t numChannels = pAnim->mNumChannels;
+	//	for (uint32_t j{}; j < numChannels; j++)
+	//	{
+	//		auto* channel = pAnim->mChannels[j];
+	//		auto* node = pScene->mRootNode->FindNode(channel->mNodeName);
+	//		const uint32_t boneIndex = nodeBonePair[node];
+
+	//		const uint32_t numKeys = channel->mNumPositionKeys;
+	//		for (uint32_t k{}; k < numKeys; k++)
+	//		{
+	//			XMVECTOR vecS = XMLoadFloat3(reinterpret_cast<XMFLOAT3*>(&channel->mScalingKeys[k].mValue));
+	//			XMVECTOR vecT = XMLoadFloat3(reinterpret_cast<XMFLOAT3*>(&channel->mPositionKeys[k].mValue));
+	//			aiQuaternion aiQuat = channel->mRotationKeys[k].mValue;//XMLoadFloat4(reinterpret_cast<XMFLOAT4*>(&));
+	//			XMFLOAT4 quat{ -aiQuat.x, -aiQuat.y, -aiQuat.z, aiQuat.w };
+
+
+
+	//			//XMMATRIX matKeyFrame = XMMatrixScalingFromVector(vecS) * XMMatrixRotationQuaternion(quatR) * XMMatrixTranslationFromVector(vecT);
+
+	//			XMMATRIX matKeyFrameTransposed = XMMatrixTranslationFromVector(vecT) * XMMatrixTranspose(XMMatrixRotationQuaternion(XMLoadFloat4(&quat))) * XMMatrixScalingFromVector(vecS);
+	//			XMStoreFloat4x4(&m_boneOffsets[boneIndex],
+	//				matKeyFrameTransposed * XMLoadFloat4x4(&m_boneOffsets[boneIndex]));
+	//			break;
+	//		}
+	//		//break;
+	//	}
+	//	break;
+	//}
+
+	//for (uint32_t i{}; i < accNumBones; i++)
+	//{
+	//	XMStoreFloat4x4(&m_bones[i], XMLoadFloat4x4(&m_bones[i]) * XMLoadFloat4x4(&m_boneOffsets[i]));
+	//}
 
 	m_VBuf_Strides.push_back(sizeof(v_positions[0]));
 	m_pVBuf_Positions = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_positions.data(), (UINT)v_positions.size() * m_VBuf_Strides.back());
@@ -195,13 +253,13 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	m_VBuf_Ptrs.push_back(m_pVBuf_Normals.Get());
 	m_VBuf_Offsets.push_back(0);
 
-	m_VBuf_Strides.push_back(sizeof(v_boneIndices[0]) * MAX_BONE_WEIGHTS);
-	m_pVBuf_BlendIndices = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_boneIndices.data(), (UINT)v_boneIndices.size() * sizeof(v_boneIndices[0]));
+	m_VBuf_Strides.push_back(sizeof(v_boneIndices[0]));
+	m_pVBuf_BlendIndices = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_boneIndices.data(), (UINT)v_boneIndices.size() * m_VBuf_Strides.back());
 	m_VBuf_Ptrs.push_back(m_pVBuf_BlendIndices.Get());
 	m_VBuf_Offsets.push_back(0);
 
-	m_VBuf_Strides.push_back(sizeof(v_weights[0]) * MAX_BONE_WEIGHTS);
-	m_pVBuf_BlendWeight = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_weights.data(), (UINT)v_weights.size() * sizeof(v_weights[0]));
+	m_VBuf_Strides.push_back(sizeof(v_weights[0]));
+	m_pVBuf_BlendWeight = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_weights.data(), (UINT)v_weights.size() * m_VBuf_Strides.back());
 	m_VBuf_Ptrs.push_back(m_pVBuf_BlendWeight.Get());
 	m_VBuf_Offsets.push_back(0);
 
@@ -285,7 +343,7 @@ void KhanRender::SkeletalMeshRenderer::Render()
 	m_pDeviceContext->PSSetSamplers(0, 1, m_pSamplerState.GetAddressOf());
 	for (auto& meshInfo : m_meshInfos)
 	{
-		m_pDeviceContext->PSSetShaderResources(0U, 1U, meshInfo.m_pSRV.GetAddressOf());
+		m_pDeviceContext->PSSetShaderResources(0, 1, meshInfo.m_pSRV.GetAddressOf());
 		m_pDeviceContext->DrawIndexedInstanced(meshInfo.NumIndices, m_numInstance, meshInfo.StartIndexLocation, meshInfo.BaseVertexLocation, 0);
 	}
 }

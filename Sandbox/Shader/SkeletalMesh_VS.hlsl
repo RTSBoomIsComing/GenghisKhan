@@ -1,5 +1,5 @@
 static const int MAX_INSTSANCES = 1000;
-static const int MAX_BONES = 1000;
+static const int MAX_BONES = 100;
 
 cbuffer ConstantsForInstancing : register(b0)
 {
@@ -44,12 +44,13 @@ VS_OUTPUT main(VS_INPUT input, uint vertexID : SV_VertexID, uint InstanceId : SV
 	{
 		const float  blendWeight  = input.blendWeights[i];
 		const int affectingBoneId = input.blendIndices[i];
-		if (blendWeight < 0.00001F) { break; }
+
+		if (blendWeight == 0.0F) { break; } // early break, but this is not neccessary, without this, shader work correctly
 		
-		const matrix boneTransform = Bones[affectingBoneId];
+		const matrix boneTransform = Bones[affectingBoneId] * blendWeight;
 		
 
-		const float4 localPosition = mul(float4(input.pos, 1.0F), boneTransform) * blendWeight;
+		const float4 localPosition = mul(float4(input.pos, 1.0F), boneTransform);
 
 		accPosition += localPosition;
 
@@ -59,14 +60,8 @@ VS_OUTPUT main(VS_INPUT input, uint vertexID : SV_VertexID, uint InstanceId : SV
 		accNormal += localNormal;
 	}
 
-//	accPosition.w = 1.0F;
-	// if w sum is not 1.0F, normalize
-
-	if (accPosition.w != 0.0F)
-	{
-		accPosition /= accPosition.w;
-	}
-	else
+	// w sum always 1.0F, if not, something was wrong, this fact is absolutly true, never suspect that, you are wrong, assimp is no guilty
+	if (accPosition.w == 0.0F)
 	{
 		accPosition = float4(input.pos, 1.0F);
 		accNormal = input.normal;
