@@ -37,11 +37,11 @@ Game2::Game2()
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<int> die(-1500, 1500);
 
-	//for (int i{}; i < 10; ++i)
-	//{
-	//	auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ (float)die(gen), 0.0F, 500.0F + die(gen) });
-	//	m_reg.emplace<KhanECS::Component::Archer>(e);
-	//}
+	for (int i{}; i < 100; ++i)
+	{
+		auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ (float)die(gen), 0.0F, 500.0F + die(gen) });
+		m_reg.emplace<KhanECS::Component::Archer>(e);
+	}
 	//for (int i{}; i < 10; ++i)
 	//{
 	//	auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ (float)die(gen), 0.0F, 500.0F + die(gen) });
@@ -53,8 +53,8 @@ Game2::Game2()
 	//	m_reg.emplace<KhanECS::Component::Knight>(e);
 	//}
 
-	auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{0.0F, 0.0F, 10.0F});
-	m_reg.emplace<KhanECS::Component::Archer>(e);
+	//auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{0.0F, 0.0F, 10.0F});
+	//m_reg.emplace<KhanECS::Component::Archer>(e);
 }
 
 Game2::~Game2() noexcept
