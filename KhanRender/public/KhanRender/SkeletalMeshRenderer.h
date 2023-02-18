@@ -8,9 +8,6 @@
 #include <filesystem>
 #include <unordered_map>
 
-// additional dependencies
-//#include <stb_image.h>
-
 namespace KhanRender
 {
 
@@ -25,7 +22,7 @@ namespace KhanRender
 			uint32_t StartIndexLocation{};
 			ComPtr<ID3D11ShaderResourceView> m_pSRV;
 		};
-		
+
 	public:
 		SkeletalMeshRenderer(const Renderer& renderer, const std::filesystem::path SceneFilePath);
 		void Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat, float debugScalar);
@@ -58,11 +55,21 @@ namespace KhanRender
 
 		std::vector<ID3D11Buffer*> m_CBuf_VS_Ptrs;
 
-		std::vector<DirectX::XMFLOAT4X4>	m_bones;
-		std::vector<DirectX::XMMATRIX>		m_boneOffsets;
-		std::unordered_map<std::string, uint32_t> m_NodeNameToBoneIndex;
+		static constexpr uint32_t MAX_NUM_BONES{ 100 }; // I think maybe the number of bones are not more than 100
+		static constexpr uint32_t MAX_NUM_BONE_WEIGHTS{ 4 };
+		uint32_t m_TotalNumBones{};
 
-		std::vector<std::unordered_map<std::string, std::vector<DirectX::XMMATRIX>>> m_AnimNodeTransforms;
+		
+		std::unordered_map<std::string, uint32_t> m_NodeNameToBoneIndex;
+		
+		DirectX::XMMATRIX m_FinalNodeTransforms[MAX_NUM_BONES]{};
+		DirectX::XMMATRIX m_boneOffsets[MAX_NUM_BONES]{};
+		DirectX::XMMATRIX m_DefaultNodeTransforms[MAX_NUM_BONES]{};
+		uint32_t m_ParentNodes[MAX_NUM_BONES]{};
+
+
+
+		std::vector<std::vector<std::unordered_map<std::string, DirectX::XMMATRIX>>> m_AnimNodeTransforms;
 
 	private: // about directx 11 components
 		ComPtr<ID3D11Buffer> m_pVBuf_Positions;

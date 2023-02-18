@@ -118,18 +118,13 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 		v_normals.insert(v_normals.end(), First, Last);
 	}
 
-	constexpr uint32_t MaxNumBoneWeights{ 4 };
-	constexpr uint32_t MaxNumBones{ 100 }; // I think maybe the number of bones are not more than 100
+	aiBone* tempStoreNodePtrs[MAX_NUM_BONES]{};
 
-	m_boneOffsets.reserve(MaxNumBones);
-
-	std::vector<std::array<uint32_t, MaxNumBoneWeights>> v_boneIndices;
+	std::vector<std::array<uint32_t, MAX_NUM_BONE_WEIGHTS>> v_boneIndices;
 	v_boneIndices.resize(accNumVertices);
 
-	std::vector<std::array<float, MaxNumBoneWeights>> v_weights;
+	std::vector<std::array<float, MAX_NUM_BONE_WEIGHTS>> v_weights;
 	v_weights.resize(accNumVertices);
-
-	
 
 	for (UINT i{}; i < numMeshes; i++)
 	{
@@ -149,11 +144,10 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 			}
 			else
 			{
-				XMMATRIX boneOffset = XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&pBone->mOffsetMatrix));
-				m_boneOffsets.push_back(boneOffset);
-
-				currentBoneIndex = (uint32_t)m_boneOffsets.size() - 1;
+				currentBoneIndex = m_TotalNumBones++;
 				m_NodeNameToBoneIndex[pBone->mName.C_Str()] = currentBoneIndex;
+
+				tempStoreNodePtrs[currentBoneIndex] = pBone;
 			}
 			const UINT numWeights = pBone->mNumWeights;
 			for (UINT k{}; k < numWeights; k++)
@@ -163,7 +157,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 				const uint32_t affectedVertexId = weightInfo.mVertexId + m_meshInfos[i].BaseVertexLocation;
 				const float weight = weightInfo.mWeight;
 
-				for (int l{}; l < MaxNumBoneWeights; l++)
+				for (int l{}; l < MAX_NUM_BONE_WEIGHTS; l++)
 				{
 					if (v_weights[affectedVertexId][l] == 0)
 					{
@@ -176,12 +170,21 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 		}
 	}
 
+	for (int i{}; i < m_TotalNumBones; i++)
+	{
+		m_boneOffsets[i] = XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&tempStoreNodePtrs[i]->mOffsetMatrix));
+		m_DefaultNodeTransforms[i] = XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&tempStoreNodePtrs[i]->mNode->mTransformation));
+		m_ParentNodes[i] = m_NodeNameToBoneIndex[tempStoreNodePtrs[i]->mArmature->mName.C_Str()];
+	}
+
 	int numAnimations = pScene->mNumAnimations;
 	m_AnimNodeTransforms.resize(numAnimations);
 	for (int i{}; i < numAnimations; i++)
 	{
 		auto* pAnim = pScene->mAnimations[i];
 		const double duration = pAnim->mDuration;
+		m_AnimNodeTransforms[i].resize(static_cast<uint64_t>(duration) + 1Ui64);
+
 		const double ticksPerSecond = pAnim->mTicksPerSecond;
 		const uint32_t numChannels = pAnim->mNumChannels;
 		for (uint32_t j{}; j < numChannels; j++)
@@ -200,41 +203,9 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 				XMMATRIX animNodeTransform = XMMatrixTranspose(
 					XMMatrixAffineTransformation(vecS, { 0.0F, 0.0F, 0.0F, 1.0F }, XMLoadFloat4(&xmQuat), vecT));
 
-				m_AnimNodeTransforms[i][nodeName.C_Str()].push_back(animNodeTransform);
+				m_AnimNodeTransforms[i][k][nodeName.C_Str()] = animNodeTransform;
 			}
 		}
-	}
-
-	auto GetNodeTransform = [&](std::string nodeName, int animIndex, int key) -> XMMATRIX
-	{
-		XMMATRIX NodeTransform{};
-		if (m_AnimNodeTransforms[animIndex].contains(nodeName))
-		{
-			NodeTransform = m_AnimNodeTransforms[animIndex][nodeName][key];
-		}
-		else
-		{
-			NodeTransform = XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&pScene->mRootNode->FindNode(nodeName.c_str())->mTransformation));
-		}
-		return NodeTransform;
-	};
-
-	m_bones.resize(m_boneOffsets.size());
-	for (const auto& [nodeName, boneIndex] : m_NodeNameToBoneIndex)
-	{
-		auto* node = pScene->mRootNode->FindNode(nodeName.c_str());
-		XMMATRIX AccNodeTransform = GetNodeTransform(nodeName, 0, 0);
-
-		for (aiNode* currentNode{ node->mParent }; currentNode != nullptr; currentNode = currentNode->mParent)
-		{
-			AccNodeTransform = GetNodeTransform(currentNode->mName.C_Str(), 0, 0) * AccNodeTransform;
-		}
-		XMStoreFloat4x4(&m_bones[boneIndex], AccNodeTransform);
-	}
-
-	for (uint32_t i{}; i < m_boneOffsets.size(); i++)
-	{
-		XMStoreFloat4x4(&m_bones[i], XMLoadFloat4x4(&m_bones[i]) * m_boneOffsets[i]);
 	}
 
 	// Create Vertex Buffers in SOA pattern
@@ -323,10 +294,41 @@ void KhanRender::SkeletalMeshRenderer::Update(std::vector<DirectX::XMMATRIX> con
 	m_pDeviceContext->Unmap(m_pCBuf_VS_ViewProjection.Get(), 0);
 
 	// Bone Matrix Update, maybe seperate AnimUpdate function is needed
-	// TODO
+	auto GetNodeTransform = [&](std::string nodeName, int animIndex, int key) -> XMMATRIX
+	{
+		XMMATRIX NodeTransform{};
+		if (m_AnimNodeTransforms[animIndex][key].contains(nodeName))
+		{
+			NodeTransform = m_AnimNodeTransforms[animIndex][key][nodeName];
+		}
+		else
+		{
+			NodeTransform = XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&pScene->mRootNode->FindNode(nodeName.c_str())->mTransformation));
+		}
+		return NodeTransform;
+	};
+
+	
+	for (const auto& [nodeName, boneIndex] : m_NodeNameToBoneIndex)
+	{
+		auto* node = pScene->mRootNode->FindNode(nodeName.c_str());
+		XMMATRIX AccNodeTransform = GetNodeTransform(nodeName, 0, 0);
+
+		for (aiNode* currentNode{ node->mParent }; currentNode != nullptr; currentNode = currentNode->mParent)
+		{
+			AccNodeTransform = GetNodeTransform(currentNode->mName.C_Str(), 0, 0) * AccNodeTransform;
+		}
+		m_FinalNodeTransforms[boneIndex] = AccNodeTransform;
+	}
+
+	for (uint32_t i{}; i < m_TotalNumBones; i++)
+	{
+		m_FinalNodeTransforms[i] = m_FinalNodeTransforms[i] * m_boneOffsets[i];
+	}
+
 	mappedResource = {};
 	m_pDeviceContext->Map(m_pCBuf_VS_Bones.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	::memcpy(mappedResource.pData, m_bones.data(), sizeof(XMFLOAT4X4) * m_bones.size());
+	::memcpy(mappedResource.pData, m_FinalNodeTransforms, sizeof(XMFLOAT4X4) * m_TotalNumBones);
 	m_pDeviceContext->Unmap(m_pCBuf_VS_Bones.Get(), 0);
 }
 
