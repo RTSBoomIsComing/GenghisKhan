@@ -4,7 +4,9 @@
 
 // standard libraries
 #include <vector>
+#include <string>
 #include <filesystem>
+#include <unordered_map>
 
 // additional dependencies
 //#include <stb_image.h>
@@ -58,20 +60,22 @@ namespace KhanRender
 
 		std::vector<DirectX::XMFLOAT4X4>	m_bones;
 		std::vector<DirectX::XMMATRIX>		m_boneOffsets;
-		//std::vector<DirectX::XMFLOAT4X4> m_nodeTransforms;
+
+		std::vector<std::unordered_map<std::string, std::vector<DirectX::XMMATRIX>>> m_AnimNodeTransforms;
 
 	private: // about directx 11 components
-		ComPtr<ID3D11Buffer>			m_pVBuf_Positions;
-		ComPtr<ID3D11Buffer>			m_pVBuf_TexCoords;
-		ComPtr<ID3D11Buffer>			m_pVBuf_Normals;
-		ComPtr<ID3D11Buffer>			m_pVBuf_BlendIndices;
-		ComPtr<ID3D11Buffer>			m_pVBuf_BlendWeight;
+		ComPtr<ID3D11Buffer> m_pVBuf_Positions;
+		ComPtr<ID3D11Buffer> m_pVBuf_TexCoords;
+		ComPtr<ID3D11Buffer> m_pVBuf_Normals;
+		ComPtr<ID3D11Buffer> m_pVBuf_BlendIndices;
+		ComPtr<ID3D11Buffer> m_pVBuf_BlendWeight;
 
-		ComPtr<ID3D11Buffer>		    m_pCBuf_VS_Worlds;
-		ComPtr<ID3D11Buffer>		    m_pCBuf_VS_ViewProjection;
-		ComPtr<ID3D11Buffer>		    m_pCBuf_VS_Bones;
+		ComPtr<ID3D11Buffer> m_pCBuf_VS_Worlds;
+		ComPtr<ID3D11Buffer> m_pCBuf_VS_ViewProjection;
+		ComPtr<ID3D11Buffer> m_pCBuf_VS_Bones;
 
-		ComPtr<ID3D11Buffer>		    m_pIndexBuffer;
+		ComPtr<ID3D11Buffer> m_pIndexBuffer;
+
 		ComPtr<ID3D11PixelShader>	    m_pPixelShader;
 		ComPtr<ID3D11VertexShader>	    m_pVertexShader;
 		ComPtr<ID3D11InputLayout>	    m_pInputLayout;

@@ -21,20 +21,19 @@ struct Light
 Texture2D g_MeshTexture : register(t0);
 SamplerState g_Sampler;
 
-float4 main(VS_OUTPUT Input) : SV_TARGET
+float4 main(VS_OUTPUT input) : SV_TARGET
 {
-	//Light light;
-	//light.dir     = float3(0.0F, -1.0F, 0.0F);
-	//light.ambient = float3(0.5F, 0.5F, 0.5);
-	//light.diffuse = float3(0.5F, 0.5F, 0.5);
-	//Input.normal = normalize(Input.normal);
+	Light light;
+	light.dir     = float3(0.0F, -1.0F, 0.0F);
+	light.ambient = float3(0.5F, 0.5F, 0.5F);
+	light.diffuse = float3(0.5F, 0.5F, 0.5F);
+	input.normal = normalize(input.normal);
 
-	float4 base = g_MeshTexture.Sample(g_Sampler, Input.uv);
-	//clip(base.a - .25);
+	float4 base = g_MeshTexture.Sample(g_Sampler, input.uv);
+	
+	float3 color = base * light.ambient;
+	color += saturate(dot(-light.dir, input.normal) * light.diffuse * base);
 
-	//float3 color = base * light.ambient;
-	//color += saturate(/*dot(-light.dir, input.normal) * */light.diffuse * base);
-
-	//return float4(color, base.a);
-	return base;
+	return float4(color, 1.0F);
+	//return base;
 }

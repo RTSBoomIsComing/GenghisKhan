@@ -73,7 +73,7 @@ VS_OUTPUT main(VS_INPUT input, uint vertexID : SV_VertexID, uint InstanceId : SV
 
 	output.pos		  = mul(accPosition, mul(World, ViewProjection)); // mul pos * W * V * P
 	output.tex		  = input.tex.xy;
-	output.normal = mul(float4(normalize(accNormal), 0.0F), World).xyz;
+	output.normal = normalize(mul(float4(accNormal, 0.0F), World).xyz);
 	output.InstanceId = InstanceId;
 	return output;
 }
