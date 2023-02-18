@@ -191,6 +191,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	{
 		auto* pAnim = pScene->mAnimations[i];
 		const double duration = pAnim->mDuration;
+		m_AnimationDuration = duration; // Now Animation is only one, later need to fix.
 		m_AnimNodeTransforms[i].resize(static_cast<uint64_t>(duration) + 1Ui64);
 
 		const double ticksPerSecond = pAnim->mTicksPerSecond;
@@ -308,7 +309,7 @@ void KhanRender::SkeletalMeshRenderer::Update(std::vector<DirectX::XMMATRIX> con
 	auto endTimePoint = std::chrono::steady_clock::now();
 	std::chrono::duration<float> elipsedTime = endTimePoint - startTimePoint;
 
-	int animKey = static_cast<int>(elipsedTime.count() * 30) % 154;/* hard coding, the duration of animation */
+	int animKey = static_cast<int>(elipsedTime.count() * 30) % static_cast<int>(m_AnimationDuration + 1);/* hard coding, the duration of animation */
 	static int animIndex{};
 	for (uint32_t i{}; i < m_TotalNumBones; i++)
 	{

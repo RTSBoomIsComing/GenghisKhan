@@ -65,10 +65,11 @@ namespace KhanRender
 		DirectX::XMMATRIX m_FinalNodeTransforms[MAX_NUM_BONES]{};
 		DirectX::XMMATRIX m_boneOffsets[MAX_NUM_BONES]{};
 		DirectX::XMMATRIX m_DefaultNodeTransforms[MAX_NUM_BONES]{};
+		DirectX::XMMATRIX m_GlobalRootTransform{};
 		std::string m_NodeNames[MAX_NUM_BONES]{};
 		uint32_t m_ParentNodes[MAX_NUM_BONES]{};
 
-		DirectX::XMMATRIX m_GlobalRootTransform{};
+		double m_AnimationDuration{};
 
 		std::vector<std::vector<std::unordered_map<std::string, DirectX::XMMATRIX>>> m_AnimNodeTransforms;
 
