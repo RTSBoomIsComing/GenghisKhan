@@ -13,11 +13,6 @@ struct Light
 	float3 diffuse;
 };
 
-//cbuffer CBuffer
-//{
-//	Light light;
-//};
-
 Texture2D g_MeshTexture : register(t0);
 SamplerState g_Sampler;
 
@@ -32,7 +27,7 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 	float4 base = g_MeshTexture.Sample(g_Sampler, input.uv);
 	
 	float3 color = base * light.ambient;
-	color += saturate(dot(-light.dir, input.normal) * light.diffuse * base);
+	color += saturate(dot(-light.dir, input.normal) * light.diffuse * base.xyz);
 
 	return float4(color, 1.0F);
 	//return base;

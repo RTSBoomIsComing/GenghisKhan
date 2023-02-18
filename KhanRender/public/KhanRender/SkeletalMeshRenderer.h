@@ -60,6 +60,7 @@ namespace KhanRender
 
 		std::vector<DirectX::XMFLOAT4X4>	m_bones;
 		std::vector<DirectX::XMMATRIX>		m_boneOffsets;
+		std::unordered_map<std::string, uint32_t> m_NodeNameToBoneIndex;
 
 		std::vector<std::unordered_map<std::string, std::vector<DirectX::XMMATRIX>>> m_AnimNodeTransforms;
 

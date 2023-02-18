@@ -129,7 +129,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	std::vector<std::array<float, MaxNumBoneWeights>> v_weights;
 	v_weights.resize(accNumVertices);
 
-	std::unordered_map<std::string, uint32_t> nodeBonePairs;
+	
 
 	for (UINT i{}; i < numMeshes; i++)
 	{
@@ -143,9 +143,9 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 			//NOTE: mNode := current node of current bone
 			//NOTE: mArmature := parent of mNode
 			uint32_t currentBoneIndex{};
-			if (nodeBonePairs.contains(pBone->mName.C_Str()))
+			if (m_NodeNameToBoneIndex.contains(pBone->mName.C_Str()))
 			{
-				currentBoneIndex = nodeBonePairs[pBone->mName.C_Str()];
+				currentBoneIndex = m_NodeNameToBoneIndex[pBone->mName.C_Str()];
 			}
 			else
 			{
@@ -153,7 +153,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 				m_boneOffsets.push_back(boneOffset);
 
 				currentBoneIndex = (uint32_t)m_boneOffsets.size() - 1;
-				nodeBonePairs[pBone->mName.C_Str()] = currentBoneIndex;
+				m_NodeNameToBoneIndex[pBone->mName.C_Str()] = currentBoneIndex;
 			}
 			const UINT numWeights = pBone->mNumWeights;
 			for (UINT k{}; k < numWeights; k++)
@@ -220,7 +220,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	};
 
 	m_bones.resize(m_boneOffsets.size());
-	for (const auto& [nodeName, boneIndex] : nodeBonePairs)
+	for (const auto& [nodeName, boneIndex] : m_NodeNameToBoneIndex)
 	{
 		auto* node = pScene->mRootNode->FindNode(nodeName.c_str());
 		XMMATRIX AccNodeTransform = GetNodeTransform(nodeName, 0, 0);
