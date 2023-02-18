@@ -24,6 +24,7 @@ using Microsoft::WRL::ComPtr;
 #include <vector>
 #include <filesystem>
 #include <cassert>
+#include <chrono>
 // additional dependencies
 #include <stb_image.h>
 #include <assimp/Importer.hpp>

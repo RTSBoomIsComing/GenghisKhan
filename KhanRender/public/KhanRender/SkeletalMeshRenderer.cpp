@@ -304,7 +304,12 @@ void KhanRender::SkeletalMeshRenderer::Update(std::vector<DirectX::XMMATRIX> con
 	::memcpy(mappedResource.pData, &TransposedViewProjMat, sizeof(XMFLOAT4X4) * 2);
 	m_pDeviceContext->Unmap(m_pCBuf_VS_ViewProjection.Get(), 0);
 
-	int animKey{}, animIndex{};
+	static auto startTimePoint = std::chrono::steady_clock::now();
+	auto endTimePoint = std::chrono::steady_clock::now();
+	std::chrono::duration<float> elipsedTime = endTimePoint - startTimePoint;
+
+	int animKey = static_cast<int>(elipsedTime.count() * 30) % 154;/* hard coding, the duration of animation */
+	static int animIndex{};
 	for (uint32_t i{}; i < m_TotalNumBones; i++)
 	{
 		XMMATRIX AccNodeTransform = XMMatrixIdentity();
