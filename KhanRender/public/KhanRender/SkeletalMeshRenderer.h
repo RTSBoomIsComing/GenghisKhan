@@ -17,12 +17,13 @@ namespace KhanRender
 	{
 		struct MeshInfo
 		{
-			UINT NumVertices{};
-			UINT NumIndices{};
-			UINT BaseVertexLocation{};
-			UINT StartIndexLocation{};
+			uint32_t NumVertices{};
+			uint32_t NumIndices{};
+			uint32_t BaseVertexLocation{};
+			uint32_t StartIndexLocation{};
 			ComPtr<ID3D11ShaderResourceView> m_pSRV;
 		};
+		
 	public:
 		SkeletalMeshRenderer(const Renderer& renderer, const std::filesystem::path SceneFilePath);
 		void Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat, float debugScalar);
@@ -31,15 +32,32 @@ namespace KhanRender
 		UINT m_numInstance{};
 		std::vector<MeshInfo> m_meshInfos;
 
-		std::vector<ID3D11Buffer*> m_VBuf_Ptrs;
-		std::vector<uint32_t> m_VBuf_Strides;
-		std::vector<uint32_t> m_VBuf_Offsets;
+		enum class VertexElement
+		{
+			POSITION, TEXCOORD, NORMAL, BLENDINDICES, BLENDWEIGHT, MAX
+		};
+		static constexpr int NUM_VERTEX_ELEMENTS{ static_cast<int>(VertexElement::MAX) };
+
+		D3D11_INPUT_ELEMENT_DESC m_elementDescs[NUM_VERTEX_ELEMENTS]
+		{
+			{ "POSITION",		0, DXGI_FORMAT_R32G32B32_FLOAT,		static_cast<int>(VertexElement::POSITION),		0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD",		0, DXGI_FORMAT_R32G32B32_FLOAT,		static_cast<int>(VertexElement::TEXCOORD),		0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL",			0, DXGI_FORMAT_R32G32B32_FLOAT,		static_cast<int>(VertexElement::NORMAL),		0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "BLENDINDICES",	0, DXGI_FORMAT_R32G32B32A32_UINT,	static_cast<int>(VertexElement::BLENDINDICES),	0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "BLENDWEIGHT",	0, DXGI_FORMAT_R32G32B32A32_FLOAT,	static_cast<int>(VertexElement::BLENDWEIGHT),	0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+
+		uint32_t m_VBuf_Strides[NUM_VERTEX_ELEMENTS]
+		{
+			12, 12, 12, 16, 16
+		};
+		uint32_t m_VBuf_Offsets[NUM_VERTEX_ELEMENTS]{};
+		ID3D11Buffer* m_VBuf_Ptrs[NUM_VERTEX_ELEMENTS]{};
 
 		std::vector<ID3D11Buffer*> m_CBuf_VS_Ptrs;
 
-
-		std::vector<DirectX::XMFLOAT4X4> m_bones;
-		std::vector<DirectX::XMMATRIX> m_boneOffsets;
+		std::vector<DirectX::XMFLOAT4X4>	m_bones;
+		std::vector<DirectX::XMMATRIX>		m_boneOffsets;
 		//std::vector<DirectX::XMFLOAT4X4> m_nodeTransforms;
 
 	private: // about directx 11 components
@@ -65,30 +83,5 @@ namespace KhanRender
 		//ComPtr<ID3D11Buffer>		    m_pVSDynStructBuf;
 		//ComPtr<ID3D11Buffer>		    m_pPSDynCBuf;
 		//ComPtr<ID3D11ShaderResourceView> m_pSRV;
-
-		std::vector<D3D11_INPUT_ELEMENT_DESC> m_elementDescs
-		{
-			{ "POSITION",     0U, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCOORD",     0U, DXGI_FORMAT_R32G32B32_FLOAT,    1, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "NORMAL",       0U, DXGI_FORMAT_R32G32B32_FLOAT, 2, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "BLENDINDICES", 0U, DXGI_FORMAT_R32G32B32A32_UINT, 3, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "BLENDWEIGHT",  0U, DXGI_FORMAT_R32G32B32A32_FLOAT, 4, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-
-		};
-
-		struct Vertex
-		{
-			constexpr Vertex(DirectX::XMFLOAT3 p, DirectX::XMFLOAT3 t, DirectX::XMFLOAT3 n) noexcept
-				:
-				pos(p), tex(t.x, t.y), normal(n) {}
-
-			constexpr Vertex(float x, float y, float z, float u, float v, float nx, float ny, float nz) noexcept
-				:
-				pos(x, y, z), tex(u, v), normal(nx, ny, nz) {}
-
-			DirectX::XMFLOAT3 pos{};
-			DirectX::XMFLOAT2 tex{};
-			DirectX::XMFLOAT3 normal{};
-		};
 	};
 }
