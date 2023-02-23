@@ -110,6 +110,7 @@
     <ClInclude Include="public\KhanRender\MainRenderer.h" />
     <ClInclude Include="public\KhanRender\SelectionRectRenderer.h" />
     <ClInclude Include="public\KhanRender\SkeletalMeshRenderer.h" />
+    <ClInclude Include="public\KhanAnim\SkeletalAnimation.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="public\KhanRender\MeshRenderer.cpp" />
@@ -126,6 +127,7 @@
     <ClCompile Include="public\KhanRender\MainRenderer.cpp" />
     <ClCompile Include="public\KhanRender\SelectionRectRenderer.cpp" />
     <ClCompile Include="public\KhanRender\SkeletalMeshRenderer.cpp" />
+    <ClCompile Include="public\KhanAnim\SkeletalAnimation.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

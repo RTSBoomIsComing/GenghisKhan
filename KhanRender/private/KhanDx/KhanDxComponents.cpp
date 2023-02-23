@@ -298,3 +298,20 @@ ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevi
 	return pSrv;
 }
 
+ComPtr<ID3D11Buffer> KhanDx::CreateDynStructBuf(ID3D11Device* pDevice, unsigned int structureByteStride, unsigned int numElements) noexcept
+{
+	D3D11_BUFFER_DESC bufDesc{};
+	bufDesc.ByteWidth = structureByteStride * numElements;
+	bufDesc.Usage = D3D11_USAGE_DYNAMIC;
+	bufDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	bufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	bufDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+	bufDesc.StructureByteStride = structureByteStride;
+
+
+	ComPtr<ID3D11Buffer> buf;
+	pDevice->CreateBuffer(&bufDesc, nullptr, &buf);
+
+	return buf;
+}
+

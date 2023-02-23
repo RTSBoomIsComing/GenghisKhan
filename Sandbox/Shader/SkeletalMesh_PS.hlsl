@@ -26,7 +26,7 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 
 	float4 base = g_MeshTexture.Sample(g_Sampler, input.uv);
 	
-	float3 color = base * light.ambient;
+	float3 color = base.xyz * light.ambient;
 	color += saturate(dot(-light.dir, input.normal) * light.diffuse * base.xyz);
 
 	return float4(color, 1.0F);

@@ -3,10 +3,12 @@
 #include "KhanDx/KhanDxComponents.h"
 
 #include <KhanTools/Log.h>
+#include "KhanAnim/SkeletalAnimation.h"
 
 // standard libraries
 #include <unordered_map>
 #include <array>
+#include <queue>
 // additional dependencies
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -33,7 +35,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	UINT accNumVertices{};
 	UINT accNumIndices{};
 	UINT numMeshes = pScene->mNumMeshes;
-	m_meshInfos.reserve(numMeshes);
+	m_MeshInfos.reserve(numMeshes);
 	for (UINT i{}; i < numMeshes; i++)
 	{
 		auto* pMesh = pScene->mMeshes[i];
@@ -42,12 +44,13 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 		meshInfo.NumIndices = pMesh->mNumFaces * 3;
 		meshInfo.BaseVertexLocation = static_cast<UINT>(accNumVertices);
 		meshInfo.StartIndexLocation = static_cast<UINT>(accNumIndices);
-		m_meshInfos.push_back(meshInfo);
+		m_MeshInfos.push_back(meshInfo);
 
 		accNumVertices += meshInfo.NumVertices;
 		accNumIndices += meshInfo.NumIndices;
 	}
 
+	// get texture per mesh, and create shader resource view
 	for (UINT i{}; i < numMeshes; i++)
 	{
 		auto* pMesh = pScene->mMeshes[i];
@@ -61,7 +64,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 		const aiTexture* pAiTexture = pScene->GetEmbeddedTexture(aiPath.C_Str());
 		if (pAiTexture)
 		{
-			m_meshInfos[i].m_pSRV = KhanDx::CreateSRV_Texture2D(m_pDevice.Get(), pAiTexture);
+			m_MeshInfos[i].m_pSRV = KhanDx::CreateSRV_Texture2D(m_pDevice.Get(), pAiTexture);
 		}
 		else
 		{
@@ -69,11 +72,11 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 			assert(SceneFilePath.has_parent_path() && textureFilePath.has_filename() && "Something wrong with file path");
 
 			textureFilePath = SceneFilePath.parent_path() / std::filesystem::path{ "textures" } / textureFilePath.filename();
-			m_meshInfos[i].m_pSRV = KhanDx::CreateSRV_Texture2D(m_pDevice.Get(), textureFilePath);
+			m_MeshInfos[i].m_pSRV = KhanDx::CreateSRV_Texture2D(m_pDevice.Get(), textureFilePath);
 		}
 	}
 
-	std::vector<UINT> m_indices; // I think this would be a member variable... but not now, just let it as a local variable
+	std::vector<UINT> m_indices;
 	m_indices.reserve(accNumIndices);
 	for (UINT i{}; i < numMeshes; i++)
 	{
@@ -120,100 +123,128 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 		v_normals.insert(v_normals.end(), First, Last);
 	}
 
-	aiBone* tempStoreNodePtrs[MAX_NUM_BONES]{};
+	//store node names root to leaves(breadth first search)
+	std::queue<const aiNode*> bfsQueue;
+	std::vector<const aiNode*> nodes_bfs;
+	const aiNode* pRootNode = pScene->mRootNode;
+	bfsQueue.push(pRootNode);
+	while (!bfsQueue.empty())
+	{
+		const aiNode* pNode = bfsQueue.front();
+		bfsQueue.pop();
+		nodes_bfs.push_back(pNode); // visit
+		for (unsigned int i{}; i < pNode->mNumChildren; i++)
+		{
+			bfsQueue.push(pNode->mChildren[i]);
+		}
+	}
 
-	std::vector<std::array<uint32_t, MAX_NUM_BONE_WEIGHTS>> v_boneIndices;
-	v_boneIndices.resize(accNumVertices);
+	std::unordered_map<const aiNode*, const aiBone*> nodeToBone;
+	std::vector<std::array<uint32_t, MAX_NUM_BONE_WEIGHTS>> v_boneIndices(accNumVertices);
+	std::vector<std::array<float, MAX_NUM_BONE_WEIGHTS>> v_weights(accNumVertices);
 
-	std::vector<std::array<float, MAX_NUM_BONE_WEIGHTS>> v_weights;
-	v_weights.resize(accNumVertices);
-
-	for (UINT i{}; i < numMeshes; i++)
+	for (unsigned int i{}; i < numMeshes; i++)
 	{
 		auto* pMesh = pScene->mMeshes[i];
-
-		const UINT numBones = pMesh->mNumBones;
-		for (UINT j{}; j < numBones; j++)
+		for (unsigned int j{}; j < pMesh->mNumBones; j++)
 		{
 			auto* pBone = pMesh->mBones[j];
+			if (!nodeToBone.contains(pBone->mNode))
+			{
+				nodeToBone[pBone->mNode] = pBone;
+			}
+		}
+	}
 
-			//NOTE: mNode := current node of current bone
-			//NOTE: mArmature := parent of mNode
-			uint32_t currentBoneIndex{};
-			if (m_NodeNameToBoneIndex.contains(pBone->mName.C_Str()))
-			{
-				currentBoneIndex = m_NodeNameToBoneIndex[pBone->mName.C_Str()];
-			}
-			else
-			{
-				currentBoneIndex = m_TotalNumBones++;
-				m_NodeNameToBoneIndex[pBone->mName.C_Str()] = currentBoneIndex;
-				tempStoreNodePtrs[currentBoneIndex] = pBone;
-			}
-			const UINT numWeights = pBone->mNumWeights;
-			for (UINT k{}; k < numWeights; k++)
+	m_TotalNumBones = static_cast<unsigned int>(nodeToBone.size());
+
+	std::vector<const aiBone*> bones;
+	bones.reserve(m_TotalNumBones);
+	for (const aiNode* pNode : nodes_bfs)
+	{
+		if (nodeToBone.contains(pNode))
+		{
+			bones.push_back(nodeToBone.at(pNode));
+		}
+	}
+
+	std::unordered_map<const aiNode*, unsigned int> idPerNode;
+	for (int i{}; i < bones.size(); i++)
+	{
+		const aiNode* pNode = bones[i]->mNode;
+		idPerNode[pNode] = i;
+	}
+
+	::memset(m_ParentNodes, -1, sizeof(uint32_t) * m_TotalNumBones);
+	for (unsigned int i{}; i < m_TotalNumBones; i++)
+	{
+		m_boneOffsets[i] = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&bones[i]->mOffsetMatrix));
+		m_DefaultBoneTransforms[i] = XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&bones[i]->mNode->mTransformation));
+		m_NodeNames[i] = bones[i]->mName.C_Str();
+		if (idPerNode.contains(bones[i]->mNode->mParent))
+		{
+			m_ParentNodes[i] = idPerNode.at(bones[i]->mNode->mParent);
+		}
+	}
+
+	for (unsigned int i{}; i < pScene->mNumMeshes; i++)
+	{
+		const aiMesh* pMesh = pScene->mMeshes[i];
+		for (unsigned int j{}; j < pMesh->mNumBones; j++)
+		{
+			const aiBone* pBone = pMesh->mBones[j];
+			for (unsigned int k{}; k < pBone->mNumWeights; k++)
 			{
 				const auto weightInfo = pBone->mWeights[k];
 
-				const uint32_t affectedVertexId = weightInfo.mVertexId + m_meshInfos[i].BaseVertexLocation;
+				const unsigned int vertexId = weightInfo.mVertexId + m_MeshInfos[i].BaseVertexLocation;
 				const float weight = weightInfo.mWeight;
 
 				for (int l{}; l < MAX_NUM_BONE_WEIGHTS; l++)
 				{
-					if (v_weights[affectedVertexId][l] == 0)
+					if (v_weights[vertexId][l] == 0)
 					{
-						v_boneIndices[affectedVertexId][l] = currentBoneIndex;
-						v_weights[affectedVertexId][l] = weight;
+						v_boneIndices[vertexId][l] = idPerNode[pBone->mNode];
+						v_weights[vertexId][l] = weight;
 						break;
+
 					}
 				}
 			}
 		}
 	}
 
-	::memset(m_ParentNodes, -1, sizeof(uint32_t) * m_TotalNumBones);
-	for (int i{}; i < m_TotalNumBones; i++)
+	KhanAnim::SkeletalAnimation animation{ "D:\\Assets\\Mixamo\\Archer\\standing aim walk forward.fbx" };
+	m_AnimationDuration = animation.m_Duration;
+	m_FinalBoneTransforms.reserve(m_TotalNumBones * static_cast<size_t>(animation.m_Duration));
+
+	for (unsigned int i{}; i < animation.m_Duration; i++)
 	{
-		m_boneOffsets[i] = XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&tempStoreNodePtrs[i]->mOffsetMatrix));
-		m_DefaultNodeTransforms[i] = XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&tempStoreNodePtrs[i]->mNode->mTransformation));
-		
-		if (tempStoreNodePtrs[i]->mNode->mParent != nullptr && m_NodeNameToBoneIndex.contains(tempStoreNodePtrs[i]->mNode->mParent->mName.C_Str()))
+		for (unsigned int j{}; j < m_TotalNumBones; j++)
 		{
-			m_ParentNodes[i] = m_NodeNameToBoneIndex[tempStoreNodePtrs[i]->mNode->mParent->mName.C_Str()];
-		}
-	
-		m_NodeNames[i] = tempStoreNodePtrs[i]->mName.C_Str();
-	}
 
-	int numAnimations = pScene->mNumAnimations;
-	m_AnimNodeTransforms.resize(numAnimations);
-	for (int i{}; i < numAnimations; i++)
-	{
-		auto* pAnim = pScene->mAnimations[i];
-		const double duration = pAnim->mDuration;
-		m_AnimationDuration = duration; // Now Animation is only one, later need to fix.
-		m_AnimNodeTransforms[i].resize(static_cast<uint64_t>(duration) + 1Ui64);
-
-		const double ticksPerSecond = pAnim->mTicksPerSecond;
-		const uint32_t numChannels = pAnim->mNumChannels;
-		for (uint32_t j{}; j < numChannels; j++)
-		{
-			aiNodeAnim* channel = pAnim->mChannels[j];
-			aiString nodeName = channel->mNodeName;
-
-			const uint32_t numKeys = channel->mNumPositionKeys;
-			for (uint32_t k{}; k < numKeys; k++)
+			if (animation.m_AnimNodeTransforms.contains(m_NodeNames[j])
+				&& i < animation.m_AnimNodeTransforms.at(m_NodeNames[j]).size())
 			{
-				XMVECTOR vecS = XMLoadFloat3(reinterpret_cast<XMFLOAT3*>(&channel->mScalingKeys[k].mValue));
-				XMVECTOR vecT = XMLoadFloat3(reinterpret_cast<XMFLOAT3*>(&channel->mPositionKeys[k].mValue));
-				aiQuaternion aiQuat = channel->mRotationKeys[k].mValue;
-				XMFLOAT4 xmQuat{ aiQuat.x, aiQuat.y, aiQuat.z, aiQuat.w };
-
-				XMMATRIX animNodeTransform = XMMatrixTranspose(
-					XMMatrixAffineTransformation(vecS, { 0.0F, 0.0F, 0.0F, 1.0F }, XMLoadFloat4(&xmQuat), vecT));
-
-				m_AnimNodeTransforms[i][k][nodeName.C_Str()] = animNodeTransform;
+				m_FinalBoneTransforms.push_back(animation.m_AnimNodeTransforms.at(m_NodeNames[j])[i]);
 			}
+			else
+			{
+				m_FinalBoneTransforms.push_back(m_DefaultBoneTransforms[j]);
+			}
+
+			unsigned int parentId = m_ParentNodes[j];
+			if (parentId != -1)
+			{
+				m_FinalBoneTransforms.back() = m_FinalBoneTransforms[static_cast<size_t>(m_TotalNumBones) * i + parentId] * m_FinalBoneTransforms.back();
+			}
+		}
+
+		for (unsigned int j{}; j < m_TotalNumBones; j++)
+		{
+			const size_t id = static_cast<size_t>(m_TotalNumBones) * i + j;
+			m_FinalBoneTransforms[id] = m_FinalBoneTransforms[id] * m_boneOffsets[j];
+			m_FinalBoneTransforms[id] = m_GlobalRootTransform * m_FinalBoneTransforms[id];
 		}
 	}
 
@@ -281,9 +312,9 @@ void KhanRender::SkeletalMeshRenderer::Update(std::vector<DirectX::XMMATRIX> con
 	using namespace DirectX;
 
 	// ConstantBuffer for World matrices. These matrices are used for instancing
-	m_numInstance = (UINT)worldMats.size();
+	m_numInstance = (uint32_t)worldMats.size();
 	std::vector <XMFLOAT4X4> TransposedWorldMats(m_numInstance);
-	for (UINT i{}; i < m_numInstance; ++i)
+	for (uint32_t i{}; i < m_numInstance; ++i)
 	{
 		XMStoreFloat4x4(&TransposedWorldMats[i], XMMatrixTranspose(worldMats[i]));
 	}
@@ -306,38 +337,14 @@ void KhanRender::SkeletalMeshRenderer::Update(std::vector<DirectX::XMMATRIX> con
 	m_pDeviceContext->Unmap(m_pCBuf_VS_ViewProjection.Get(), 0);
 
 	static auto startTimePoint = std::chrono::steady_clock::now();
-	auto endTimePoint = std::chrono::steady_clock::now();
-	std::chrono::duration<float> elipsedTime = endTimePoint - startTimePoint;
+	const auto endTimePoint = std::chrono::steady_clock::now();
+	const std::chrono::duration<float> elipsedTime = endTimePoint - startTimePoint;
 
-	int animKey = static_cast<int>(elipsedTime.count() * 30) % static_cast<int>(m_AnimationDuration + 1);/* hard coding, the duration of animation */
-	static int animIndex{};
-	for (uint32_t i{}; i < m_TotalNumBones; i++)
-	{
-		XMMATRIX AccNodeTransform = XMMatrixIdentity();
-		for (uint32_t currentNode{ i }; currentNode != -1; currentNode = m_ParentNodes[currentNode])
-		{
-			XMMATRIX currentNodeTransform{};
-			if (m_AnimNodeTransforms[animIndex][animKey].contains(m_NodeNames[currentNode]))
-			{
-				currentNodeTransform = m_AnimNodeTransforms[animIndex][animKey][m_NodeNames[currentNode]];
-			}
-			else
-			{
-				currentNodeTransform = m_DefaultNodeTransforms[currentNode];
-			}
-			AccNodeTransform = currentNodeTransform * AccNodeTransform;
-		}
-		m_FinalNodeTransforms[i] = AccNodeTransform;
-	}
-
-	for (uint32_t i{}; i < m_TotalNumBones; i++)
-	{
-		m_FinalNodeTransforms[i] = m_GlobalRootTransform *  m_FinalNodeTransforms[i] * m_boneOffsets[i];
-	}
+	size_t tick = static_cast<size_t>(elipsedTime.count() * 30) % m_AnimationDuration;
 
 	mappedResource = {};
 	m_pDeviceContext->Map(m_pCBuf_VS_Bones.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	::memcpy(mappedResource.pData, m_FinalNodeTransforms, sizeof(XMFLOAT4X4) * m_TotalNumBones);
+	::memcpy(mappedResource.pData, &m_FinalBoneTransforms[tick * m_TotalNumBones], sizeof(XMFLOAT4X4) * m_TotalNumBones);
 	m_pDeviceContext->Unmap(m_pCBuf_VS_Bones.Get(), 0);
 }
 
@@ -359,7 +366,7 @@ void KhanRender::SkeletalMeshRenderer::Render()
 	m_pDeviceContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 1);
 	m_pDeviceContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xFFFFFFFF);
 
-	for (auto& meshInfo : m_meshInfos)
+	for (auto& meshInfo : m_MeshInfos)
 	{
 		m_pDeviceContext->PSSetShaderResources(0, 1, meshInfo.m_pSRV.GetAddressOf());
 		m_pDeviceContext->DrawIndexedInstanced(meshInfo.NumIndices, m_numInstance, meshInfo.StartIndexLocation, meshInfo.BaseVertexLocation, 0);

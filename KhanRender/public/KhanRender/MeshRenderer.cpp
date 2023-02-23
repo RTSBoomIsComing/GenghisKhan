@@ -24,7 +24,7 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::file
 	UINT accNumIndices{};
 	UINT accNumBones{};
 	UINT numMeshes = pScene->mNumMeshes;
-	m_meshInfos.reserve(numMeshes);
+	m_MeshInfos.reserve(numMeshes);
 	for (UINT i{}; i < numMeshes; i++)
 	{
 		auto* pMesh = pScene->mMeshes[i];
@@ -33,7 +33,7 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::file
 		meshInfo.NumIndices = pMesh->mNumFaces * 3;
 		meshInfo.BaseVertexLocation = accNumVertices;
 		meshInfo.StartIndexLocation = accNumIndices;
-		m_meshInfos.push_back(meshInfo);
+		m_MeshInfos.push_back(meshInfo);
 
 		accNumVertices += meshInfo.NumVertices;
 		accNumIndices += meshInfo.NumIndices;
@@ -53,7 +53,7 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::file
 		const aiTexture* pAiTexture = pScene->GetEmbeddedTexture(aiPath.C_Str());
 		if (pAiTexture)
 		{
-			m_meshInfos[i].m_pSRV = KhanDx::CreateSRV_Texture2D(m_pDevice.Get(), pAiTexture);
+			m_MeshInfos[i].m_pSRV = KhanDx::CreateSRV_Texture2D(m_pDevice.Get(), pAiTexture);
 		}
 		else
 		{
@@ -61,7 +61,7 @@ KhanRender::MeshRenderer::MeshRenderer(const Renderer& renderer, const std::file
 			assert(SceneFilePath.has_parent_path() && textureFilePath.has_filename() && "Something wrong with file path");
 
 			textureFilePath = SceneFilePath.parent_path() / textureFilePath.filename();
-			m_meshInfos[i].m_pSRV = KhanDx::CreateSRV_Texture2D(m_pDevice.Get(), textureFilePath);
+			m_MeshInfos[i].m_pSRV = KhanDx::CreateSRV_Texture2D(m_pDevice.Get(), textureFilePath);
 		}
 	}
 
@@ -146,7 +146,7 @@ void KhanRender::MeshRenderer::Render()
 	m_pDeviceContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 1U);
 	m_pDeviceContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xFFFFFFFF);
 	m_pDeviceContext->PSSetSamplers(0, 1, m_pSamplerState.GetAddressOf());
-	for (auto& model : m_meshInfos)
+	for (auto& model : m_MeshInfos)
 	{
 		m_pDeviceContext->PSSetShaderResources(0U, 1U, model.m_pSRV.GetAddressOf());
 		m_pDeviceContext->DrawIndexedInstanced(model.NumIndices, m_numInstance, model.StartIndexLocation, model.BaseVertexLocation, 0U);

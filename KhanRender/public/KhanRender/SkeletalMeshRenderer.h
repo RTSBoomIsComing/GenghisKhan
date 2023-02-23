@@ -1,5 +1,6 @@
 #pragma once
 #include "KhanRender/Renderer.h"
+#include "KhanAnim/SkeletalAnimation.h"
 #include <DirectXMath.h>
 
 // standard libraries
@@ -10,16 +11,23 @@
 
 namespace KhanRender
 {
-
+	struct SkeletalAnimationSheet
+	{
+		unsigned int NumAnimations{};
+		unsigned int NumBones{};
+		std::vector<unsigned int> AnimationStartOffsets;
+		std::vector<unsigned int> NumFrames;
+		std::vector<DirectX::XMMATRIX> BoneTransforms;
+	};
 
 	class SkeletalMeshRenderer : public Renderer
 	{
 		struct MeshInfo
 		{
-			uint32_t NumVertices{};
-			uint32_t NumIndices{};
-			uint32_t BaseVertexLocation{};
-			uint32_t StartIndexLocation{};
+			unsigned int  NumVertices{};
+			unsigned int  NumIndices{};
+			unsigned int  BaseVertexLocation{};
+			unsigned int  StartIndexLocation{};
 			ComPtr<ID3D11ShaderResourceView> m_pSRV;
 		};
 
@@ -29,7 +37,7 @@ namespace KhanRender
 		void Render();
 	private: // about rendering infomations
 		UINT m_numInstance{};
-		std::vector<MeshInfo> m_meshInfos;
+		std::vector<MeshInfo> m_MeshInfos;
 
 		enum class VertexElement
 		{
@@ -46,32 +54,30 @@ namespace KhanRender
 			{ "BLENDWEIGHT",	0, DXGI_FORMAT_R32G32B32A32_FLOAT,	static_cast<int>(VertexElement::BLENDWEIGHT),	0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		uint32_t m_VBuf_Strides[NUM_VERTEX_ELEMENTS]
+		unsigned int  m_VBuf_Strides[NUM_VERTEX_ELEMENTS]
 		{
 			12, 12, 12, 16, 16
 		};
-		uint32_t m_VBuf_Offsets[NUM_VERTEX_ELEMENTS]{};
+		unsigned int  m_VBuf_Offsets[NUM_VERTEX_ELEMENTS]{};
 		ID3D11Buffer* m_VBuf_Ptrs[NUM_VERTEX_ELEMENTS]{};
 
 		std::vector<ID3D11Buffer*> m_CBuf_VS_Ptrs;
 
-		static constexpr uint32_t MAX_NUM_BONES{ 100 }; // I think maybe the number of bones are not more than 100
-		static constexpr uint32_t MAX_NUM_BONE_WEIGHTS{ 4 };
-		uint32_t m_TotalNumBones{};
-
+		static constexpr unsigned int  MAX_NUM_BONES{ 100 }; // I think maybe the number of bones are not more than 100
+		static constexpr unsigned int  MAX_NUM_BONE_WEIGHTS{ 4 };
+		unsigned int  m_TotalNumBones{};
 		
-		std::unordered_map<std::string, uint32_t> m_NodeNameToBoneIndex;
-		
-		DirectX::XMMATRIX m_FinalNodeTransforms[MAX_NUM_BONES]{};
+		std::vector<DirectX::XMMATRIX> m_FinalBoneTransforms;
+		DirectX::XMMATRIX m_DefaultBoneTransforms[MAX_NUM_BONES]{};
 		DirectX::XMMATRIX m_boneOffsets[MAX_NUM_BONES]{};
-		DirectX::XMMATRIX m_DefaultNodeTransforms[MAX_NUM_BONES]{};
 		DirectX::XMMATRIX m_GlobalRootTransform{};
 		std::string m_NodeNames[MAX_NUM_BONES]{};
-		uint32_t m_ParentNodes[MAX_NUM_BONES]{};
+		unsigned int  m_ParentNodes[MAX_NUM_BONES]{};
 
-		double m_AnimationDuration{};
+		unsigned int m_AnimationDuration{};
 
 		std::vector<std::vector<std::unordered_map<std::string, DirectX::XMMATRIX>>> m_AnimNodeTransforms;
+		SkeletalAnimationSheet m_Animation;
 
 	private: // about directx 11 components
 		ComPtr<ID3D11Buffer> m_pVBuf_Positions;

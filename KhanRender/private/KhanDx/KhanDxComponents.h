@@ -35,7 +35,7 @@ namespace KhanDx
 	ComPtr<ID3D11ShaderResourceView> CreateSRV_Texture2D(ID3D11Device* pDevice, const uint8_t* pImageData, int width, int height, int channels);
 
 	template<typename T>
-	ComPtr<ID3D11Buffer> CreateDynConstBuf(ID3D11Device* pDevice, UINT maxNumElements) noexcept
+	ComPtr<ID3D11Buffer> CreateDynConstBuf(ID3D11Device* pDevice, unsigned int maxNumElements) noexcept
 	{
 		D3D11_BUFFER_DESC bufDesc{};
 		bufDesc.ByteWidth = sizeof(T) * maxNumElements;
@@ -51,22 +51,6 @@ namespace KhanDx
 		return buf;
 	}
 
-	template<typename T>
-	ComPtr<ID3D11Buffer> CreateDynStructBuf(ID3D11Device* pDevice, UINT numElements) noexcept
-	{
-		D3D11_BUFFER_DESC bufDesc{};
-		bufDesc.ByteWidth = sizeof(T) * numElements;
-		bufDesc.Usage = D3D11_USAGE_DYNAMIC;
-		bufDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-		bufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		bufDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-		bufDesc.StructureByteStride = sizeof(T);
-
-
-		ComPtr<ID3D11Buffer> buf;
-		pDevice->CreateBuffer(&bufDesc, nullptr, &buf);
-
-		return buf;
-	}
+	ComPtr<ID3D11Buffer> CreateDynStructBuf(ID3D11Device* pDevice, unsigned int structureByteStride, unsigned int numElements) noexcept;
 
 }

@@ -28,7 +28,7 @@ namespace KhanRender
 		void Render();
 	private: // about rendering infomations
 		UINT m_numInstance{};
-		std::vector<MeshInfo> m_meshInfos;
+		std::vector<MeshInfo> m_MeshInfos;
 		
 	private: // about directx 11 components
 		ComPtr<ID3D11Buffer>			m_pVertexBuffer;
