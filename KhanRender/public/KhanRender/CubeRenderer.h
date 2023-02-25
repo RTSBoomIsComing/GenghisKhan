@@ -12,7 +12,7 @@ namespace KhanRender
 		void Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat);
 		void Render();
 	private:
-		UINT m_numInstance{};
+		UINT m_NumInstances{};
 
 	private:
 		ComPtr<ID3D11Buffer>		    m_pVertexBuffer;

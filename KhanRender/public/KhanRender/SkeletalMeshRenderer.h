@@ -5,19 +5,18 @@
 
 // standard libraries
 #include <vector>
+#include <array>
 #include <string>
 #include <filesystem>
 #include <unordered_map>
 
 namespace KhanRender
 {
-	struct SkeletalAnimationSheet
+	struct AnimationInfo
 	{
-		unsigned int NumAnimations{};
-		unsigned int NumBones{};
-		std::vector<unsigned int> AnimationStartOffsets;
-		std::vector<unsigned int> NumFrames;
-		std::vector<DirectX::XMMATRIX> BoneTransforms;
+		unsigned int AnimationStartOffset;
+		unsigned int Durations;
+		float		 TicksPerSecond;
 	};
 
 	class SkeletalMeshRenderer : public Renderer
@@ -33,10 +32,10 @@ namespace KhanRender
 
 	public:
 		SkeletalMeshRenderer(const Renderer& renderer, const std::filesystem::path SceneFilePath);
-		void Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat, float debugScalar);
+		void Update(uint32_t numInstances, DirectX::XMMATRIX const* worldMats, const uint32_t* AnimationId, const float* runningTime, DirectX::XMMATRIX const& viewProjMat);
 		void Render();
 	private: // about rendering infomations
-		UINT m_numInstance{};
+		UINT m_NumInstances{};
 		std::vector<MeshInfo> m_MeshInfos;
 
 		enum class VertexElement
@@ -54,12 +53,12 @@ namespace KhanRender
 			{ "BLENDWEIGHT",	0, DXGI_FORMAT_R32G32B32A32_FLOAT,	static_cast<int>(VertexElement::BLENDWEIGHT),	0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		unsigned int  m_VBuf_Strides[NUM_VERTEX_ELEMENTS]
+		std::array<unsigned int, NUM_VERTEX_ELEMENTS>  m_VBuf_Strides
 		{
 			12, 12, 12, 16, 16
 		};
-		unsigned int  m_VBuf_Offsets[NUM_VERTEX_ELEMENTS]{};
-		ID3D11Buffer* m_VBuf_Ptrs[NUM_VERTEX_ELEMENTS]{};
+		std::array<unsigned int, NUM_VERTEX_ELEMENTS>  m_VBuf_Offsets;
+		std::array<ID3D11Buffer*, NUM_VERTEX_ELEMENTS> m_VBuf_Ptrs;
 
 		std::vector<ID3D11Buffer*> m_CBuf_VS_Ptrs;
 
@@ -70,14 +69,10 @@ namespace KhanRender
 		std::vector<DirectX::XMMATRIX> m_FinalBoneTransforms;
 		DirectX::XMMATRIX m_DefaultBoneTransforms[MAX_NUM_BONES]{};
 		DirectX::XMMATRIX m_boneOffsets[MAX_NUM_BONES]{};
-		DirectX::XMMATRIX m_GlobalRootTransform{};
 		std::string m_NodeNames[MAX_NUM_BONES]{};
 		unsigned int  m_ParentNodes[MAX_NUM_BONES]{};
 
-		unsigned int m_AnimationDuration{};
-
-		std::vector<std::vector<std::unordered_map<std::string, DirectX::XMMATRIX>>> m_AnimNodeTransforms;
-		SkeletalAnimationSheet m_Animation;
+		std::vector<AnimationInfo> m_AnimationInfos;
 
 	private: // about directx 11 components
 		ComPtr<ID3D11Buffer> m_pVBuf_Positions;
@@ -102,6 +97,6 @@ namespace KhanRender
 
 		//ComPtr<ID3D11Buffer>		    m_pVSDynStructBuf;
 		//ComPtr<ID3D11Buffer>		    m_pPSDynCBuf;
-		//ComPtr<ID3D11ShaderResourceView> m_pSRV;
+		ComPtr<ID3D11ShaderResourceView> m_pSRV_VS_FinalBoneTransforms;
 	};
 }

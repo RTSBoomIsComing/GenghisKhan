@@ -6,16 +6,20 @@ cbuffer ConstantsForInstancing : register(b0)
 	matrix Worlds[MAX_INSTSANCES];
 };
 
-cbuffer ConstantsOther : register(b1)
+cbuffer ConstantsOthers : register(b1)
 {
 	matrix ViewProjection;
-	matrix DEBUGSCALAR;
 }
 
 cbuffer ConstantsForBlending : register(b2)
 {
-	matrix Bones[MAX_BONES];
+	uint StartBoneTransformLocations[MAX_INSTSANCES];
+	uint unused_0;
+	uint unused_1;
+	uint unused_2;
 }
+
+StructuredBuffer<matrix> FinalBoneTransforms : register(t0);
 
 struct VS_INPUT
 {
@@ -47,7 +51,7 @@ VS_OUTPUT main(VS_INPUT input, uint vertexID : SV_VertexID, uint InstanceId : SV
 
 		if (blendWeight == 0.0F) { break; } // early break, but this is not neccessary, without this, shader work correctly
 		
-		const matrix boneTransform = Bones[affectingBoneId] * blendWeight;
+		const matrix boneTransform = FinalBoneTransforms[StartBoneTransformLocations[InstanceId] + affectingBoneId] * blendWeight;
 		
 
 		const float4 localPosition = mul(float4(input.pos, 1.0F), boneTransform);

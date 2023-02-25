@@ -7,7 +7,6 @@
 
 // standard libraries
 #include <unordered_map>
-#include <array>
 #include <queue>
 // additional dependencies
 #include <assimp/Importer.hpp>
@@ -24,26 +23,26 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	// Load the model using Assimp
 	Assimp::Importer importer;
 	importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
-	const aiScene* pScene = importer.ReadFile(SceneFilePath.string(), aiProcess_OptimizeMeshes | aiProcess_Triangulate | aiProcess_ConvertToLeftHanded | aiProcess_PopulateArmatureData | aiProcess_LimitBoneWeights | aiProcess_GenUVCoords | aiProcess_GenNormals);
+	const aiScene* pScene = importer.ReadFile(SceneFilePath.string(), aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_Triangulate | aiProcess_ConvertToLeftHanded | aiProcess_PopulateArmatureData | aiProcess_LimitBoneWeights | aiProcess_GenUVCoords | aiProcess_GenNormals);
 	if (nullptr == pScene) {
 		KHAN_ERROR(importer.GetErrorString());
 		throw std::exception{ "Failed to import file using assimp" };
 	}
 
-	m_GlobalRootTransform = XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&pScene->mRootNode->mTransformation));
+	DirectX::XMMATRIX rootNodeTransform = XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&pScene->mRootNode->mTransformation));
 
-	UINT accNumVertices{};
-	UINT accNumIndices{};
-	UINT numMeshes = pScene->mNumMeshes;
+	unsigned int accNumVertices{};
+	unsigned int accNumIndices{};
+	unsigned int numMeshes = pScene->mNumMeshes;
 	m_MeshInfos.reserve(numMeshes);
-	for (UINT i{}; i < numMeshes; i++)
+	for (unsigned int i{}; i < numMeshes; i++)
 	{
 		auto* pMesh = pScene->mMeshes[i];
 		MeshInfo meshInfo{};
 		meshInfo.NumVertices = pMesh->mNumVertices;
 		meshInfo.NumIndices = pMesh->mNumFaces * 3;
-		meshInfo.BaseVertexLocation = static_cast<UINT>(accNumVertices);
-		meshInfo.StartIndexLocation = static_cast<UINT>(accNumIndices);
+		meshInfo.BaseVertexLocation = static_cast<unsigned int>(accNumVertices);
+		meshInfo.StartIndexLocation = static_cast<unsigned int>(accNumIndices);
 		m_MeshInfos.push_back(meshInfo);
 
 		accNumVertices += meshInfo.NumVertices;
@@ -164,7 +163,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	{
 		if (nodeToBone.contains(pNode))
 		{
-			bones.push_back(nodeToBone.at(pNode));
+			bones.push_back(nodeToBone[pNode]);
 		}
 	}
 
@@ -183,7 +182,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 		m_NodeNames[i] = bones[i]->mName.C_Str();
 		if (idPerNode.contains(bones[i]->mNode->mParent))
 		{
-			m_ParentNodes[i] = idPerNode.at(bones[i]->mNode->mParent);
+			m_ParentNodes[i] = idPerNode[bones[i]->mNode->mParent];
 		}
 	}
 
@@ -213,20 +212,21 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 			}
 		}
 	}
-
-	KhanAnim::SkeletalAnimation animation{ "D:\\Assets\\Mixamo\\Archer\\standing aim walk forward.fbx" };
-	m_AnimationDuration = animation.m_Duration;
-	m_FinalBoneTransforms.reserve(m_TotalNumBones * static_cast<size_t>(animation.m_Duration));
-
+	unsigned int accNumBoneTransforms{};
+	KhanAnim::SkeletalAnimation animation{ "D:\\Assets\\Mixamo\\Archer\\standing draw arrow.fbx" };
+	m_AnimationInfos.emplace_back(accNumBoneTransforms, animation.m_Duration, animation.m_TicksPerSecond);
+	accNumBoneTransforms += animation.m_Duration * m_TotalNumBones;
+	
+	m_FinalBoneTransforms.reserve(static_cast<size_t>(accNumBoneTransforms));
 	for (unsigned int i{}; i < animation.m_Duration; i++)
 	{
 		for (unsigned int j{}; j < m_TotalNumBones; j++)
 		{
 
 			if (animation.m_AnimNodeTransforms.contains(m_NodeNames[j])
-				&& i < animation.m_AnimNodeTransforms.at(m_NodeNames[j]).size())
+				&& i < animation.m_AnimNodeTransforms[m_NodeNames[j]].size())
 			{
-				m_FinalBoneTransforms.push_back(animation.m_AnimNodeTransforms.at(m_NodeNames[j])[i]);
+				m_FinalBoneTransforms.push_back(animation.m_AnimNodeTransforms[m_NodeNames[j]][i]);
 			}
 			else
 			{
@@ -244,7 +244,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 		{
 			const size_t id = static_cast<size_t>(m_TotalNumBones) * i + j;
 			m_FinalBoneTransforms[id] = m_FinalBoneTransforms[id] * m_boneOffsets[j];
-			m_FinalBoneTransforms[id] = m_GlobalRootTransform * m_FinalBoneTransforms[id];
+			m_FinalBoneTransforms[id] = rootNodeTransform * m_FinalBoneTransforms[id];
 		}
 	}
 
@@ -290,16 +290,14 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	// Create Constant bufferes
 	m_pCBuf_VS_Worlds = KhanDx::CreateDynConstBuf<XMFLOAT4X4>(m_pDevice.Get(), 1000);
 	m_pCBuf_VS_ViewProjection = KhanDx::CreateDynConstBuf<XMFLOAT4X4>(m_pDevice.Get(), 2);
-	m_pCBuf_VS_Bones = KhanDx::CreateDynConstBuf<XMFLOAT4X4>(m_pDevice.Get(), 1000);
+	m_pCBuf_VS_Bones = KhanDx::CreateDynConstBuf<unsigned int>(m_pDevice.Get(), 1000);
 
 	// Save the pointers of Constant buffers, it is used to VSSetConstantBuffers()
 	m_CBuf_VS_Ptrs.push_back(m_pCBuf_VS_Worlds.Get());
 	m_CBuf_VS_Ptrs.push_back(m_pCBuf_VS_ViewProjection.Get());
 	m_CBuf_VS_Ptrs.push_back(m_pCBuf_VS_Bones.Get());
 
-	// if need structured buffer
-	//m_pVSDynStructBuf = KhanDx::CreateDynStructBuf<DirectX::XMFLOAT4X4>(m_pDevice, m_numInstance);
-	//m_pSRV = KhanDx::CreateSRV_StructBuf(m_pDevice, m_pVSDynStructBuf, 0U, m_numInstance);
+	m_pSRV_VS_FinalBoneTransforms = KhanDx::CreateSRV_StaticStructBuf(m_pDevice.Get(), m_FinalBoneTransforms.data(), sizeof(DirectX::XMMATRIX), static_cast<uint32_t>(m_FinalBoneTransforms.size()));
 
 	m_pBlendState = nullptr; // blend off
 	m_pRasterizerState = KhanDx::CreateRasterizerState_Solid(m_pDevice.Get());
@@ -307,57 +305,69 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	m_pSamplerState = KhanDx::CreateSamplerState_Basic(m_pDevice.Get());
 }
 
-void KhanRender::SkeletalMeshRenderer::Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat, float debugScalar)
+void KhanRender::SkeletalMeshRenderer::Update(uint32_t numInstances, DirectX::XMMATRIX const* worldMats, const uint32_t* AnimationIds, const float* runningTimes, DirectX::XMMATRIX const& viewProjMat)
 {
 	using namespace DirectX;
 
 	// ConstantBuffer for World matrices. These matrices are used for instancing
-	m_numInstance = (uint32_t)worldMats.size();
-	std::vector <XMFLOAT4X4> TransposedWorldMats(m_numInstance);
-	for (uint32_t i{}; i < m_numInstance; ++i)
+	m_NumInstances = numInstances;
+	std::vector <XMMATRIX> worldMatsTransposed(m_NumInstances);
+	for (unsigned int i{}; i < m_NumInstances; i++)
 	{
-		XMStoreFloat4x4(&TransposedWorldMats[i], XMMatrixTranspose(worldMats[i]));
+		worldMatsTransposed[i] = XMMatrixTranspose(worldMats[i]);
 	}
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource{};
 	m_pDeviceContext->Map(m_pCBuf_VS_Worlds.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	::memcpy(mappedResource.pData, TransposedWorldMats.data(), sizeof(XMFLOAT4X4) * m_numInstance);
+	std::memcpy(mappedResource.pData, worldMatsTransposed.data(), sizeof(XMMATRIX) * m_NumInstances);
 	m_pDeviceContext->Unmap(m_pCBuf_VS_Worlds.Get(), 0);
 
 	// ConstantBuffer for View-Projection matrix
-	XMFLOAT4X4 TransposedViewProjMat[2]{};
-	XMStoreFloat4x4(&TransposedViewProjMat[0], XMMatrixTranspose(viewProjMat));
-
-	// for DebugScalar
-	TransposedViewProjMat[1]._11 = debugScalar;
-
+	XMMATRIX viewProjMatTransposed{};
+	viewProjMatTransposed = XMMatrixTranspose(viewProjMat);
+	
 	mappedResource = {};
 	m_pDeviceContext->Map(m_pCBuf_VS_ViewProjection.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	::memcpy(mappedResource.pData, &TransposedViewProjMat, sizeof(XMFLOAT4X4) * 2);
+	std::memcpy(mappedResource.pData, &viewProjMatTransposed, sizeof(XMFLOAT4X4));
 	m_pDeviceContext->Unmap(m_pCBuf_VS_ViewProjection.Get(), 0);
 
-	static auto startTimePoint = std::chrono::steady_clock::now();
-	const auto endTimePoint = std::chrono::steady_clock::now();
-	const std::chrono::duration<float> elipsedTime = endTimePoint - startTimePoint;
 
-	size_t tick = static_cast<size_t>(elipsedTime.count() * 30) % m_AnimationDuration;
+	std::vector<std::array<unsigned int, 4>> startBoneTransformLocations(m_NumInstances);
+	for (unsigned int i{}; i < m_NumInstances; i++)
+	{
+		unsigned int animId = AnimationIds[i];
+		if (animId >= m_AnimationInfos.size())
+		{
+			KHAN_ERROR("Out of range, AnimationId");
+			DebugBreak();
+		}
+		const auto& animInfo = m_AnimationInfos[animId];
+		const uint32_t tick = static_cast<uint32_t>(runningTimes[i] * animInfo.TicksPerSecond) % animInfo.Durations;
+		startBoneTransformLocations[i][0] = (animInfo.AnimationStartOffset + tick) * m_TotalNumBones;
+	}
 
+	//static auto startTimePoint = std::chrono::steady_clock::now();
+	//const auto endTimePoint = std::chrono::steady_clock::now();
+	//const std::chrono::duration<float> elipsedTime = endTimePoint - startTimePoint;
+
+	//size_t tick = static_cast<size_t>(elipsedTime.count() * 30) % m_Animation.Durations[0];
 	mappedResource = {};
 	m_pDeviceContext->Map(m_pCBuf_VS_Bones.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	::memcpy(mappedResource.pData, &m_FinalBoneTransforms[tick * m_TotalNumBones], sizeof(XMFLOAT4X4) * m_TotalNumBones);
+	std::memcpy(mappedResource.pData, startBoneTransformLocations.data(), sizeof(uint32_t[4]) * m_NumInstances);
 	m_pDeviceContext->Unmap(m_pCBuf_VS_Bones.Get(), 0);
 }
 
 void KhanRender::SkeletalMeshRenderer::Render()
 {
-	m_pDeviceContext->IASetVertexBuffers(0, NUM_VERTEX_ELEMENTS, m_VBuf_Ptrs, m_VBuf_Strides, m_VBuf_Offsets);
+	m_pDeviceContext->IASetVertexBuffers(0, NUM_VERTEX_ELEMENTS, m_VBuf_Ptrs.data(), m_VBuf_Strides.data(), m_VBuf_Offsets.data());
 	m_pDeviceContext->IASetInputLayout(m_pInputLayout.Get());
 	m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_pDeviceContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 	m_pDeviceContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	m_pDeviceContext->VSSetConstantBuffers(0, static_cast<uint32_t>(m_CBuf_VS_Ptrs.size()), m_CBuf_VS_Ptrs.data());
-
+	m_pDeviceContext->VSSetShaderResources(0, 1, m_pSRV_VS_FinalBoneTransforms.GetAddressOf());
+	
 	m_pDeviceContext->RSSetState(m_pRasterizerState.Get());
 
 	m_pDeviceContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
@@ -369,6 +379,6 @@ void KhanRender::SkeletalMeshRenderer::Render()
 	for (auto& meshInfo : m_MeshInfos)
 	{
 		m_pDeviceContext->PSSetShaderResources(0, 1, meshInfo.m_pSRV.GetAddressOf());
-		m_pDeviceContext->DrawIndexedInstanced(meshInfo.NumIndices, m_numInstance, meshInfo.StartIndexLocation, meshInfo.BaseVertexLocation, 0);
+		m_pDeviceContext->DrawIndexedInstanced(meshInfo.NumIndices, m_NumInstances, meshInfo.StartIndexLocation, meshInfo.BaseVertexLocation, 0);
 	}
 }

@@ -188,7 +188,7 @@ ComPtr<ID3D11InputLayout> KhanDx::CreateInputLayout(ID3D11Device* pDevice, ComPt
 	return pInputLayout;
 }
 
-ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_StructBuf(ID3D11Device* pDevice, ComPtr<ID3D11Resource> pBuf, UINT firstElement, UINT numElements) noexcept
+ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_StructBuf(ID3D11Device* pDevice, ID3D11Resource* pBuf, UINT firstElement, UINT numElements) noexcept
 {
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -197,8 +197,32 @@ ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_StructBuf(ID3D11Device* pDevi
 	srvDesc.Buffer.NumElements = numElements;
 
 	ComPtr<ID3D11ShaderResourceView> pSrv;
-	pDevice->CreateShaderResourceView(pBuf.Get(), &srvDesc, &pSrv);
+	HRESULT hr = pDevice->CreateShaderResourceView(pBuf, &srvDesc, &pSrv);
+	ThrowIfFailed(hr, "Failed to create SRV");
 	return pSrv;
+}
+
+ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_StaticStructBuf(ID3D11Device* pDevice, const void* pSysMem, int structureByteStride, uint32_t numElements) noexcept
+{
+	D3D11_BUFFER_DESC bufDesc{};
+	bufDesc.ByteWidth = structureByteStride * numElements;
+	bufDesc.Usage = D3D11_USAGE_IMMUTABLE;
+	bufDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	bufDesc.CPUAccessFlags = 0;
+	bufDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+	bufDesc.StructureByteStride = structureByteStride;
+
+	// Fill in the subresource data.
+	D3D11_SUBRESOURCE_DATA InitBufData{};
+	InitBufData.pSysMem = pSysMem;
+	InitBufData.SysMemPitch = 0; // not used 
+	InitBufData.SysMemSlicePitch = 0; // not used
+
+	ComPtr<ID3D11Buffer> buf;
+	HRESULT hr = pDevice->CreateBuffer(&bufDesc, &InitBufData, &buf);
+	ThrowIfFailed(hr, "Failed to create Buffer");
+
+	return CreateSRV_StructBuf(pDevice, buf.Get(), 0, numElements);
 }
 
 ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevice, std::filesystem::path filePath)
@@ -239,6 +263,7 @@ ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevi
 	ComPtr<ID3D11ShaderResourceView> pSrv;
 	try
 	{
+		//pSrv = CreateSRV_Texture2D(pDevice, pImageData, width, height, channels);
 		pSrv = CreateSRV_Texture2D(pDevice, pImageData, width, height, channels);
 	}
 	catch (...)
@@ -308,9 +333,9 @@ ComPtr<ID3D11Buffer> KhanDx::CreateDynStructBuf(ID3D11Device* pDevice, unsigned 
 	bufDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 	bufDesc.StructureByteStride = structureByteStride;
 
-
 	ComPtr<ID3D11Buffer> buf;
-	pDevice->CreateBuffer(&bufDesc, nullptr, &buf);
+	HRESULT hr = pDevice->CreateBuffer(&bufDesc, nullptr, &buf);
+	ThrowIfFailed(hr, "Failed to create Buffer");
 
 	return buf;
 }

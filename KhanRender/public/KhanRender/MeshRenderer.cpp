@@ -115,17 +115,17 @@ void KhanRender::MeshRenderer::Update(std::vector<DirectX::XMMATRIX> const& worl
 {
 	using namespace DirectX;
 
-	m_numInstance = (UINT)worldMats.size();
-	std::vector <XMFLOAT4X4> WVPMatrices(m_numInstance);
+	m_NumInstances = (UINT)worldMats.size();
+	std::vector <XMFLOAT4X4> WVPMatrices(m_NumInstances);
 
-	for (UINT i{}; i < m_numInstance; ++i)
+	for (UINT i{}; i < m_NumInstances; ++i)
 	{
 		XMStoreFloat4x4(&WVPMatrices[i], XMMatrixTranspose(worldMats[i] * viewProjMat));
 	}
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource{};
 	m_pDeviceContext->Map(m_pVSDynConstBuf.Get(), 0U, D3D11_MAP_WRITE_DISCARD, 0U, &mappedResource);
-	::memcpy(mappedResource.pData, WVPMatrices.data(), sizeof(XMFLOAT4X4) * m_numInstance);
+	::memcpy(mappedResource.pData, WVPMatrices.data(), sizeof(XMFLOAT4X4) * m_NumInstances);
 	m_pDeviceContext->Unmap(m_pVSDynConstBuf.Get(), 0U);
 }
 
@@ -149,6 +149,6 @@ void KhanRender::MeshRenderer::Render()
 	for (auto& model : m_MeshInfos)
 	{
 		m_pDeviceContext->PSSetShaderResources(0U, 1U, model.m_pSRV.GetAddressOf());
-		m_pDeviceContext->DrawIndexedInstanced(model.NumIndices, m_numInstance, model.StartIndexLocation, model.BaseVertexLocation, 0U);
+		m_pDeviceContext->DrawIndexedInstanced(model.NumIndices, m_NumInstances, model.StartIndexLocation, model.BaseVertexLocation, 0U);
 	}
 }

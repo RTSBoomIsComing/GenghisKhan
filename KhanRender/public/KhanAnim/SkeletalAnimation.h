@@ -18,7 +18,7 @@ namespace KhanAnim
 		~SkeletalAnimation() noexcept;
 	
 		unsigned int m_Duration{}; // The number of total ticks
-		double m_TicksPerSecond{};
+		float m_TicksPerSecond{};
 		std::unordered_map<std::string, std::vector<DirectX::XMMATRIX>> m_AnimNodeTransforms;
 	};
 }

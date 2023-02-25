@@ -28,7 +28,8 @@ namespace KhanDx
 	ComPtr<ID3D11VertexShader> CreateVertexShader(ID3D11Device* pDevice, ComPtr<ID3DBlob> pBlob) noexcept;
 	ComPtr<ID3D11InputLayout> CreateInputLayout(ID3D11Device* pDevice, ComPtr<ID3DBlob> pBlob, const D3D11_INPUT_ELEMENT_DESC* elementDescs, UINT numElements) noexcept;
 
-	ComPtr<ID3D11ShaderResourceView> CreateSRV_StructBuf(ID3D11Device* pDevice, ComPtr<ID3D11Resource> pBuf, UINT firstElement, UINT numElements) noexcept;
+	ComPtr<ID3D11ShaderResourceView> CreateSRV_StructBuf(ID3D11Device* pDevice, ID3D11Resource* pBuf, UINT firstElement, UINT numElements) noexcept;
+	ComPtr<ID3D11ShaderResourceView> CreateSRV_StaticStructBuf(ID3D11Device* pDevice, const void* pSysMem, int structureByteStride, uint32_t numElements) noexcept;
 
 	ComPtr<ID3D11ShaderResourceView> CreateSRV_Texture2D(ID3D11Device* pDevice, std::filesystem::path filePath);
 	ComPtr<ID3D11ShaderResourceView> CreateSRV_Texture2D(ID3D11Device* pDevice,  const aiTexture* pAiTexture);

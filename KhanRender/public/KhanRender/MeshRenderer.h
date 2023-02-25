@@ -27,7 +27,7 @@ namespace KhanRender
 		void Update(std::vector<DirectX::XMMATRIX> const& worldMats, DirectX::XMMATRIX const& viewProjMat);
 		void Render();
 	private: // about rendering infomations
-		UINT m_numInstance{};
+		UINT m_NumInstances{};
 		std::vector<MeshInfo> m_MeshInfos;
 		
 	private: // about directx 11 components

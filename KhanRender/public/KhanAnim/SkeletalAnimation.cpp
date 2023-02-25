@@ -12,7 +12,7 @@ KhanAnim::SkeletalAnimation::SkeletalAnimation(std::filesystem::path filePath)
 	using namespace DirectX;
 	Assimp::Importer importer;
 	importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
-	const aiScene* pScene = importer.ReadFile(filePath.string(), aiProcess_ConvertToLeftHanded | aiProcess_PopulateArmatureData | aiProcess_LimitBoneWeights);
+	const aiScene* pScene = importer.ReadFile(filePath.string(), aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_Triangulate | aiProcess_ConvertToLeftHanded | aiProcess_PopulateArmatureData | aiProcess_LimitBoneWeights);
 	if (nullptr == pScene) {
 		KHAN_ERROR(importer.GetErrorString());
 		throw std::exception{ "Failed to import file using assimp" };
@@ -28,17 +28,34 @@ KhanAnim::SkeletalAnimation::SkeletalAnimation(std::filesystem::path filePath)
 	
 	const aiAnimation* anim = pScene->mAnimations[0];
 	m_Duration = static_cast<unsigned int>(anim->mDuration + 0.0001/*prevent something like 0.9999 to 0 */);
-	m_TicksPerSecond = anim->mTicksPerSecond == 0.0 ? 30.0 : anim->mTicksPerSecond;
+	m_TicksPerSecond = anim->mTicksPerSecond == 0.0 ? 30.0F : static_cast<float>(anim->mTicksPerSecond);
 	for (unsigned int i{}; i < anim->mNumChannels; i++)
 	{
 		const aiNodeAnim* channel = anim->mChannels[i];
 		const std::string nodeName = channel->mNodeName.C_Str();
 		const unsigned int numKeys = channel->mNumPositionKeys;
-
+		// assimp bug: aiAnimBehaviours are not correct, always these are DEFAULT, but sometimes need to be CONSTANT or REPEAT
+		
 		m_AnimNodeTransforms[nodeName] = {};
 		m_AnimNodeTransforms[nodeName].reserve(m_Duration);
+
+		// bake animation, if there is only one key, take same pose for all keys
+		if (numKeys == 1)
+		{
+			XMVECTOR scale = XMLoadFloat3(reinterpret_cast<XMFLOAT3*>(&channel->mScalingKeys[0].mValue));
+			XMVECTOR position = XMLoadFloat3(reinterpret_cast<XMFLOAT3*>(&channel->mPositionKeys[0].mValue));
+			aiQuaternion aiQuat = channel->mRotationKeys[0].mValue;
+			XMFLOAT4 xmQuat{ aiQuat.x, aiQuat.y, aiQuat.z, aiQuat.w };
+			XMVECTOR rotation = XMLoadFloat4(&xmQuat);
+
+			const XMMATRIX animNodeTransform = XMMatrixTranspose(
+				XMMatrixAffineTransformation(scale, { 0.0F, 0.0F, 0.0F, 1.0F }, rotation, position));
+			//m_AnimNodeTransforms[nodeName].push_back(animNodeTransform);
+			m_AnimNodeTransforms[nodeName].resize(m_Duration, animNodeTransform);
+			continue;
+		}
 		
-		// bake animation
+		// bake animation, with interpolation
 		unsigned int key{};
 		while (key < numKeys && m_AnimNodeTransforms[nodeName].size() < m_Duration)
 		{

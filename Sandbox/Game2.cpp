@@ -109,13 +109,16 @@ void Game2::Run()
 	XMMATRIX viewProjMat = KhanECS::System::GetViewMatrix(m_reg) * KhanECS::System::GetProjectionMatrix(m_aspectRatio);
 
 
-	std::vector<XMMATRIX> worldMatrices = std::move(KhanECS::System::GetWorldMatrices<KhanECS::Component::Archer>(m_reg));
-	m_ArcherRenderer->Update(worldMatrices, viewProjMat, DEBUGSCALAR);
+	std::vector<XMMATRIX> worldMatrices = KhanECS::System::GetWorldMatrices<KhanECS::Component::Archer>(m_reg);
+	std::vector<uint32_t> animationIds(worldMatrices.size(), 0);
+	std::vector<float> runningTimes(worldMatrices.size(), 0.5F);
+	
+	m_ArcherRenderer->Update(worldMatrices.size(), worldMatrices.data(), animationIds.data(), runningTimes.data(), viewProjMat);
 
-	worldMatrices = std::move(KhanECS::System::GetWorldMatrices<KhanECS::Component::Paladin>(m_reg));
+	worldMatrices = KhanECS::System::GetWorldMatrices<KhanECS::Component::Paladin>(m_reg);
 	//m_PaladinRenderer->Update(worldMatrices, viewProjMat);
 
-	worldMatrices = std::move(KhanECS::System::GetWorldMatrices<KhanECS::Component::Knight>(m_reg));
+	worldMatrices = KhanECS::System::GetWorldMatrices<KhanECS::Component::Knight>(m_reg);
 	//m_KnightRenderer->Update(worldMatrices, viewProjMat);
 	//m_cubeRenderer->Update(worldMatrices, viewProjMat);
 
