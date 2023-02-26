@@ -288,9 +288,9 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	m_pInputLayout = KhanDx::CreateInputLayout(m_pDevice.Get(), pBlob.Get(), m_elementDescs, NUM_VERTEX_ELEMENTS);
 
 	// Create Constant bufferes
-	m_pCBuf_VS_Worlds = KhanDx::CreateDynConstBuf<XMFLOAT4X4>(m_pDevice.Get(), 1000);
-	m_pCBuf_VS_ViewProjection = KhanDx::CreateDynConstBuf<XMFLOAT4X4>(m_pDevice.Get(), 2);
-	m_pCBuf_VS_Bones = KhanDx::CreateDynConstBuf<unsigned int>(m_pDevice.Get(), 1000);
+	m_pCBuf_VS_Worlds = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(XMMATRIX), 1000);
+	m_pCBuf_VS_ViewProjection = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(XMMATRIX), 1);
+	m_pCBuf_VS_Bones = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(uint32_t[4]), 1000);
 
 	// Save the pointers of Constant buffers, it is used to VSSetConstantBuffers()
 	m_CBuf_VS_Ptrs.push_back(m_pCBuf_VS_Worlds.Get());

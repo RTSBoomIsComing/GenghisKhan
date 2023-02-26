@@ -323,15 +323,37 @@ ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevi
 	return pSrv;
 }
 
-ComPtr<ID3D11Buffer> KhanDx::CreateDynStructBuf(ID3D11Device* pDevice, unsigned int structureByteStride, unsigned int numElements) noexcept
+ComPtr<ID3D11Buffer> KhanDx::CreateDynConstBuf(ID3D11Device* pDevice, unsigned int byteStride, unsigned int numElements) noexcept
+{
+	if (byteStride % 16 != 0)
+	{
+		KHAN_ERROR("Need to align byteStride with 16");
+		DebugBreak();
+	}
+	D3D11_BUFFER_DESC bufDesc{};
+	bufDesc.ByteWidth = byteStride * numElements;
+	bufDesc.Usage = D3D11_USAGE_DYNAMIC;
+	bufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	bufDesc.MiscFlags = 0;
+	bufDesc.StructureByteStride = 0; // not be used for constant buffer
+
+	ComPtr<ID3D11Buffer> buf;
+	HRESULT hr = pDevice->CreateBuffer(&bufDesc, nullptr, &buf);
+	ThrowIfFailed(hr, "Failed to create Buffer");
+
+	return buf;
+}
+
+ComPtr<ID3D11Buffer> KhanDx::CreateDynStructBuf(ID3D11Device* pDevice, unsigned int byteStride, unsigned int numElements) noexcept
 {
 	D3D11_BUFFER_DESC bufDesc{};
-	bufDesc.ByteWidth = structureByteStride * numElements;
+	bufDesc.ByteWidth = byteStride * numElements;
 	bufDesc.Usage = D3D11_USAGE_DYNAMIC;
 	bufDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	bufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	bufDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-	bufDesc.StructureByteStride = structureByteStride;
+	bufDesc.StructureByteStride = byteStride;
 
 	ComPtr<ID3D11Buffer> buf;
 	HRESULT hr = pDevice->CreateBuffer(&bufDesc, nullptr, &buf);

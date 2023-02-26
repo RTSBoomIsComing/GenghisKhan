@@ -14,8 +14,8 @@ KhanRender::SelectionRectRenderer::SelectionRectRenderer(const Renderer& rendere
 	m_pVertexShader = KhanDx::CreateVertexShader(m_pDevice.Get(), pBlob.Get());
 	m_pInputLayout = KhanDx::CreateInputLayout(m_pDevice.Get(), pBlob.Get(), elementDescs, ARRAYSIZE(elementDescs));
 
-	m_pPSDynConstBuf = KhanDx::CreateDynConstBuf<DirectX::XMFLOAT4>(m_pDevice.Get(), 1U);
-	m_pVSDynConstBuf = KhanDx::CreateDynConstBuf<DirectX::XMFLOAT4X4>(m_pDevice.Get(), 1U);
+	m_pPSDynConstBuf = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(DirectX::XMFLOAT4), 1);
+	m_pVSDynConstBuf = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(DirectX::XMFLOAT4X4), 1);
 
 	m_pBlendState = KhanDx::CreateBlendState_Alpha(m_pDevice.Get());
 	m_pRasterizerState = KhanDx::CreateRasterizerState_Solid(m_pDevice.Get());
