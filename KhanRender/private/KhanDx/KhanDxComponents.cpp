@@ -6,7 +6,7 @@
 #include <format>
 
 // additional dependencies
-#include <stb_image.h>
+#include <DirectXTex.h>
 
 
 ComPtr<ID3D11RasterizerState> KhanDx::CreateRasterizerState_Solid(ID3D11Device* pDevice) noexcept
@@ -227,52 +227,77 @@ ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_StaticStructBuf(ID3D11Device*
 
 ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevice, std::filesystem::path filePath)
 {
-	int width{}, height{}, channels{};
-	uint8_t* pImageData = stbi_load(filePath.string().data(), &width, &height, &channels, 0);
-	if (nullptr == pImageData)
-	{
-		KHAN_ERROR(std::format("Failed to stbi load, filePath: {:s}", filePath.string()));
-		throw std::exception("Failed to stbi load");
-	}
+	using namespace DirectX;
+
+	TexMetadata metadata{};
+	ScratchImage image{};
+	HRESULT hr = LoadFromWICFile(filePath.c_str(), WIC_FLAGS_FORCE_RGB, &metadata, image);
+	ThrowIfFailed(hr, "Failed to load image from wic memory");
+
+	D3D11_TEXTURE2D_DESC textureDesc{};
+	textureDesc.Width = static_cast<UINT>(metadata.width);
+	textureDesc.Height = static_cast<UINT>(metadata.height);
+	textureDesc.MipLevels = static_cast<UINT>(metadata.mipLevels);
+	textureDesc.ArraySize = static_cast<UINT>(metadata.arraySize);
+	textureDesc.Format = metadata.format;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	textureDesc.CPUAccessFlags = 0;
+	textureDesc.MiscFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA initData{};
+	initData.pSysMem = image.GetPixels();
+	initData.SysMemPitch = static_cast<UINT>(image.GetImages()->rowPitch);
+	initData.SysMemSlicePitch = static_cast<UINT>(image.GetImages()->slicePitch);
+
+	ComPtr<ID3D11Texture2D> pTexture2D;
+	hr = pDevice->CreateTexture2D(&textureDesc, &initData, &pTexture2D);
+	ThrowIfFailed(hr, "Failed to create texture");
+
 	ComPtr<ID3D11ShaderResourceView> pSrv;
-	try
-	{
-		pSrv = CreateSRV_Texture2D(pDevice, pImageData, width, height, channels);
-	}
-	catch (...)
-	{
-		stbi_image_free(pImageData);
-		throw std::exception("failed to create shader resource view");
-	}
-	stbi_image_free(pImageData);
+	hr = pDevice->CreateShaderResourceView(pTexture2D.Get(), nullptr, &pSrv);
+	ThrowIfFailed(hr, "Failed to create SRV");
 
 	return pSrv;
 }
 
 ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevice, const aiTexture* pAiTexture)
 {
-	int width{}, height{}, channels{};
-	int len = pAiTexture->mHeight == 0 ? pAiTexture->mWidth : pAiTexture->mWidth * pAiTexture->mHeight;
-	uint8_t* pImageData = stbi_load_from_memory(reinterpret_cast<const uint8_t*>(pAiTexture->pcData), len, &width, &height, &channels, 0);
-	if (nullptr == pImageData)
-	{
-		KHAN_ERROR("Failed to stbi load from memory");
-		throw std::exception("Failed to stbi load from memory");
-	}
+	using namespace DirectX;
+
+	TexMetadata metadata{};
+	ScratchImage image{};
+	unsigned int len = pAiTexture->mHeight == 0 ? pAiTexture->mWidth : pAiTexture->mWidth * pAiTexture->mHeight;
+	HRESULT hr = LoadFromWICMemory(pAiTexture->pcData, len, WIC_FLAGS_FORCE_RGB, &metadata, image);
+	ThrowIfFailed(hr, "Failed to load image from wic memory");
+
+	D3D11_TEXTURE2D_DESC textureDesc{};
+	textureDesc.Width = static_cast<UINT>(metadata.width);
+	textureDesc.Height = static_cast<UINT>(metadata.height);
+	textureDesc.MipLevels = static_cast<UINT>(metadata.mipLevels);
+	textureDesc.ArraySize = static_cast<UINT>(metadata.arraySize);
+	textureDesc.Format = metadata.format;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	textureDesc.CPUAccessFlags = 0;
+	textureDesc.MiscFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA initData{};
+	initData.pSysMem = image.GetPixels();
+	initData.SysMemPitch = static_cast<UINT>(image.GetImages()->rowPitch);
+	initData.SysMemSlicePitch = static_cast<UINT>(image.GetImages()->slicePitch);
+
+	ComPtr<ID3D11Texture2D> pTexture2D;
+	hr = pDevice->CreateTexture2D(&textureDesc, &initData, &pTexture2D);
+	ThrowIfFailed(hr, "Failed to create texture");
 
 	ComPtr<ID3D11ShaderResourceView> pSrv;
-	try
-	{
-		//pSrv = CreateSRV_Texture2D(pDevice, pImageData, width, height, channels);
-		pSrv = CreateSRV_Texture2D(pDevice, pImageData, width, height, channels);
-	}
-	catch (...)
-	{
-		stbi_image_free(pImageData);
-		throw std::exception("failed to create shader resource view");
-	}
-
-	stbi_image_free(pImageData);
+	hr = pDevice->CreateShaderResourceView(pTexture2D.Get(), nullptr, &pSrv);
+	ThrowIfFailed(hr, "Failed to create SRV");
 
 	return pSrv;
 }

@@ -23,7 +23,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	// Load the model using Assimp
 	Assimp::Importer importer;
 	importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
-	const aiScene* pScene = importer.ReadFile(SceneFilePath.string(), aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_Triangulate | aiProcess_ConvertToLeftHanded | aiProcess_PopulateArmatureData | aiProcess_LimitBoneWeights | aiProcess_GenUVCoords | aiProcess_GenNormals);
+	const aiScene* pScene = importer.ReadFile(SceneFilePath.string(), aiProcessPreset_TargetRealtime_Fast | aiProcess_ConvertToLeftHanded | aiProcess_PopulateArmatureData | aiProcess_LimitBoneWeights);
 	if (nullptr == pScene) {
 		KHAN_ERROR(importer.GetErrorString());
 		throw std::exception{ "Failed to import file using assimp" };

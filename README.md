@@ -9,8 +9,8 @@ Collect Heroes and Conquer the world.
 
 ## Dependencies
 - directxmath
+- directxtex
 - entt
-- stb
 - assimp
 - imgui
 

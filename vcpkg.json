@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "dependencies": [
     "directxmath",
+    "directxtex",
     "entt",
-    "stb",
     "assimp",
     {
       "name": "imgui",

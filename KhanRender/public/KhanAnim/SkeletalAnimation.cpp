@@ -11,8 +11,9 @@ KhanAnim::SkeletalAnimation::SkeletalAnimation(std::filesystem::path filePath)
 {
 	using namespace DirectX;
 	Assimp::Importer importer;
+	
 	importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
-	const aiScene* pScene = importer.ReadFile(filePath.string(), aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_Triangulate | aiProcess_ConvertToLeftHanded | aiProcess_PopulateArmatureData | aiProcess_LimitBoneWeights);
+	const aiScene* pScene = importer.ReadFile(filePath.string(), aiProcessPreset_TargetRealtime_Fast | aiProcess_ConvertToLeftHanded | aiProcess_PopulateArmatureData | aiProcess_LimitBoneWeights);
 	if (nullptr == pScene) {
 		KHAN_ERROR(importer.GetErrorString());
 		throw std::exception{ "Failed to import file using assimp" };
