@@ -4,7 +4,6 @@
 #include <wrl.h>
 using Microsoft::WRL::ComPtr;
 #include <string_view>
-#include <tuple>
 #include <filesystem>
 
 struct aiTexture;

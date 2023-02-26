@@ -23,19 +23,19 @@ namespace KhanRender
 	{
 		struct MeshInfo
 		{
-			unsigned int  NumVertices{};
-			unsigned int  NumIndices{};
-			unsigned int  BaseVertexLocation{};
-			unsigned int  StartIndexLocation{};
+			uint32_t  NumVertices{};
+			uint32_t  NumIndices{};
+			uint32_t  BaseVertexLocation{};
+			uint32_t  StartIndexLocation{};
 			ComPtr<ID3D11ShaderResourceView> m_pSRV;
 		};
 
 	public:
 		SkeletalMeshRenderer(const Renderer& renderer, const std::filesystem::path SceneFilePath);
-		void Update(uint32_t numInstances, DirectX::XMMATRIX const* worldMats, const uint32_t* AnimationId, const float* runningTime, DirectX::XMMATRIX const& viewProjMat);
+		void Update(size_t numInstances, DirectX::XMMATRIX const* worldMats, const uint32_t* AnimationId, const float* runningTime, DirectX::XMMATRIX const& viewProjMat);
 		void Render();
 	private: // about rendering infomations
-		UINT m_NumInstances{};
+		uint32_t m_NumInstances{};
 		std::vector<MeshInfo> m_MeshInfos;
 
 		enum class VertexElement
@@ -57,33 +57,27 @@ namespace KhanRender
 		{
 			12, 12, 12, 16, 16
 		};
-		std::array<unsigned int, NUM_VERTEX_ELEMENTS>  m_VBuf_Offsets;
-		std::array<ID3D11Buffer*, NUM_VERTEX_ELEMENTS> m_VBuf_Ptrs;
-
+		std::array<unsigned int, NUM_VERTEX_ELEMENTS>			m_VBuf_Offsets;
+		std::array<ComPtr<ID3D11Buffer>, NUM_VERTEX_ELEMENTS>	m_pVBufs;
+		std::array<ID3D11Buffer*, NUM_VERTEX_ELEMENTS>			m_VBuf_Ptrs;
 		std::vector<ID3D11Buffer*> m_CBuf_VS_Ptrs;
 
-		static constexpr unsigned int  MAX_NUM_BONES{ 100 }; // I think maybe the number of bones are not more than 100
-		static constexpr unsigned int  MAX_NUM_BONE_WEIGHTS{ 4 };
-		unsigned int  m_TotalNumBones{};
+		static constexpr unsigned int MAX_NUM_BONES{ 100 }; // I think maybe the number of bones are not more than 100
+		static constexpr unsigned int MAX_NUM_BONE_WEIGHTS{ 4 };
 		
-		std::vector<DirectX::XMMATRIX> m_FinalBoneTransforms;
-		DirectX::XMMATRIX m_DefaultBoneTransforms[MAX_NUM_BONES]{};
-		DirectX::XMMATRIX m_boneOffsets[MAX_NUM_BONES]{};
-		std::string m_NodeNames[MAX_NUM_BONES]{};
-		unsigned int  m_ParentNodes[MAX_NUM_BONES]{};
+		std::array<DirectX::XMMATRIX, MAX_NUM_BONES>	m_DefaultBoneTransforms;
+		std::array<DirectX::XMMATRIX, MAX_NUM_BONES>	m_boneOffsets;
+		std::array<std::string, MAX_NUM_BONES>			m_NodeNames;
+		std::array<unsigned int, MAX_NUM_BONES>			m_ParentNodes;
+		std::vector<DirectX::XMMATRIX>					m_FinalBoneTransforms;
 
+		unsigned int  m_TotalNumBones{};
 		std::vector<AnimationInfo> m_AnimationInfos;
 
 	private: // about directx 11 components
-		ComPtr<ID3D11Buffer> m_pVBuf_Positions;
-		ComPtr<ID3D11Buffer> m_pVBuf_TexCoords;
-		ComPtr<ID3D11Buffer> m_pVBuf_Normals;
-		ComPtr<ID3D11Buffer> m_pVBuf_BlendIndices;
-		ComPtr<ID3D11Buffer> m_pVBuf_BlendWeight;
-
 		ComPtr<ID3D11Buffer> m_pCBuf_VS_Worlds;
 		ComPtr<ID3D11Buffer> m_pCBuf_VS_ViewProjection;
-		ComPtr<ID3D11Buffer> m_pCBuf_VS_Bones;
+		ComPtr<ID3D11Buffer> m_pCBuf_VS_Blending;
 
 		ComPtr<ID3D11Buffer> m_pIndexBuffer;
 
