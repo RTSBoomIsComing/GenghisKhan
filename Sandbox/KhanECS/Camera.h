@@ -10,6 +10,13 @@
 namespace KhanECS::Component
 {
 	struct Camera : EntityName {};
+	struct CameraProjectionInfo
+	{
+		float aspectRatio = 4.0F / 3;
+		float fovAngleY = DirectX::XM_PI / 2;
+		float nearZ = 1.0F;
+		float farZ = std::numeric_limits<float>::max();
+	};
 }
 
 namespace KhanECS::Entity
@@ -19,14 +26,7 @@ namespace KhanECS::Entity
 
 namespace KhanECS::System
 {
-	DirectX::XMMATRIX GetViewMatrix(entt::registry const& reg) noexcept;
-
-	DirectX::XMMATRIX GetProjectionMatrix
-	(
-		float aspectRatio = 4.0F / 3,
-		float fovAngleY = DirectX::XM_PI / 2,
-		float nearZ = 1.0F,
-		float farZ = std::numeric_limits<float>::max()) noexcept;
+	DirectX::XMMATRIX GetViewProjectionMatrix(entt::registry const& reg) noexcept;
 }
 
 

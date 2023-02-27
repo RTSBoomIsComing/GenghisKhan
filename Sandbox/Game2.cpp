@@ -1,8 +1,9 @@
 #include "pch.h"
 #include "Game2.h"
 
-#include <KhanTools/Log.h>
+#include "KhanECS/SkeletalMeshRenderSystem.h"
 
+#include <KhanTools/Log.h>
 #include <KhanRender/SelectionRectRenderer.h>
 #include <KhanRender/CubeRenderer.h>
 #include <KhanRender/ImGuiRenderer.h>
@@ -17,17 +18,21 @@
 
 // standard libraries
 #include <random>
+#include <chrono>
 
 float DEBUGSCALAR{};
 Game2::Game2()
 	:
 	m_mainRenderer(m_window_handle, m_window_width, m_window_height)
-{ 
+{
 	BindActionsToInput();
+	
+	m_SkeletalMeshRenderSystem = std::make_unique<KhanECS::System::SkeletalMeshRenderSystem>(m_mainRenderer);
+
 	m_imGuiRenderer = std::make_unique<KhanRender::ImGuiRenderer>(m_window_handle, m_mainRenderer, std::bind(&Game2::OnImGuiRender, this));
 	//m_cubeRenderer = std::make_unique<KhanRender::CubeRenderer>(m_mainRenderer);
 	//m_ArcherRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Paladin J Nordstrom.fbx");
-	m_ArcherRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Archer\\Erika Archer With Bow Arrow.fbx");
+	//m_ArcherRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Archer\\Erika Archer With Bow Arrow.fbx");
 	//m_KnightRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Knight D Pelegrini.fbx");
 	//m_PaladinRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Paladin J Nordstrom.fbx");
 
@@ -35,12 +40,14 @@ Game2::Game2()
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int> die(-1500, 1500);
+	std::uniform_real_distribution<float> die(-1500.0F, 1500.0F);
 
 	for (int i{}; i < 100; ++i)
 	{
-		auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ (float)die(gen), 0.0F, 500.0F + die(gen) });
+		auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ die(gen), 0.0F, 500.0F + die(gen) });
 		m_reg.emplace<KhanECS::Component::Archer>(e);
+		m_reg.emplace<KhanECS::Component::SkeletalMeshComponent>(e, KhanECS::System::SkeletalMeshRenderSystem::RendererId::Archer);
+		
 	}
 	//for (int i{}; i < 10; ++i)
 	//{
@@ -65,11 +72,16 @@ void Game2::Run()
 {
 	using namespace DirectX;
 	using namespace entt::literals;
+	
+	static auto prevTimePoint = std::chrono::steady_clock::now();
+	const auto currTimePoint = std::chrono::steady_clock::now();
+	const std::chrono::duration<float> deltaTime = currTimePoint - prevTimePoint;
+	prevTimePoint = currTimePoint;
 
 	POINT pt = m_input.mouse.GetPosition<MouseEvent::LEFT_DOWN>();
 	selectionRect.left = pt.x;
 	selectionRect.top = pt.y;
-	
+
 	m_MouseMoveRelative = m_input.mouse.GetPosition<MouseEvent::RelativeMove>();
 
 	// camera control by mouse
@@ -106,25 +118,20 @@ void Game2::Run()
 
 	KhanECS::System::SetCameraRotation(m_reg, m_cameraRotation);
 	KhanECS::System::MouseEdgeScroll(m_reg, m_cameraVelocity);
-	XMMATRIX viewProjMat = KhanECS::System::GetViewMatrix(m_reg) * KhanECS::System::GetProjectionMatrix(m_aspectRatio);
 
-
-	std::vector<XMMATRIX> worldMatrices = KhanECS::System::GetWorldMatrices<KhanECS::Component::Archer>(m_reg);
-	std::vector<uint32_t> animationIds(worldMatrices.size(), 0);
-	std::vector<float> runningTimes(worldMatrices.size(), 0.5F);
-	m_ArcherRenderer->Update(worldMatrices.size(), worldMatrices.data(), animationIds.data(), runningTimes.data(), viewProjMat);
-
-	worldMatrices = KhanECS::System::GetWorldMatrices<KhanECS::Component::Paladin>(m_reg);
+	m_SkeletalMeshRenderSystem->Update(deltaTime.count(), m_reg);
+	//worldMatrices = KhanECS::System::GetWorldMatrices<KhanECS::Component::Paladin>(m_reg);
 	//m_PaladinRenderer->Update(worldMatrices, viewProjMat);
 
-	worldMatrices = KhanECS::System::GetWorldMatrices<KhanECS::Component::Knight>(m_reg);
+	//worldMatrices = KhanECS::System::GetWorldMatrices<KhanECS::Component::Knight>(m_reg);
 	//m_KnightRenderer->Update(worldMatrices, viewProjMat);
 	//m_cubeRenderer->Update(worldMatrices, viewProjMat);
 
 
 	m_mainRenderer.RenderBegin(clear_color);
+	m_SkeletalMeshRenderSystem->Render();
 	//m_cubeRenderer->Render();
-	m_ArcherRenderer->Render();
+	//m_ArcherRenderer->Render();
 	//m_PaladinRenderer->Render();
 	//m_KnightRenderer->Render();
 
@@ -145,6 +152,12 @@ void Game2::OnResizeWindow(UINT width, UINT height) noexcept
 {
 	Application::OnResizeWindow(width, height);
 	m_mainRenderer.ResizeRenderTarget(width, height);
+	auto view = m_reg.view<KhanECS::Component::CameraProjectionInfo>();
+	for (auto& e : view)
+	{
+		auto& cameraProjectionInfo = view.get<KhanECS::Component::CameraProjectionInfo>(e);
+		cameraProjectionInfo.aspectRatio = m_aspectRatio;
+	}
 }
 
 void Game2::OnImGuiRender()
@@ -169,7 +182,7 @@ void Game2::OnImGuiRender()
 		ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
 		ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
 		ImGui::Checkbox("Another Window", &show_another_window);
-		
+
 		ImGui::SliderFloat("DebugScalar", &DEBUGSCALAR, 0.0F, 500.F);
 		ImGui::SliderFloat3("camera rot", reinterpret_cast<float*>(&m_cameraRotation), -XM_PI, XM_PI);
 		ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
@@ -230,13 +243,13 @@ void Game2::BindActionsToInput() noexcept
 		m_input.mouse.OnRightButtonUp.InstantFn = nullptr;
 	};
 
-	m_input.keyboard.OnKeyDown[VK_MENU].DefaultFn = [&]() { 
-		while (::ShowCursor(false) >= 0); 
+	m_input.keyboard.OnKeyDown[VK_MENU].DefaultFn = [&]() {
+		while (::ShowCursor(false) >= 0);
 	};
-	m_input.keyboard.OnKeyUp[VK_MENU].DefaultFn = [&]() { 
+	m_input.keyboard.OnKeyUp[VK_MENU].DefaultFn = [&]() {
 		POINT pt = m_MouseCursorPos;
 		::ClientToScreen(m_window_handle, &pt);
 		::SetCursorPos(pt.x, pt.y);
-		while (::ShowCursor(true) < 0); 
+		while (::ShowCursor(true) < 0);
 	};
 }

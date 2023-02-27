@@ -120,6 +120,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="KhanECS\SkeletalMeshRenderSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="KhanECS\Character.h" />
@@ -131,6 +132,7 @@
     <ClInclude Include="KhanECS\PlayerControl.h" />
     <ClInclude Include="KhanECS\Systems.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="KhanECS\SkeletalMeshRenderSystem.h" />
     <ClInclude Include="src\System\System.h" />
   </ItemGroup>
   <ItemGroup>

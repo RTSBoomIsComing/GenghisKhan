@@ -302,52 +302,6 @@ ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevi
 	return pSrv;
 }
 
-ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevice, const uint8_t* pImageData, int width, int height, int channels)
-{
-	assert(channels >= 3 && "channels is less than three, is it possible?");
-	
-	// if channel is three, convert to four
-	std::vector<uint8_t> imageRGBA;
-	if (channels == 3)
-	{
-		imageRGBA.resize(4Ui64 * width * height, 255);
-		const uint8_t* First = pImageData;
-
-		for (int i = 0; i < width * height; i++) {
-			const uint8_t* Last = First + channels;
-			std::copy(First, Last, imageRGBA.begin() + 4Ui64 * i);
-			First = Last;
-		}
-
-		pImageData = imageRGBA.data();
-	}
-
-	D3D11_SUBRESOURCE_DATA InitTextureData{};
-	InitTextureData.pSysMem = pImageData;
-	InitTextureData.SysMemPitch = sizeof(uint8_t) * 4 * width;
-
-	D3D11_TEXTURE2D_DESC textureDesc{};
-	textureDesc.Width = width;
-	textureDesc.Height = height;
-	textureDesc.MipLevels = 1U;
-	textureDesc.ArraySize = 1U;
-	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; 
-	textureDesc.SampleDesc.Count = 1U;
-	textureDesc.SampleDesc.Quality = 0U;
-	textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
-	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-	ComPtr<ID3D11Texture2D> pTexture2D;
-	HRESULT hr = pDevice->CreateTexture2D(&textureDesc, &InitTextureData, &pTexture2D);
-	ThrowIfFailed(hr, "Failed to create texture");
-
-	ComPtr<ID3D11ShaderResourceView> pSrv;
-	hr = pDevice->CreateShaderResourceView(pTexture2D.Get(), nullptr, &pSrv);
-	ThrowIfFailed(hr, "Failed to create SRV");
-
-	return pSrv;
-}
-
 ComPtr<ID3D11Buffer> KhanDx::CreateDynConstBuf(ID3D11Device* pDevice, unsigned int byteStride, unsigned int numElements) noexcept
 {
 	if (byteStride % 16 != 0)

@@ -32,7 +32,6 @@ namespace KhanDx
 
 	ComPtr<ID3D11ShaderResourceView> CreateSRV_Texture2D(ID3D11Device* pDevice, std::filesystem::path filePath);
 	ComPtr<ID3D11ShaderResourceView> CreateSRV_Texture2D(ID3D11Device* pDevice,  const aiTexture* pAiTexture);
-	ComPtr<ID3D11ShaderResourceView> CreateSRV_Texture2D(ID3D11Device* pDevice, const uint8_t* pImageData, int width, int height, int channels);
 
 	ComPtr<ID3D11Buffer> CreateDynConstBuf(ID3D11Device* pDevice, unsigned int structureByteStride, unsigned int numElements = D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT) noexcept;
 	ComPtr<ID3D11Buffer> CreateDynStructBuf(ID3D11Device* pDevice, unsigned int structureByteStride, unsigned int numElements) noexcept;

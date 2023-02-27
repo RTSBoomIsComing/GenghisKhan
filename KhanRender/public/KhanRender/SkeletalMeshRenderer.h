@@ -34,10 +34,7 @@ namespace KhanRender
 		SkeletalMeshRenderer(const Renderer& renderer, const std::filesystem::path SceneFilePath);
 		void Update(size_t numInstances, DirectX::XMMATRIX const* worldMats, const uint32_t* AnimationId, const float* runningTime, DirectX::XMMATRIX const& viewProjMat);
 		void Render();
-	private: // about rendering infomations
-		uint32_t m_NumInstances{};
-		std::vector<MeshInfo> m_MeshInfos;
-
+	private: // about vertex buffer
 		enum class VertexElement
 		{
 			POSITION, TEXCOORD, NORMAL, BLENDINDICES, BLENDWEIGHT, MAX
@@ -58,29 +55,27 @@ namespace KhanRender
 			12, 12, 12, 16, 16
 		};
 		std::array<unsigned int, NUM_VERTEX_ELEMENTS>			m_VBuf_Offsets;
-		std::array<ComPtr<ID3D11Buffer>, NUM_VERTEX_ELEMENTS>	m_pVBufs;
 		std::array<ID3D11Buffer*, NUM_VERTEX_ELEMENTS>			m_VBuf_Ptrs;
-		std::vector<ID3D11Buffer*> m_CBuf_VS_Ptrs;
+		std::array<ComPtr<ID3D11Buffer>, NUM_VERTEX_ELEMENTS>	m_pVBufs;
 
+	private: // about rendering infomations
 		static constexpr unsigned int MAX_NUM_BONES{ 100 }; // I think maybe the number of bones are not more than 100
 		static constexpr unsigned int MAX_NUM_BONE_WEIGHTS{ 4 };
 		
-		std::array<DirectX::XMMATRIX, MAX_NUM_BONES>	m_DefaultBoneTransforms;
-		std::array<DirectX::XMMATRIX, MAX_NUM_BONES>	m_boneOffsets;
-		std::array<std::string, MAX_NUM_BONES>			m_NodeNames;
-		std::array<unsigned int, MAX_NUM_BONES>			m_ParentNodes;
-		std::vector<DirectX::XMMATRIX>					m_FinalBoneTransforms;
-
+		uint32_t m_NumInstances{};
 		unsigned int  m_TotalNumBones{};
+		std::vector<MeshInfo> m_MeshInfos;
 		std::vector<AnimationInfo> m_AnimationInfos;
+		std::vector<DirectX::XMMATRIX> m_FinalBoneTransforms;
 
-	private: // about directx 11 components
+	private: // about constant buffer
 		ComPtr<ID3D11Buffer> m_pCBuf_VS_Worlds;
 		ComPtr<ID3D11Buffer> m_pCBuf_VS_ViewProjection;
 		ComPtr<ID3D11Buffer> m_pCBuf_VS_Blending;
+		std::array<ID3D11Buffer*, 3> m_CBuf_VS_Ptrs;
 
-		ComPtr<ID3D11Buffer> m_pIndexBuffer;
-
+	private: // about directx 11 components
+		ComPtr<ID3D11Buffer>			m_pIndexBuffer;
 		ComPtr<ID3D11PixelShader>	    m_pPixelShader;
 		ComPtr<ID3D11VertexShader>	    m_pVertexShader;
 		ComPtr<ID3D11InputLayout>	    m_pInputLayout;

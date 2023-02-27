@@ -174,15 +174,20 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 		idPerNode[pNode] = i;
 	}
 
-	m_ParentNodes.fill(-1);
+	std::array<DirectX::XMMATRIX, MAX_NUM_BONES>	defaultBoneTransforms{};
+	std::array<DirectX::XMMATRIX, MAX_NUM_BONES>	boneOffsets{};
+	std::array<std::string, MAX_NUM_BONES>			nodeNames{};
+	std::array<unsigned int, MAX_NUM_BONES>			parentNodes{};
+
+	parentNodes.fill(-1);
 	for (unsigned int i{}; i < m_TotalNumBones; i++)
 	{
-		m_boneOffsets[i] = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&bones[i]->mOffsetMatrix));
-		m_DefaultBoneTransforms[i] = XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&bones[i]->mNode->mTransformation));
-		m_NodeNames[i] = bones[i]->mName.C_Str();
+		boneOffsets[i] = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&bones[i]->mOffsetMatrix));
+		defaultBoneTransforms[i] = XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&bones[i]->mNode->mTransformation));
+		nodeNames[i] = bones[i]->mName.C_Str();
 		if (idPerNode.contains(bones[i]->mNode->mParent))
 		{
-			m_ParentNodes[i] = idPerNode[bones[i]->mNode->mParent];
+			parentNodes[i] = idPerNode[bones[i]->mNode->mParent];
 		}
 	}
 
@@ -223,17 +228,17 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 		for (unsigned int j{}; j < m_TotalNumBones; j++)
 		{
 
-			if (animation.m_AnimNodeTransforms.contains(m_NodeNames[j])
-				&& i < animation.m_AnimNodeTransforms[m_NodeNames[j]].size())
+			if (animation.m_AnimNodeTransforms.contains(nodeNames[j])
+				&& i < animation.m_AnimNodeTransforms[nodeNames[j]].size())
 			{
-				m_FinalBoneTransforms.push_back(animation.m_AnimNodeTransforms[m_NodeNames[j]][i]);
+				m_FinalBoneTransforms.push_back(animation.m_AnimNodeTransforms[nodeNames[j]][i]);
 			}
 			else
 			{
-				m_FinalBoneTransforms.push_back(m_DefaultBoneTransforms[j]);
+				m_FinalBoneTransforms.push_back(defaultBoneTransforms[j]);
 			}
 
-			unsigned int parentId = m_ParentNodes[j];
+			unsigned int parentId = parentNodes[j];
 			if (parentId != -1)
 			{
 				m_FinalBoneTransforms.back() = m_FinalBoneTransforms[static_cast<size_t>(m_TotalNumBones) * i + parentId] * m_FinalBoneTransforms.back();
@@ -243,7 +248,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 		for (unsigned int j{}; j < m_TotalNumBones; j++)
 		{
 			const size_t id = static_cast<size_t>(m_TotalNumBones) * i + j;
-			m_FinalBoneTransforms[id] = m_FinalBoneTransforms[id] * m_boneOffsets[j];
+			m_FinalBoneTransforms[id] = m_FinalBoneTransforms[id] * boneOffsets[j];
 			m_FinalBoneTransforms[id] = rootNodeTransform * m_FinalBoneTransforms[id];
 		}
 	}
@@ -251,7 +256,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	// Create Vertex Buffers in SOA pattern
 
 	// Vertex buffer cant be empty
-	unsigned int vertexBufId = static_cast<unsigned int>(VertexElement::POSITION);
+	size_t vertexBufId = static_cast<size_t>(VertexElement::POSITION);
 	m_pVBufs[vertexBufId] = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_positions.data(), (UINT)v_positions.size() * m_VBuf_Strides[static_cast<int>(VertexElement::POSITION)]);
 	m_VBuf_Ptrs[vertexBufId] = m_pVBufs[vertexBufId].Get();
 
@@ -298,9 +303,9 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	m_pCBuf_VS_Blending = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(uint32_t[4]), 1000);
 	
 	// Save the pointers of Constant buffers, it is used to VSSetConstantBuffers()
-	m_CBuf_VS_Ptrs.push_back(m_pCBuf_VS_Worlds.Get());
-	m_CBuf_VS_Ptrs.push_back(m_pCBuf_VS_ViewProjection.Get());
-	m_CBuf_VS_Ptrs.push_back(m_pCBuf_VS_Blending.Get());
+	m_CBuf_VS_Ptrs[0] = m_pCBuf_VS_Worlds.Get();
+	m_CBuf_VS_Ptrs[1] = m_pCBuf_VS_ViewProjection.Get();
+	m_CBuf_VS_Ptrs[2] = m_pCBuf_VS_Blending.Get();
 
 	m_pSRV_VS_FinalBoneTransforms = KhanDx::CreateSRV_StaticStructBuf(m_pDevice.Get(), m_FinalBoneTransforms.data(), sizeof(DirectX::XMMATRIX), static_cast<uint32_t>(m_FinalBoneTransforms.size()));
 
@@ -351,9 +356,6 @@ void KhanRender::SkeletalMeshRenderer::Update(size_t numInstances, DirectX::XMMA
 		startBoneTransformLocations[i][0] = (animInfo.AnimationStartOffset + tick) * m_TotalNumBones;
 	}
 
-	//static auto startTimePoint = std::chrono::steady_clock::now();
-	//const auto endTimePoint = std::chrono::steady_clock::now();
-	//const std::chrono::duration<float> elipsedTime = endTimePoint - startTimePoint;
 	mappedResource = {};
 	m_pDeviceContext->Map(m_pCBuf_VS_Blending.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	std::memcpy(mappedResource.pData, startBoneTransformLocations.data(), sizeof(uint32_t[4]) * numInstances);
