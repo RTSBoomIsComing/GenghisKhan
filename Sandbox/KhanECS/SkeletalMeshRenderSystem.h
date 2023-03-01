@@ -28,7 +28,6 @@ namespace KhanECS::System
 		void Render();
 	private:
 		std::array<std::unique_ptr<KhanRender::SkeletalMeshRenderer>, static_cast<size_t>(RendererId::Max)> m_RendererList;
-
 	};
 }
 

@@ -1,8 +1,3 @@
-cbuffer CBuffer
-{
-	float4 size;
-};
-
 struct PS_INPUT
 {
 	float4 pos : SV_POSITION;
@@ -12,12 +7,11 @@ struct PS_INPUT
 
 float4 main(PS_INPUT input) : SV_TARGET
 {
-	float dx = 1.0f / size.x;
-	float dy = 1.0f / size.y;
-	
+	float dx = ddx(input.uv.x);
+	float dy = ddy(input.uv.y);
 	float x1 = input.uv.x;
 	float y1 = input.uv.y;
-	
+
 	if (x1 < dx || x1 > 1.0F - dx || y1 < dy || y1 > 1.0F - dy)
 	{
 		return float4(0.0f, 1.0f, 1.0f, 1.0f);

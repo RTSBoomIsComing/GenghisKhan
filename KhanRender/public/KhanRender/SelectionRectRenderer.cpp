@@ -14,7 +14,6 @@ KhanRender::SelectionRectRenderer::SelectionRectRenderer(const Renderer& rendere
 	m_pVertexShader = KhanDx::CreateVertexShader(m_pDevice.Get(), pBlob.Get());
 	m_pInputLayout = KhanDx::CreateInputLayout(m_pDevice.Get(), pBlob.Get(), elementDescs, ARRAYSIZE(elementDescs));
 
-	m_pPSDynConstBuf = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(DirectX::XMFLOAT4), 1);
 	m_pVSDynConstBuf = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(DirectX::XMFLOAT4X4), 1);
 
 	m_pBlendState = KhanDx::CreateBlendState_Alpha(m_pDevice.Get());
@@ -34,7 +33,6 @@ void KhanRender::SelectionRectRenderer::Render()
 	m_pDeviceContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0u);
 
 	m_pDeviceContext->VSSetConstantBuffers(0U, 1U, m_pVSDynConstBuf.GetAddressOf());
-	m_pDeviceContext->PSSetConstantBuffers(0U, 1U, m_pPSDynConstBuf.GetAddressOf());
 
 	m_pDeviceContext->RSSetState(m_pRasterizerState.Get());
 	m_pDeviceContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 1U);
@@ -70,8 +68,6 @@ void KhanRender::SelectionRectRenderer::Update(const RECT& rect, UINT m_screenWi
 	// max value of (y2 - y1) is (screen height - 1), so adjust to have max value of screen height
 	float rect_h = static_cast<float>(y2 - y1) * screen_h / (screen_h - 1);
 
-	XMFLOAT4 rectSize{ rect_w, rect_h, 0.f, 0.f };	// data to pixel shader constant buffer.
-
 	rect_w = rect_w * 2 / screen_w;
 	rect_h = rect_h * 2 / screen_h;
 	float pos_x = static_cast<float>(x1) * 2 / screen_w - 1.0F;
@@ -90,10 +86,4 @@ void KhanRender::SelectionRectRenderer::Update(const RECT& rect, UINT m_screenWi
 	m_pDeviceContext->Map(m_pVSDynConstBuf.Get(), 0U, D3D11_MAP_WRITE_DISCARD, 0U, &mappedResource_vs);
 	::memcpy(mappedResource_vs.pData, &rectTransform, sizeof(rectTransform));
 	m_pDeviceContext->Unmap(m_pVSDynConstBuf.Get(), 0U);
-
-	// Update pixel shader dynamic constant buffer.
-	D3D11_MAPPED_SUBRESOURCE mappedResource_ps{};
-	m_pDeviceContext->Map(m_pPSDynConstBuf.Get(), 0U, D3D11_MAP_WRITE_DISCARD, 0U, &mappedResource_ps);
-	::memcpy(mappedResource_ps.pData, &rectSize, sizeof(rectSize));
-	m_pDeviceContext->Unmap(m_pPSDynConstBuf.Get(), 0U);
 }
