@@ -63,10 +63,10 @@ void KhanRender::SelectionRectRenderer::Update(const RECT& rect, UINT m_screenWi
 	float screen_h = static_cast<float>(m_screenHeight);
 
 	// max value of (x2 - x1) is (screen width - 1), so adjust to have max value of screen width
-	float rect_w = static_cast<float>(x2 - x1) * screen_w / (screen_w - 1);
+	float rect_w = static_cast<float>(x2 - x1 + 1);
 
 	// max value of (y2 - y1) is (screen height - 1), so adjust to have max value of screen height
-	float rect_h = static_cast<float>(y2 - y1) * screen_h / (screen_h - 1);
+	float rect_h = static_cast<float>(y2 - y1 + 1);
 
 	rect_w = rect_w * 2 / screen_w;
 	rect_h = rect_h * 2 / screen_h;
