@@ -21,7 +21,7 @@ cbuffer ConstantsForBlending : register(b2)
 
 StructuredBuffer<matrix> FinalBoneTransforms : register(t0);
 
-struct VS_INPUT
+struct VS_IN
 {
 	float3 pos : POSITION;
 	float3 tex : TEXCOORD;
@@ -30,7 +30,7 @@ struct VS_INPUT
 	float4 blendWeights : BLENDWEIGHT;
 };
 
-struct VS_OUTPUT
+struct VS_OUT
 {
 	float4 pos : SV_POSITION;
 	float2 tex : TEXCOORD;
@@ -38,9 +38,9 @@ struct VS_OUTPUT
 	uint InstanceId : SV_InstanceID;
 };
 
-VS_OUTPUT main(VS_INPUT input, uint vertexID : SV_VertexID, uint InstanceId : SV_InstanceID)
+VS_OUT main(VS_IN input, uint vertexID : SV_VertexID, uint InstanceId : SV_InstanceID)
 {
-	VS_OUTPUT output;
+	VS_OUT output;
 	float4 accPosition = float4(0.0F, 0.0F, 0.0F, 0.0F);
 	float3 accNormal = float3(0.0F, 0.0F, 0.0F);
 
@@ -70,8 +70,8 @@ VS_OUTPUT main(VS_INPUT input, uint vertexID : SV_VertexID, uint InstanceId : SV
 		accPosition = float4(input.pos, 1.0F);
 		accNormal = input.normal;
 	}
-	
-	
+
+
 
 	const matrix World = Worlds[InstanceId];
 

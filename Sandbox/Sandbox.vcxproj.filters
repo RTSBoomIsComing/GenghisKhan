@@ -86,5 +86,7 @@
     <FxCompile Include="Shader\VS_3dModelFromAssimp.hlsl" />
     <FxCompile Include="Shader\SkeletalMesh_VS.hlsl" />
     <FxCompile Include="Shader\SkeletalMesh_PS.hlsl" />
+    <FxCompile Include="Shader\GridFloor_PS.hlsl" />
+    <FxCompile Include="Shader\GridFloor_VS.hlsl" />
   </ItemGroup>
 </Project>

@@ -7,6 +7,7 @@
 #include <KhanRender/SelectionRectRenderer.h>
 #include <KhanRender/CubeRenderer.h>
 #include <KhanRender/ImGuiRenderer.h>
+#include <KhanRender/GridFloorRenderer.h>
 #include <KhanRender/MeshRenderer.h>
 #include <KhanRender/SkeletalMeshRenderer.h>
 
@@ -28,8 +29,10 @@ Game2::Game2()
 	BindActionsToInput();
 	
 	m_SkeletalMeshRenderSystem = std::make_unique<KhanECS::System::SkeletalMeshRenderSystem>(m_mainRenderer);
+	m_GridFloorRenderer = std::make_unique<KhanRender::GridFloorRenderer>(m_mainRenderer);
 
 	m_imGuiRenderer = std::make_unique<KhanRender::ImGuiRenderer>(m_window_handle, m_mainRenderer, std::bind(&Game2::OnImGuiRender, this));
+
 	//m_cubeRenderer = std::make_unique<KhanRender::CubeRenderer>(m_mainRenderer);
 	//m_ArcherRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Paladin J Nordstrom.fbx");
 	//m_ArcherRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Archer\\Erika Archer With Bow Arrow.fbx");
@@ -49,19 +52,6 @@ Game2::Game2()
 		m_reg.emplace<KhanECS::Component::SkeletalMeshComponent>(e, KhanECS::System::SkeletalMeshRenderSystem::RendererId::Archer);
 		
 	}
-	//for (int i{}; i < 10; ++i)
-	//{
-	//	auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ (float)die(gen), 0.0F, 500.0F + die(gen) });
-	//	m_reg.emplace<KhanECS::Component::Paladin>(e);
-	//}
-	//for (int i{}; i < 10; ++i)
-	//{
-	//	auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ (float)die(gen), 0.0F, 500.0F + die(gen) });
-	//	m_reg.emplace<KhanECS::Component::Knight>(e);
-	//}
-
-	//auto e = KhanECS::Entity::MakeCube(m_reg, XMFLOAT3{0.0F, 0.0F, 10.0F});
-	//m_reg.emplace<KhanECS::Component::Archer>(e);
 }
 
 Game2::~Game2() noexcept
@@ -71,54 +61,19 @@ Game2::~Game2() noexcept
 void Game2::Run()
 {
 	using namespace DirectX;
-	using namespace entt::literals;
-	
+
 	static auto prevTimePoint = std::chrono::steady_clock::now();
 	const auto currTimePoint = std::chrono::steady_clock::now();
 	const std::chrono::duration<float> deltaTime = currTimePoint - prevTimePoint;
 	prevTimePoint = currTimePoint;
 
-	POINT pt = m_input.mouse.GetPosition<MouseEvent::LEFT_DOWN>();
-	selectionRect.left = pt.x;
-	selectionRect.top = pt.y;
-
-	m_MouseMoveRelative = m_input.mouse.GetPosition<MouseEvent::RelativeMove>();
-
-	// camera control by mouse
-	m_cameraVelocity = {};
-	if (m_input.keyboard.KeyStates[VK_MENU])
-	{
-		pt = m_MouseCursorPos;
-		::ClientToScreen(m_window_handle, &pt);
-		::SetCursorPos(pt.x, pt.y);
-		m_isSelectionRectDrawing = false;
-		m_cameraRotation.x += m_MouseMoveRelative.y * 0.002F;
-		m_cameraRotation.y += m_MouseMoveRelative.x * 0.001F;
-	}
-	else
-	{
-		m_MouseCursorPos = m_input.mouse.GetPosition<MouseEvent::MOVE>();
-		selectionRect.right = m_MouseCursorPos.x;
-		selectionRect.bottom = m_MouseCursorPos.y;
-
-		if (m_isMouseLocked)
-		{
-			if (m_MouseCursorPos.x == 0) { m_cameraVelocity.x += -1.0F; }
-			if (m_MouseCursorPos.y == 0) { m_cameraVelocity.y += +1.0F; }
-			if (m_MouseCursorPos.x == m_window_width - 1) { m_cameraVelocity.x += +1.0F; }
-			if (m_MouseCursorPos.y == m_window_height - 1) { m_cameraVelocity.y += -1.0F; }
-		}
-	}
-
-	// camera control by keyboard
-	if (m_input.keyboard.KeyStates['A']) { m_cameraVelocity.x += -1.0F; }
-	if (m_input.keyboard.KeyStates['D']) { m_cameraVelocity.x += +1.0F; }
-	if (m_input.keyboard.KeyStates['S']) { m_cameraVelocity.y += -1.0F; }
-	if (m_input.keyboard.KeyStates['W']) { m_cameraVelocity.y += +1.0F; }
+	ProcessInput();
+	
 
 	KhanECS::System::SetCameraRotation(m_reg, m_cameraRotation);
 	KhanECS::System::MouseEdgeScroll(m_reg, m_cameraVelocity);
 
+	m_GridFloorRenderer->Update(XMMatrixInverse(nullptr, KhanECS::System::GetViewProjectionMatrix(m_reg)));
 	m_SkeletalMeshRenderSystem->Update(deltaTime.count(), m_reg);
 	//worldMatrices = KhanECS::System::GetWorldMatrices<KhanECS::Component::Paladin>(m_reg);
 	//m_PaladinRenderer->Update(worldMatrices, viewProjMat);
@@ -130,6 +85,7 @@ void Game2::Run()
 
 	m_mainRenderer.RenderBegin(clear_color);
 	m_SkeletalMeshRenderSystem->Render();
+	m_GridFloorRenderer->Render();
 	//m_cubeRenderer->Render();
 	//m_ArcherRenderer->Render();
 	//m_PaladinRenderer->Render();
@@ -252,4 +208,45 @@ void Game2::BindActionsToInput() noexcept
 		::SetCursorPos(pt.x, pt.y);
 		while (::ShowCursor(true) < 0);
 	};
+}
+
+void Game2::ProcessInput() noexcept
+{
+	POINT pt = m_input.mouse.GetPosition<MouseEvent::LEFT_DOWN>();
+	selectionRect.left = pt.x;
+	selectionRect.top = pt.y;
+
+	m_MouseMoveRelative = m_input.mouse.GetPosition<MouseEvent::RelativeMove>();
+
+	// camera control by mouse
+	m_cameraVelocity = {};
+	if (m_input.keyboard.KeyStates[VK_MENU])
+	{
+		pt = m_MouseCursorPos;
+		::ClientToScreen(m_window_handle, &pt);
+		::SetCursorPos(pt.x, pt.y);
+		m_isSelectionRectDrawing = false;
+		m_cameraRotation.x += m_MouseMoveRelative.y * 0.002F;
+		m_cameraRotation.y += m_MouseMoveRelative.x * 0.001F;
+	}
+	else
+	{
+		m_MouseCursorPos = m_input.mouse.GetPosition<MouseEvent::MOVE>();
+		selectionRect.right = m_MouseCursorPos.x;
+		selectionRect.bottom = m_MouseCursorPos.y;
+
+		if (m_isMouseLocked)
+		{
+			if (m_MouseCursorPos.x == 0) { m_cameraVelocity.x += -1.0F; }
+			if (m_MouseCursorPos.y == 0) { m_cameraVelocity.y += +1.0F; }
+			if (m_MouseCursorPos.x == m_window_width - 1) { m_cameraVelocity.x += +1.0F; }
+			if (m_MouseCursorPos.y == m_window_height - 1) { m_cameraVelocity.y += -1.0F; }
+		}
+	}
+
+	// camera control by keyboard
+	if (m_input.keyboard.KeyStates['A']) { m_cameraVelocity.x += -1.0F; }
+	if (m_input.keyboard.KeyStates['D']) { m_cameraVelocity.x += +1.0F; }
+	if (m_input.keyboard.KeyStates['S']) { m_cameraVelocity.y += -1.0F; }
+	if (m_input.keyboard.KeyStates['W']) { m_cameraVelocity.y += +1.0F; }
 }

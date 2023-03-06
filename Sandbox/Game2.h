@@ -12,8 +12,7 @@ namespace KhanRender
 {
 	class ImGuiRenderer;
 	class CubeRenderer;
-	class MeshRenderer;
-	class SkeletalMeshRenderer;
+	class GridFloorRenderer;
 }
 
 namespace KhanECS::System
@@ -34,14 +33,14 @@ public:
 
 protected:
 	void BindActionsToInput() noexcept;
+	void ProcessInput() noexcept;
 
 protected:
 	KhanRender::MainRenderer m_mainRenderer;
 	std::unique_ptr <KhanRender::ImGuiRenderer> m_imGuiRenderer;
 	std::unique_ptr <KhanRender::CubeRenderer> m_cubeRenderer;
-	//std::unique_ptr <KhanRender::SkeletalMeshRenderer> m_ArcherRenderer;
-	//std::unique_ptr <KhanRender::SkeletalMeshRenderer> m_KnightRenderer;
-	//std::unique_ptr <KhanRender::SkeletalMeshRenderer> m_PaladinRenderer;
+	std::unique_ptr <KhanRender::GridFloorRenderer> m_GridFloorRenderer;
+
 	std::unique_ptr<KhanECS::System::SkeletalMeshRenderSystem> m_SkeletalMeshRenderSystem;
 protected:
 	entt::registry m_reg;

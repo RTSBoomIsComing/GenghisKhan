@@ -15,7 +15,7 @@ namespace KhanECS::Component
 		float aspectRatio = 4.0F / 3;
 		float fovAngleY = DirectX::XM_PI / 2;
 		float nearZ = 1.0F;
-		float farZ = std::numeric_limits<float>::max();
+		float farZ = 10000.0F;
 	};
 }
 

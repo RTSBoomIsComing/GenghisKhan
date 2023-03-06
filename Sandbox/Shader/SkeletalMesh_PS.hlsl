@@ -1,4 +1,4 @@
-struct VS_OUTPUT
+struct PS_IN
 {
 	float4 pos : SV_POSITION;
 	float2 uv : TEXCOORD;
@@ -16,7 +16,7 @@ struct Light
 Texture2D g_MeshTexture : register(t0);
 SamplerState g_Sampler;
 
-float4 main(VS_OUTPUT input) : SV_TARGET
+float4 main(PS_IN input) : SV_TARGET
 {
 	Light light;
 	light.dir     = float3(0.0F, -1.0F, 0.0F);
@@ -30,5 +30,4 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 	color += saturate(dot(-light.dir, input.normal) * light.diffuse * base.xyz);
 
 	return float4(color, 1.0F);
-	//return base;
 }
