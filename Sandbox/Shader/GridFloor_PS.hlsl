@@ -6,31 +6,33 @@ cbuffer ConstantsOthers : register(b0)
 struct PS_IN
 {
 	float4 pos : SV_POSITION;
+	float2 uv : TEXCOORD;
 };
 
 float4 main(PS_IN input) : SV_TARGET
 {
-	float4 near = float4(input.pos.xy, 0.0F, 1.0F);		// (x, y, 0.0, 1.0)
-	float4 far = float4(input.pos.xy, 1.0F, 1.0F);	// (x, y, 1.0, 1.0)
+	// note : this uv range is (-1, 1), not (0, 1)
+	// this uv is not used for texcoord 
+	float4 near = float4(input.uv, 0.0F, 1.0F);		// (x, y, 0.0, 1.0)
+	float4 far  = float4(input.uv, 1.0F, 1.0F);	// (x, y, 1.0, 1.0)
 
 	// calculate near(start) point of ray 
 	near = mul(near, InverseViewProjection);
-	near = near.xyzw / near.w;
+	near = near / near.w;
 
 	// calculate far(end) point of ray
 	far = mul(far, InverseViewProjection);
-	far = far.xyzw / far.w;
+	far = far / far.w;
 
 	// equation, y = near.y + t * (far.y - near.y)
 	// t is weight for interpolation
 	// if y is 0, t = -near.y / (far.y - near.y)
-	// the condition (y is 0) means that a point interpolated by t would be on a plane
+	// the condition (y is 0) means that a point interpolated by t would be on a floor
 
 	float t = -near.y / (far.y - near.y);
-
 	float4 intersection = near + t * (far - near);
 	
-	float scale = 10.0F;
+	float scale = 0.01F;
 	float2 floorCoords = intersection.xz * scale;
 	float2 derivative = fwidth(floorCoords);
 
@@ -44,16 +46,6 @@ float4 main(PS_IN input) : SV_TARGET
 	float2 grid = abs(frac(floorCoords - 0.5F) - 0.5F) / derivative;
 	float gridLine = min(grid.x, grid.y);
 
-	float minimumx = min(derivative.x, 1);
-	float minimumz = min(derivative.y, 1);
 	float4 color = float4(0.2, 0.2, 0.2, 1.0 - min(gridLine, 1.0));
-	// z axis
-	if (intersection.x > -0.1 * minimumx && intersection.x < 0.1 * minimumx)
-		color.z = 1.0;
-	// x axis
-	if (intersection.z > -0.1 * minimumz && intersection.z < 0.1 * minimumz)
-		color.x = 1.0;	
-
-	color = float4(1.0F, 0.0F, 0.0F, 0.2F);
-	return color * float(t > 0);
+	return color * float(t > 0.0F);
 }

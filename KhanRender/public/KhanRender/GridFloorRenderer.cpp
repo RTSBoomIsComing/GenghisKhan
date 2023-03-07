@@ -24,17 +24,17 @@ void KhanRender::GridFloorRenderer::Render()
 {
 	UINT Stride = sizeof(Vertex);
 	UINT offset{};
-	m_pDeviceContext->IASetVertexBuffers(0U, 1U, m_pVertexBuffer.GetAddressOf(), &Stride, &offset);
+	m_pDeviceContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &Stride, &offset);
 	m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	m_pDeviceContext->IASetInputLayout(m_pInputLayout.Get());
 
-	m_pDeviceContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0u);
-	m_pDeviceContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0u);
+	m_pDeviceContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
+	m_pDeviceContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
 
-	m_pDeviceContext->PSSetConstantBuffers(0U, 1U, m_pPSDynConstBuf.GetAddressOf());
+	m_pDeviceContext->PSSetConstantBuffers(0, 1, m_pPSDynConstBuf.GetAddressOf());
 
 	m_pDeviceContext->RSSetState(m_pRasterizerState.Get());
-	m_pDeviceContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 1U);
+	m_pDeviceContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 1);
 	m_pDeviceContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xFFFFFFFF);
 	m_pDeviceContext->Draw(ARRAYSIZE(vertices), 0);
 }
@@ -46,7 +46,7 @@ void KhanRender::GridFloorRenderer::Update(DirectX::XMMATRIX const& inverseViewP
 	XMMATRIX inverseViewProjMat_transposed = XMMatrixTranspose(inverseViewProjMat);
 	// Update pixel shader dynamic constant buffer.
 	D3D11_MAPPED_SUBRESOURCE mappedResource{};
-	m_pDeviceContext->Map(m_pPSDynConstBuf.Get(), 0U, D3D11_MAP_WRITE_DISCARD, 0U, &mappedResource);
-	::memcpy(mappedResource.pData, &inverseViewProjMat_transposed, sizeof(inverseViewProjMat_transposed));
-	m_pDeviceContext->Unmap(m_pPSDynConstBuf.Get(), 0U);
+	m_pDeviceContext->Map(m_pPSDynConstBuf.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	std::memcpy(mappedResource.pData, &inverseViewProjMat_transposed, sizeof(inverseViewProjMat_transposed));
+	m_pDeviceContext->Unmap(m_pPSDynConstBuf.Get(), 0);
 }

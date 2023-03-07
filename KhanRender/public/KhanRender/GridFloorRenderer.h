@@ -30,10 +30,10 @@ namespace KhanRender
 
 		inline static const Vertex vertices[4]
 		{
-			DirectX::XMFLOAT3{ -1.0f,  1.0f,  0.0f },	DirectX::XMFLOAT2{ 0.0f, 0.0f },
-			DirectX::XMFLOAT3{  1.0f,  1.0f,  0.0f },	DirectX::XMFLOAT2{ 1.0f, 0.0f },
-			DirectX::XMFLOAT3{ -1.0f, -1.0f,  0.0f },	DirectX::XMFLOAT2{ 0.0f, 1.0f },
-			DirectX::XMFLOAT3{  1.0f, -1.0f,  0.0f },	DirectX::XMFLOAT2{ 1.0f, 1.0f },
+			DirectX::XMFLOAT3{ -1.0f,  1.0f,  0.0f },	DirectX::XMFLOAT2{ -1.0f,  1.0f },
+			DirectX::XMFLOAT3{  1.0f,  1.0f,  0.0f },	DirectX::XMFLOAT2{  1.0f,  1.0f },
+			DirectX::XMFLOAT3{ -1.0f, -1.0f,  0.0f },	DirectX::XMFLOAT2{ -1.0f, -1.0f },
+			DirectX::XMFLOAT3{  1.0f, -1.0f,  0.0f },	DirectX::XMFLOAT2{  1.0f, -1.0f },
 		};
 
 		const D3D11_INPUT_ELEMENT_DESC elementDescs[2]

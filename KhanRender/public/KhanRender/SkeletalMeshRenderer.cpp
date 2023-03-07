@@ -333,12 +333,11 @@ void KhanRender::SkeletalMeshRenderer::Update(size_t numInstances, DirectX::XMMA
 	m_pDeviceContext->Unmap(m_pCBuf_VS_Worlds.Get(), 0);
 
 	// ConstantBuffer for View-Projection matrix
-	XMMATRIX viewProjMatTransposed{};
-	viewProjMatTransposed = XMMatrixTranspose(viewProjMat);
+	XMMATRIX viewProjMatTransposed = XMMatrixTranspose(viewProjMat);
 	
 	mappedResource = {};
 	m_pDeviceContext->Map(m_pCBuf_VS_ViewProjection.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	std::memcpy(mappedResource.pData, &viewProjMatTransposed, sizeof(XMFLOAT4X4));
+	std::memcpy(mappedResource.pData, &viewProjMatTransposed, sizeof(XMMATRIX));
 	m_pDeviceContext->Unmap(m_pCBuf_VS_ViewProjection.Get(), 0);
 
 

@@ -49,9 +49,9 @@ Game2::Game2()
 	{
 		auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ die(gen), 0.0F, 500.0F + die(gen) });
 		m_reg.emplace<KhanECS::Component::Archer>(e);
-		m_reg.emplace<KhanECS::Component::SkeletalMeshComponent>(e, KhanECS::System::SkeletalMeshRenderSystem::RendererId::Archer);
-		
+		m_reg.emplace<KhanECS::Component::SkeletalMeshComponent>(e, KhanECS::System::SkeletalMeshRenderSystem::RendererId::Archer);	
 	}
+
 }
 
 Game2::~Game2() noexcept
