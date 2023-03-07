@@ -9,8 +9,15 @@ struct PS_IN
 	float2 uv : TEXCOORD;
 };
 
-float4 main(PS_IN input) : SV_TARGET
+struct PS_OUT
 {
+	float4 color : SV_TARGET;
+	float depth : SV_DEPTH;
+};
+
+PS_OUT main(PS_IN input)
+{
+	PS_OUT output = (PS_OUT)0;
 	// note : this uv range is (-1, 1), not (0, 1)
 	// this uv is not used for texcoord 
 	float4 near = float4(input.uv, 0.0F, 1.0F);		// (x, y, 0.0, 1.0)
@@ -32,9 +39,11 @@ float4 main(PS_IN input) : SV_TARGET
 	float t = -near.y / (far.y - near.y);
 	float4 intersection = near + t * (far - near);
 	
-	float scale = 0.01F;
-	float2 floorCoords = intersection.xz * scale;
-	float2 derivative = fwidth(floorCoords);
+	float scale = 0.01F; // grid interval is 100.0F
+	float2 floorPos = intersection.xz * scale;
+	float2 derivative = fwidth(floorPos);
+	clip(0.5F - t);
+	clip(t);
 
 	// talk bouat frac(x - 0.5F) - 0.5F,
 	// frac function calculate x - floor(x),
@@ -43,9 +52,11 @@ float4 main(PS_IN input) : SV_TARGET
 	// then frac(x - 0.5F) - 0.5F do what we want
 	// if x = -1.4F, frac(-1.4F - 0.5F) = frac(-1.9F) = -1.9F - (-2.0F) = 0.1F
 	// frac(-1.4F - 0.5F) - 0.5F = 0.1F - 0.5F = -0.4F, that is exactly we expected
-	float2 grid = abs(frac(floorCoords - 0.5F) - 0.5F) / derivative;
+	float2 grid = abs(frac(floorPos - 0.5F) - 0.5F) / derivative;
 	float gridLine = min(grid.x, grid.y);
+	output.color = float4(1.0, 1.0, 1.0, 1.0 - min(gridLine, 1.0)) * (0.5F - t);
 
-	float4 color = float4(0.2, 0.2, 0.2, 1.0 - min(gridLine, 1.0));
-	return color * float(t > 0.0F);
+	float rayZ = length(intersection - near);
+	output.depth = rayZ / (rayZ + 1);
+	return output;
 }
