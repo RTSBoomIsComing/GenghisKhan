@@ -42,19 +42,24 @@ PS_OUT main(PS_IN input)
 	float scale = 0.01F; // grid interval is 100.0F
 	float2 floorPos = intersection.xz * scale;
 	float2 derivative = fwidth(floorPos);
-	clip(0.5F - t);
-	clip(t);
 
-	// talk bouat frac(x - 0.5F) - 0.5F,
+	clip(1.0F - t);	// Clip if a intersection point is farther than far point.
+	clip(t);		// Clip if there is no intersection.
+	clip(2.0F - derivative);	// If a intersection point is far away, it will be drawn very small.
+								// So clip it.
+
+	// talk about frac(x - 0.5F) - 0.5F,
 	// frac function calculate x - floor(x),
 	// if x < 0, e.g x = -1.4F, floor(-1.4F) = -2.0F, so frac(-1.4F) = -1.4F - (-2.0F) = 0.6F
 	// that is not we expected, we want -0.4F for frac(-1.4F)
 	// then frac(x - 0.5F) - 0.5F do what we want
 	// if x = -1.4F, frac(-1.4F - 0.5F) = frac(-1.9F) = -1.9F - (-2.0F) = 0.1F
 	// frac(-1.4F - 0.5F) - 0.5F = 0.1F - 0.5F = -0.4F, that is exactly we expected
-	float2 grid = abs(frac(floorPos - 0.5F) - 0.5F) / derivative;
+	float2 grid = abs(frac(floorPos - 0.5F) - 0.5F) / (derivative * 2);
 	float gridLine = min(grid.x, grid.y);
-	output.color = float4(1.0, 1.0, 1.0, 1.0 - min(gridLine, 1.0)) * (0.5F - t);
+	float3 color = float3(1.0F, 1.0F, 1.0F) * pow(1.0F - t, 4); // anti-aliasing
+	float alpha = (1.0 - min(gridLine, 1.0)) * pow(1.0F - t, 4); // anti-aliasing
+	output.color = float4(color, alpha);
 
 	float rayZ = length(intersection - near);
 	output.depth = rayZ / (rayZ + 1);
