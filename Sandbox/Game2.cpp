@@ -34,26 +34,19 @@ Game2::Game2()
 
 	m_SkeletalMeshRenderSystem = std::make_unique<KhanECS::System::SkeletalMeshRenderSystem>();
 
-
 	//m_cubeRenderer = std::make_unique<KhanRender::CubeRenderer>(m_mainRenderer);
-	//m_ArcherRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Paladin J Nordstrom.fbx");
-	//m_ArcherRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Archer\\Erika Archer With Bow Arrow.fbx");
-	//m_KnightRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Knight D Pelegrini.fbx");
-	//m_PaladinRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Paladin J Nordstrom.fbx");
 
 	auto entity = KhanECS::Entity::MakeCamera(m_reg);
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<float> die(-1500.0F, 1500.0F);
-
 	for (int i{}; i < 100; ++i)
 	{
 		auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ die(gen), 0.0F, 500.0F + die(gen) });
 		m_reg.emplace<KhanECS::Component::Archer>(e);
 		m_reg.emplace<KhanECS::Component::SkeletalMeshComponent>(e, m_SkeletalMeshRenderer_Archer);	
 	}
-
 }
 
 Game2::~Game2() noexcept
@@ -77,20 +70,13 @@ void Game2::Run()
 
 	m_GridFloorRenderer->Update(XMMatrixInverse(nullptr, KhanECS::System::GetViewProjectionMatrix(m_reg)));
 	m_SkeletalMeshRenderSystem->Update(deltaTime.count(), m_reg);
-	//worldMatrices = KhanECS::System::GetWorldMatrices<KhanECS::Component::Paladin>(m_reg);
-	//m_PaladinRenderer->Update(worldMatrices, viewProjMat);
 
-	//worldMatrices = KhanECS::System::GetWorldMatrices<KhanECS::Component::Knight>(m_reg);
-	//m_KnightRenderer->Update(worldMatrices, viewProjMat);
-	//m_cubeRenderer->Update(worldMatrices, viewProjMat);
-
+	// update renderer, upload data from cpu(system memory) to gpu(video memory)
 	m_SkeletalMeshRenderer_Archer->Update(KhanECS::System::GetViewProjectionMatrix(m_reg));
+
+	// start rendering
 	m_mainRenderer.RenderBegin(clear_color);
 	m_SkeletalMeshRenderer_Archer->Render();
-	//m_cubeRenderer->Render();
-	//m_ArcherRenderer->Render();
-	//m_PaladinRenderer->Render();
-	//m_KnightRenderer->Render();
 	m_GridFloorRenderer->Render();
 
 	static auto selectionRect_renderer = KhanRender::SelectionRectRenderer(m_mainRenderer);
