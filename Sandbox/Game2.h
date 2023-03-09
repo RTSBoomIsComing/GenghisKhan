@@ -13,6 +13,7 @@ namespace KhanRender
 	class ImGuiRenderer;
 	class CubeRenderer;
 	class GridFloorRenderer;
+	class SkeletalMeshRenderer;
 }
 
 namespace KhanECS::System
@@ -41,6 +42,7 @@ protected:
 	std::unique_ptr <KhanRender::CubeRenderer> m_cubeRenderer;
 	std::unique_ptr <KhanRender::GridFloorRenderer> m_GridFloorRenderer;
 
+	std::shared_ptr<KhanRender::SkeletalMeshRenderer> m_SkeletalMeshRenderer_Archer;
 	std::unique_ptr<KhanECS::System::SkeletalMeshRenderSystem> m_SkeletalMeshRenderSystem;
 protected:
 	entt::registry m_reg;

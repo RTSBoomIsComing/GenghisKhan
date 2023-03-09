@@ -28,10 +28,12 @@ Game2::Game2()
 {
 	BindActionsToInput();
 	
-	m_SkeletalMeshRenderSystem = std::make_unique<KhanECS::System::SkeletalMeshRenderSystem>(m_mainRenderer);
+	m_SkeletalMeshRenderer_Archer = std::make_shared<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Archer\\Erika Archer With Bow Arrow.fbx");
 	m_GridFloorRenderer = std::make_unique<KhanRender::GridFloorRenderer>(m_mainRenderer);
-
 	m_imGuiRenderer = std::make_unique<KhanRender::ImGuiRenderer>(m_window_handle, m_mainRenderer, std::bind(&Game2::OnImGuiRender, this));
+
+	m_SkeletalMeshRenderSystem = std::make_unique<KhanECS::System::SkeletalMeshRenderSystem>();
+
 
 	//m_cubeRenderer = std::make_unique<KhanRender::CubeRenderer>(m_mainRenderer);
 	//m_ArcherRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Paladin J Nordstrom.fbx");
@@ -49,7 +51,7 @@ Game2::Game2()
 	{
 		auto e = KhanECS::Entity::MakeCharacter(m_reg, XMFLOAT3{ die(gen), 0.0F, 500.0F + die(gen) });
 		m_reg.emplace<KhanECS::Component::Archer>(e);
-		m_reg.emplace<KhanECS::Component::SkeletalMeshComponent>(e, KhanECS::System::SkeletalMeshRenderSystem::RendererId::Archer);	
+		m_reg.emplace<KhanECS::Component::SkeletalMeshComponent>(e, m_SkeletalMeshRenderer_Archer);	
 	}
 
 }
@@ -82,14 +84,14 @@ void Game2::Run()
 	//m_KnightRenderer->Update(worldMatrices, viewProjMat);
 	//m_cubeRenderer->Update(worldMatrices, viewProjMat);
 
-
+	m_SkeletalMeshRenderer_Archer->Update(KhanECS::System::GetViewProjectionMatrix(m_reg));
 	m_mainRenderer.RenderBegin(clear_color);
-	m_SkeletalMeshRenderSystem->Render();
-	m_GridFloorRenderer->Render();
+	m_SkeletalMeshRenderer_Archer->Render();
 	//m_cubeRenderer->Render();
 	//m_ArcherRenderer->Render();
 	//m_PaladinRenderer->Render();
 	//m_KnightRenderer->Render();
+	m_GridFloorRenderer->Render();
 
 	static auto selectionRect_renderer = KhanRender::SelectionRectRenderer(m_mainRenderer);
 	if (m_isSelectionRectDrawing && m_isMouseLocked)
@@ -111,8 +113,9 @@ void Game2::OnResizeWindow(UINT width, UINT height) noexcept
 	auto view = m_reg.view<KhanECS::Component::CameraProjectionInfo>();
 	for (auto& e : view)
 	{
-		auto& cameraProjectionInfo = view.get<KhanECS::Component::CameraProjectionInfo>(e);
-		cameraProjectionInfo.aspectRatio = m_aspectRatio;
+		auto& projInfo = view.get<KhanECS::Component::CameraProjectionInfo>(e);
+		projInfo.aspectRatio = m_aspectRatio;
+		projInfo.ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH(projInfo.fovAngleY, projInfo.aspectRatio, projInfo.nearZ, projInfo.farZ);
 	}
 }
 

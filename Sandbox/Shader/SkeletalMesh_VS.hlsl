@@ -13,10 +13,8 @@ cbuffer ConstantsOthers : register(b1)
 
 cbuffer ConstantsForBlending : register(b2)
 {
-	uint StartBoneTransformLocations[MAX_INSTSANCES];
-	uint unused_0;
-	uint unused_1;
-	uint unused_2;
+	uint4 StartBoneTransformLocations[MAX_INSTSANCES / 4];
+
 }
 
 StructuredBuffer<matrix> FinalBoneTransforms : register(t0);
@@ -51,7 +49,7 @@ VS_OUT main(VS_IN input, uint vertexID : SV_VertexID, uint InstanceId : SV_Insta
 
 		if (blendWeight == 0.0F) { break; } // early break, but this is not neccessary, without this, shader work correctly
 		
-		const matrix boneTransform = FinalBoneTransforms[StartBoneTransformLocations[InstanceId] + affectingBoneId] * blendWeight;
+		const matrix boneTransform = FinalBoneTransforms[StartBoneTransformLocations[InstanceId/4][InstanceId%4] + affectingBoneId] * blendWeight;
 		
 
 		const float4 localPosition = mul(float4(input.pos, 1.0F), boneTransform);

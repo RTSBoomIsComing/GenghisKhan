@@ -12,10 +12,11 @@ namespace KhanECS::Component
 	struct Camera : EntityName {};
 	struct CameraProjectionInfo
 	{
-		float aspectRatio = 4.0F / 3;
-		float fovAngleY = DirectX::XM_PI / 2;
-		float nearZ = 1.0F;
-		float farZ = 10000.0F;
+		float aspectRatio	= 4.0F / 3;
+		float fovAngleY		= DirectX::XM_PI / 2;
+		float nearZ			= 1.0F;
+		float farZ			= 10000.0F;
+		DirectX::XMMATRIX ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, nearZ, farZ);
 	};
 }
 

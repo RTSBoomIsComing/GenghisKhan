@@ -221,7 +221,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	KhanAnim::SkeletalAnimation animation{ "D:\\Assets\\Mixamo\\Archer\\standing draw arrow.fbx" };
 	m_AnimationInfos.emplace_back(accNumBoneTransforms, animation.m_Duration, animation.m_TicksPerSecond);
 	accNumBoneTransforms += animation.m_Duration * m_TotalNumBones;
-	
+
 	m_FinalBoneTransforms.reserve(static_cast<size_t>(accNumBoneTransforms));
 	for (unsigned int i{}; i < animation.m_Duration; i++)
 	{
@@ -300,8 +300,8 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	// Create Constant bufferes
 	m_pCBuf_VS_Worlds = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(XMMATRIX), 1000);
 	m_pCBuf_VS_ViewProjection = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(XMMATRIX), 1);
-	m_pCBuf_VS_Blending = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(uint32_t[4]), 1000);
-	
+	m_pCBuf_VS_Blending = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(uint32_t), 1000);
+
 	// Save the pointers of Constant buffers, it is used to VSSetConstantBuffers()
 	m_CBuf_VS_Ptrs[0] = m_pCBuf_VS_Worlds.Get();
 	m_CBuf_VS_Ptrs[1] = m_pCBuf_VS_ViewProjection.Get();
@@ -315,50 +315,57 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	m_pSamplerState = KhanDx::CreateSamplerState_Basic(m_pDevice.Get());
 }
 
-void KhanRender::SkeletalMeshRenderer::Update(size_t numInstances, DirectX::XMMATRIX const* worldMats, const uint32_t* AnimationIds, const float* runningTimes, DirectX::XMMATRIX const& viewProjMat)
+size_t KhanRender::SkeletalMeshRenderer::AddInstance(DirectX::XMMATRIX const& worldMatrix, const uint32_t AnimationId, const float runningTime)
+{
+	using namespace DirectX;
+	m_InstanceWorldMatrices.push_back(XMMatrixTranspose(worldMatrix));
+
+	unsigned int animId = AnimationId;
+	if (animId >= m_AnimationInfos.size())
+	{
+		KHAN_ERROR("Out of range, AnimationId");
+		DebugBreak();
+	}
+
+	const auto& animInfo = m_AnimationInfos[animId];
+	const uint32_t tick = static_cast<uint32_t>(runningTime * animInfo.TicksPerSecond) % animInfo.Durations;
+
+	m_InstanceBoneTransformStartLocations.push_back((animInfo.AnimationStartOffset + tick) * m_TotalNumBones);
+
+
+	return m_InstanceWorldMatrices.size();
+}
+
+void KhanRender::SkeletalMeshRenderer::Update(DirectX::XMMATRIX const& viewProjMat)
 {
 	using namespace DirectX;
 
-	// ConstantBuffer for World matrices. These matrices are used for instancing
-	m_NumInstances = static_cast<uint32_t>(numInstances);
-	std::vector <XMMATRIX> worldMatsTransposed(numInstances);
-	for (unsigned int i{}; i < numInstances; i++)
-	{
-		worldMatsTransposed[i] = XMMatrixTranspose(worldMats[i]);
-	}
-
-	D3D11_MAPPED_SUBRESOURCE mappedResource{};
-	m_pDeviceContext->Map(m_pCBuf_VS_Worlds.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	std::memcpy(mappedResource.pData, worldMatsTransposed.data(), sizeof(XMMATRIX) * m_NumInstances);
-	m_pDeviceContext->Unmap(m_pCBuf_VS_Worlds.Get(), 0);
-
 	// ConstantBuffer for View-Projection matrix
 	XMMATRIX viewProjMatTransposed = XMMatrixTranspose(viewProjMat);
-	
-	mappedResource = {};
+
+	D3D11_MAPPED_SUBRESOURCE mappedResource{};
 	m_pDeviceContext->Map(m_pCBuf_VS_ViewProjection.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	std::memcpy(mappedResource.pData, &viewProjMatTransposed, sizeof(XMMATRIX));
 	m_pDeviceContext->Unmap(m_pCBuf_VS_ViewProjection.Get(), 0);
 
 
-	std::vector<std::array<unsigned int, 4>> startBoneTransformLocations(numInstances);
-	for (unsigned int i{}; i < numInstances; i++)
-	{
-		unsigned int animId = AnimationIds[i];
-		if (animId >= m_AnimationInfos.size())
-		{
-			KHAN_ERROR("Out of range, AnimationId");
-			DebugBreak();
-		}
-		const auto& animInfo = m_AnimationInfos[animId];
-		const uint32_t tick = static_cast<uint32_t>(runningTimes[i] * animInfo.TicksPerSecond) % animInfo.Durations;
-		startBoneTransformLocations[i][0] = (animInfo.AnimationStartOffset + tick) * m_TotalNumBones;
-	}
+	// ConstantBuffer for World matrices. These matrices are used for instancing
+	m_NumInstances = static_cast<uint32_t>(m_InstanceWorldMatrices.size());
+
+	mappedResource = {};
+	m_pDeviceContext->Map(m_pCBuf_VS_Worlds.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	std::memcpy(mappedResource.pData, m_InstanceWorldMatrices.data(), sizeof(XMMATRIX) * m_NumInstances);
+	m_pDeviceContext->Unmap(m_pCBuf_VS_Worlds.Get(), 0);
+
+
 
 	mappedResource = {};
 	m_pDeviceContext->Map(m_pCBuf_VS_Blending.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	std::memcpy(mappedResource.pData, startBoneTransformLocations.data(), sizeof(uint32_t[4]) * numInstances);
+	std::memcpy(mappedResource.pData, m_InstanceBoneTransformStartLocations.data(), sizeof(uint32_t[4]) * m_NumInstances);
 	m_pDeviceContext->Unmap(m_pCBuf_VS_Blending.Get(), 0);
+
+	m_InstanceWorldMatrices.resize(0);
+	m_InstanceBoneTransformStartLocations.resize(0);
 }
 
 void KhanRender::SkeletalMeshRenderer::Render()
@@ -385,4 +392,6 @@ void KhanRender::SkeletalMeshRenderer::Render()
 		m_pDeviceContext->PSSetShaderResources(0, 1, meshInfo.m_pSRV.GetAddressOf());
 		m_pDeviceContext->DrawIndexedInstanced(meshInfo.NumIndices, m_NumInstances, meshInfo.StartIndexLocation, meshInfo.BaseVertexLocation, 0);
 	}
+
+
 }

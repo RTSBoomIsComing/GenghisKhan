@@ -55,13 +55,12 @@ PS_OUT main(PS_IN input)
 	// then frac(x - 0.5F) - 0.5F do what we want
 	// if x = -1.4F, frac(-1.4F - 0.5F) = frac(-1.9F) = -1.9F - (-2.0F) = 0.1F
 	// frac(-1.4F - 0.5F) - 0.5F = 0.1F - 0.5F = -0.4F, that is exactly we expected
-	float2 grid = abs(frac(floorPos - 0.5F) - 0.5F) / (derivative * 2);
+	float2 grid = abs(frac(floorPos - 0.5F) - 0.5F) / (derivative * 2); // keep thickness of grid line uniformly on screen
 	float gridLine = min(grid.x, grid.y);
-	float3 color = float3(1.0F, 1.0F, 1.0F) * pow(1.0F - t, 4); // anti-aliasing
-	float alpha = (1.0 - min(gridLine, 1.0)) * pow(1.0F - t, 4); // anti-aliasing
-	output.color = float4(color, alpha);
+	output.color.xyz = float3(1.0F, 1.0F, 1.0F) * pow(1.0F - t, 4); // anti-aliasing
+	output.color.a = (1.0 - clamp(gridLine, 0.0F, 1.0F)) * pow(1.0F - t, 4); // anti-aliasing
 
 	float rayZ = length(intersection - near);
-	output.depth = rayZ / (rayZ + 1);
+	output.depth = rayZ / (rayZ + 1.0F);
 	return output;
 }

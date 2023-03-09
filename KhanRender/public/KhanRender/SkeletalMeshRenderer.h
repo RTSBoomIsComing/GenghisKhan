@@ -32,7 +32,8 @@ namespace KhanRender
 
 	public:
 		SkeletalMeshRenderer(const Renderer& renderer, const std::filesystem::path SceneFilePath);
-		void Update(size_t numInstances, DirectX::XMMATRIX const* worldMats, const uint32_t* AnimationId, const float* runningTime, DirectX::XMMATRIX const& viewProjMat);
+		size_t AddInstance(DirectX::XMMATRIX const& worldMatrix, const uint32_t AnimationId, const float runningTime);
+		void Update(DirectX::XMMATRIX const& viewProjMat);
 		void Render();
 	private: // about vertex buffer
 		enum class VertexElement
@@ -54,9 +55,9 @@ namespace KhanRender
 		{
 			12, 12, 12, 16, 16
 		};
-		std::array<unsigned int, NUM_VERTEX_ELEMENTS>			m_VBuf_Offsets;
-		std::array<ID3D11Buffer*, NUM_VERTEX_ELEMENTS>			m_VBuf_Ptrs;
-		std::array<ComPtr<ID3D11Buffer>, NUM_VERTEX_ELEMENTS>	m_pVBufs;
+		std::array<unsigned int, NUM_VERTEX_ELEMENTS>			m_VBuf_Offsets{};
+		std::array<ID3D11Buffer*, NUM_VERTEX_ELEMENTS>			m_VBuf_Ptrs{};
+		std::array<ComPtr<ID3D11Buffer>, NUM_VERTEX_ELEMENTS>	m_pVBufs{};
 
 	private: // about rendering infomations
 		static constexpr unsigned int MAX_NUM_BONES{ 100 }; // I think maybe the number of bones are not more than 100
@@ -67,6 +68,9 @@ namespace KhanRender
 		std::vector<MeshInfo> m_MeshInfos;
 		std::vector<AnimationInfo> m_AnimationInfos;
 		std::vector<DirectX::XMMATRIX> m_FinalBoneTransforms;
+
+		std::vector<DirectX::XMMATRIX> m_InstanceWorldMatrices;
+		std::vector<unsigned int> m_InstanceBoneTransformStartLocations;
 
 	private: // about constant buffer
 		ComPtr<ID3D11Buffer> m_pCBuf_VS_Worlds;

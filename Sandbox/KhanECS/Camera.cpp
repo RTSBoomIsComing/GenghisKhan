@@ -32,10 +32,8 @@ DirectX::XMMATRIX KhanECS::System::GetViewProjectionMatrix(entt::registry const&
 		XMMATRIX viewMat = XMMatrixInverse(nullptr,
 			XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&rot))
 			* XMMatrixTranslationFromVector(XMLoadFloat3(&pos)));
-
-		XMMATRIX projMat = XMMatrixPerspectiveFovLH(projInfo.fovAngleY, projInfo.aspectRatio, projInfo.nearZ, projInfo.farZ);
 		
-		return viewMat * projMat;
+		return viewMat * projInfo.ProjectionMatrix;
 	}
 
 	return XMMatrixIdentity();

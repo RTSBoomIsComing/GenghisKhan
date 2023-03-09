@@ -14,9 +14,3 @@ namespace KhanECS::Entity
 {
 	entt::entity MakeCube(entt::registry& reg, DirectX::XMFLOAT3 position) noexcept;
 }
-
-namespace KhanECS::System
-{
-
-}
-

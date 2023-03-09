@@ -6,12 +6,13 @@
 
 #include <KhanRender/SkeletalMeshRenderer.h>
 
+#include <unordered_set>
+
 
 // standard libraries
 
-KhanECS::System::SkeletalMeshRenderSystem::SkeletalMeshRenderSystem(KhanRender::Renderer const& renderer)
+KhanECS::System::SkeletalMeshRenderSystem::SkeletalMeshRenderSystem()
 {
-	m_RendererList[static_cast<size_t>(RendererId::Archer)] = std::make_unique<KhanRender::SkeletalMeshRenderer>(renderer, "D:\\Assets\\Mixamo\\Archer\\Erika Archer With Bow Arrow.fbx");
 	//m_KnightRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Knight D Pelegrini.fbx");
 	//m_PaladinRenderer = std::make_unique<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Paladin J Nordstrom.fbx");
 }
@@ -20,36 +21,20 @@ void KhanECS::System::SkeletalMeshRenderSystem::Update(float deltaTime, entt::re
 {
 	using namespace DirectX;
 	using namespace KhanECS::Component;
-	XMMATRIX viewProjMat = KhanECS::System::GetViewProjectionMatrix(reg);
+
+	static float accTime{}; // For test
+	accTime += deltaTime;
+
 
 	auto view = reg.view<SkeletalMeshComponent, Position, Rotation>();
-	std::array<std::vector<DirectX::XMMATRIX>, static_cast<size_t>(RendererId::Max)> worldMatrices;
 	for (entt::entity e : view)
 	{
-		const size_t rendererId = static_cast<size_t>(view.get<SkeletalMeshComponent>(e).rendererId);
+		const auto& renderer = view.get<SkeletalMeshComponent>(e).pRenderer;
 		const Position& pos = view.get<Position>(e);
 		const Rotation& rot = view.get<Rotation>(e);
 
 		auto mat = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&rot)) * XMMatrixTranslationFromVector(XMLoadFloat3(&pos));
-		worldMatrices[rendererId].push_back(mat);
-	}
-	
-	static float accTime{}; // For test
-	accTime += deltaTime;
-	for (size_t i{}; i < m_RendererList.size(); i++)
-	{
-		const auto& matrices = worldMatrices.at(i);
-		std::vector<uint32_t> animationIds(matrices.size(), 0);
-		std::vector<float> runningTimes(matrices.size(), accTime);
 
-		m_RendererList.at(i)->Update(matrices.size(), matrices.data(), animationIds.data(), runningTimes.data(), viewProjMat);
-	}
-}
-
-void KhanECS::System::SkeletalMeshRenderSystem::Render()
-{
-	for (auto& renderer : m_RendererList)
-	{
-		renderer->Render();
+		renderer->AddInstance(mat, 0, accTime);
 	}
 }

@@ -2,7 +2,7 @@
 
 // standard libraries
 #include <filesystem>
-#include <array>
+#include <unordered_map>
 #include <memory>
 // additional dependencies
 #include <entt/fwd.hpp>
@@ -18,16 +18,8 @@ namespace KhanECS::System
 	class SkeletalMeshRenderSystem
 	{
 	public:
-		enum class RendererId
-		{
-			Archer, Max
-		};
-	public:
-		SkeletalMeshRenderSystem(KhanRender::Renderer const& renderer);
+		SkeletalMeshRenderSystem();
 		void Update(float deltaTime, entt::registry& reg);
-		void Render();
-	private:
-		std::array<std::unique_ptr<KhanRender::SkeletalMeshRenderer>, static_cast<size_t>(RendererId::Max)> m_RendererList;
 	};
 }
 
@@ -35,6 +27,6 @@ namespace KhanECS::Component
 {
 	struct SkeletalMeshComponent
 	{
-		KhanECS::System::SkeletalMeshRenderSystem::RendererId rendererId{};
+		const std::shared_ptr<KhanRender::SkeletalMeshRenderer> pRenderer{};
 	};
 }

@@ -304,11 +304,11 @@ ComPtr<ID3D11ShaderResourceView> KhanDx::CreateSRV_Texture2D(ID3D11Device* pDevi
 
 ComPtr<ID3D11Buffer> KhanDx::CreateDynConstBuf(ID3D11Device* pDevice, unsigned int byteStride, unsigned int numElements) noexcept
 {
-	if (byteStride % 16 != 0)
-	{
-		KHAN_ERROR("Need to align byteStride with 16");
-		DebugBreak();
-	}
+	//if (byteStride % 16 != 0)
+	//{
+	//	KHAN_ERROR("Need to align byteStride with 16");
+	//	DebugBreak();
+	//}
 	D3D11_BUFFER_DESC bufDesc{};
 	bufDesc.ByteWidth = byteStride * numElements;
 	bufDesc.Usage = D3D11_USAGE_DYNAMIC;
