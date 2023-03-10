@@ -58,7 +58,7 @@ PS_OUT main(PS_IN input)
 	float2 grid = abs(frac(floorPos - 0.5F) - 0.5F) / (derivative * 2); // keep thickness of grid line uniformly on screen
 	float gridLine = min(grid.x, grid.y);
 	output.color.xyz = float3(1.0F, 1.0F, 1.0F) * pow(1.0F - t, 4); // anti-aliasing
-	output.color.a = (1.0 - clamp(gridLine, 0.0F, 1.0F)) * pow(1.0F - t, 4); // anti-aliasing
+	output.color.a = (1.0 - saturate(gridLine)) * pow(1.0F - t, 4); // anti-aliasing
 
 	float rayZ = length(intersection - near);
 	output.depth = rayZ / (rayZ + 1.0F);
