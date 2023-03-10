@@ -48,13 +48,18 @@ protected:
 	entt::registry m_reg;
 
 protected:
-	DirectX::XMFLOAT3 m_cameraVelocity{};
-	DirectX::XMFLOAT3 m_cameraRotation{};
-	float clear_color[4]{};
-	RECT selectionRect{};
-	bool m_isCameraMoving{};
-	bool m_isSelectionRectDrawing{};
-	POINT m_MouseCursorPos{};
-	POINT m_MouseMoveRelative{};
+	struct
+	{
+		DirectX::XMFLOAT3 CameraVelocity{};
+		DirectX::XMFLOAT3 CameraRotation{};
+		float clear_color[4]{};
+		RECT SelectionRect{};
+		bool bIsCameraMoving{};
+		bool bIsSelectionRectDrawing{};
+
+		POINT LastMousePos{};
+		POINT MouseMoveRelative{};
+	} m_GameInfo;
+
 };
 

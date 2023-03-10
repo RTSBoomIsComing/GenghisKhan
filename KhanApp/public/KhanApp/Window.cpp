@@ -38,8 +38,6 @@ KhanApp::Window::Window(int width, int height, std::wstring name)
 
 	::ShowWindow(m_window_handle, SW_SHOWDEFAULT);
 	::UpdateWindow(m_window_handle);
-
-	this->EnableMouseLockToWindow();
 }
 
 KhanApp::Window::~Window() noexcept

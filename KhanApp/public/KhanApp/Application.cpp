@@ -62,11 +62,9 @@ namespace KhanApp
 
 			if (raw->header.dwType == RIM_TYPEMOUSE)
 			{
-				int xPosRelative = raw->data.mouse.lLastX;
-				int yPosRelative = raw->data.mouse.lLastY;
-
-				app->m_input.mouse.Positions[static_cast<int>(MouseEvent::RelativeMove)].x += (short)xPosRelative;
-				app->m_input.mouse.Positions[static_cast<int>(MouseEvent::RelativeMove)].y += (short)yPosRelative;
+				LONG xPosRelative = raw->data.mouse.lLastX;
+				LONG yPosRelative = raw->data.mouse.lLastY;
+				app->m_input.mouse.OnMouseRawInput(xPosRelative, yPosRelative);
 			}
 			return 0;
 		}
@@ -95,7 +93,6 @@ namespace KhanApp
 
 		case WM_MOUSEMOVE:
 		{
-			// if (ImGui::GetIO().WantCaptureMouse) return 192U;
 			const POINTS pos = MAKEPOINTS(lparam);
 			app->m_input.mouse.Positions[static_cast<int>(MouseEvent::MOVE)] = pos;
 			app->m_input.mouse.OnMouseMove(pos.x, pos.y);
@@ -181,9 +178,10 @@ namespace KhanApp
 		case WM_SYSCOMMAND:
 			// Disable Alt application menu, if do not this, Alt + other key make a beep sound
 			if ((wparam & 0xFFF0) == SC_KEYMENU) { return 0; }
-			DefWindowProc(hwnd, msg, wparam, lparam);
+			return DefWindowProc(hwnd, msg, wparam, lparam);
 
-		default: return DefWindowProc(hwnd, msg, wparam, lparam);
+		default: 
+			return DefWindowProc(hwnd, msg, wparam, lparam);
 		}
 		return 0;
 	}

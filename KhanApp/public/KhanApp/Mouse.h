@@ -4,7 +4,7 @@
 
 enum class MouseEvent
 {
-	LEFT_DOWN, LEFT_UP, RIGHT_DOWN, RIGHT_UP, MIDDLE_DOWN, MIDDLE_UP, MOVE, RelativeMove, MAX
+	LEFT_DOWN, LEFT_UP, RIGHT_DOWN, RIGHT_UP, MIDDLE_DOWN, MIDDLE_UP, MOVE, MAX
 };
 
 namespace KhanApp
@@ -22,6 +22,7 @@ namespace KhanApp
 		Delegate<int, int> OnRightButtonUp{};
 
 		Delegate<int, int> OnMouseMove{};
+		Delegate<int, int> OnMouseRawInput{};
 
 	private:
 		POINTS Positions[static_cast<int>(MouseEvent::MAX)]{};
@@ -31,11 +32,6 @@ namespace KhanApp
 			LEFT, RIGHT, MIDDLE, MAX
 		};
 		std::bitset<static_cast<int>(ButtonType::MAX)> ButtonStates{};
-
-		void EndFrame()
-		{
-			Positions[static_cast<int>(MouseEvent::RelativeMove)] = {};
-		}
 
 	public:
 		template<MouseEvent T>

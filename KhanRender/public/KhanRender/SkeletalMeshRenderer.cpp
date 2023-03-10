@@ -122,22 +122,23 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 		v_normals.insert(v_normals.end(), First, Last);
 	}
 
-	//store node names root to leaves(breadth first search)
-	std::queue<const aiNode*> bfsQueue;
+	//store node from root to leaves(breadth first search)
 	std::vector<const aiNode*> nodes_bfs;
-	const aiNode* pRootNode = pScene->mRootNode;
-	bfsQueue.push(pRootNode);
-	while (!bfsQueue.empty())
 	{
-		const aiNode* pNode = bfsQueue.front();
-		bfsQueue.pop();
-		nodes_bfs.push_back(pNode); // visit
-		for (unsigned int i{}; i < pNode->mNumChildren; i++)
+		std::queue<const aiNode*> bfsQueue;
+		const aiNode* pRootNode = pScene->mRootNode;
+		bfsQueue.push(pRootNode);
+		while (!bfsQueue.empty())
 		{
-			bfsQueue.push(pNode->mChildren[i]);
+			const aiNode* pNode = bfsQueue.front();
+			bfsQueue.pop();
+			nodes_bfs.push_back(pNode); // visit
+			for (unsigned int i{}; i < pNode->mNumChildren; i++)
+			{
+				bfsQueue.push(pNode->mChildren[i]);
+			}
 		}
 	}
-
 	std::unordered_map<const aiNode*, const aiBone*> nodeToBone;
 	std::vector<std::array<uint32_t, MAX_NUM_BONE_WEIGHTS>> v_boneIndices(accNumVertices);
 	std::vector<std::array<float, MAX_NUM_BONE_WEIGHTS>> v_weights(accNumVertices);
@@ -260,32 +261,32 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 
 	// Vertex buffer cant be empty
 	size_t vertexBufId = static_cast<size_t>(VertexElement::POSITION);
-	m_pVBufs[vertexBufId] = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_positions.data(), (UINT)v_positions.size() * m_VBuf_Strides[static_cast<int>(VertexElement::POSITION)]);
-	m_VBuf_Ptrs[vertexBufId] = m_pVBufs[vertexBufId].Get();
+	m_VBuffer.Bufs[vertexBufId] = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_positions.data(), (UINT)v_positions.size() * m_VBuffer.Strides[vertexBufId]);
+	m_VBuffer.Addresses[vertexBufId] = m_VBuffer.Bufs[vertexBufId].Get();
 
 	if (!v_texCoords.empty())
 	{
-		vertexBufId = static_cast<int>(VertexElement::TEXCOORD);
-		m_pVBufs[vertexBufId] = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_texCoords.data(), (UINT)v_texCoords.size() * m_VBuf_Strides[static_cast<int>(VertexElement::TEXCOORD)]);
-		m_VBuf_Ptrs[vertexBufId] = m_pVBufs[vertexBufId].Get();
+		vertexBufId = static_cast<size_t>(VertexElement::TEXCOORD);
+		m_VBuffer.Bufs[vertexBufId] = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_texCoords.data(), (UINT)v_texCoords.size() * m_VBuffer.Strides[vertexBufId]);
+		m_VBuffer.Addresses[vertexBufId] = m_VBuffer.Bufs[vertexBufId].Get();
 	}
 	if (!v_normals.empty())
 	{
-		vertexBufId = static_cast<int>(VertexElement::NORMAL);
-		m_pVBufs[vertexBufId] = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_normals.data(), (UINT)v_normals.size() * m_VBuf_Strides[static_cast<int>(VertexElement::NORMAL)]);
-		m_VBuf_Ptrs[vertexBufId] = m_pVBufs[vertexBufId].Get();
+		vertexBufId = static_cast<size_t>(VertexElement::NORMAL);
+		m_VBuffer.Bufs[vertexBufId] = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_normals.data(), (UINT)v_normals.size() * m_VBuffer.Strides[vertexBufId]);
+		m_VBuffer.Addresses[vertexBufId] = m_VBuffer.Bufs[vertexBufId].Get();
 	}
 	if (!v_boneIndices.empty())
 	{
-		vertexBufId = static_cast<int>(VertexElement::BLENDINDICES);
-		m_pVBufs[vertexBufId] = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_boneIndices.data(), (UINT)v_boneIndices.size() * m_VBuf_Strides[static_cast<int>(VertexElement::BLENDINDICES)]);
-		m_VBuf_Ptrs[vertexBufId] = m_pVBufs[vertexBufId].Get();
+		vertexBufId = static_cast<size_t>(VertexElement::BLENDINDICES);
+		m_VBuffer.Bufs[vertexBufId] = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_boneIndices.data(), (UINT)v_boneIndices.size() * m_VBuffer.Strides[vertexBufId]);
+		m_VBuffer.Addresses[vertexBufId] = m_VBuffer.Bufs[vertexBufId].Get();
 	}
 	if (!v_weights.empty())
 	{
-		vertexBufId = static_cast<int>(VertexElement::BLENDWEIGHT);
-		m_pVBufs[vertexBufId] = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_weights.data(), (UINT)v_weights.size() * m_VBuf_Strides[static_cast<int>(VertexElement::BLENDWEIGHT)]);
-		m_VBuf_Ptrs[vertexBufId] = m_pVBufs[vertexBufId].Get();
+		vertexBufId = static_cast<size_t>(VertexElement::BLENDWEIGHT);
+		m_VBuffer.Bufs[vertexBufId] = KhanDx::CreateVertexBuffer(m_pDevice.Get(), v_weights.data(), (UINT)v_weights.size() * m_VBuffer.Strides[vertexBufId]);
+		m_VBuffer.Addresses[vertexBufId] = m_VBuffer.Bufs[vertexBufId].Get();
 	}
 
 	// Create Index buffer
@@ -301,14 +302,15 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	m_pInputLayout = KhanDx::CreateInputLayout(m_pDevice.Get(), pBlob.Get(), m_elementDescs, NUM_VERTEX_ELEMENTS);
 
 	// Create Constant bufferes
-	m_pCBuf_VS_Worlds = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(XMMATRIX), 1000);
-	m_pCBuf_VS_ViewProjection = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(XMMATRIX), 1);
-	m_pCBuf_VS_Blending = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(uint32_t), 1000);
+	m_VSCBuffer.Worlds = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(XMMATRIX), 1000);
+	m_VSCBuffer.Addresses[0] = m_VSCBuffer.Worlds.Get();
 
-	// Save the pointers of Constant buffers, it is used to VSSetConstantBuffers()
-	m_CBuf_VS_Ptrs[0] = m_pCBuf_VS_Worlds.Get();
-	m_CBuf_VS_Ptrs[1] = m_pCBuf_VS_ViewProjection.Get();
-	m_CBuf_VS_Ptrs[2] = m_pCBuf_VS_Blending.Get();
+	m_VSCBuffer.ViewProjection = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(XMMATRIX), 1);
+	m_VSCBuffer.Addresses[1] = m_VSCBuffer.ViewProjection.Get();
+
+	m_VSCBuffer.Blending = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(uint32_t), 1000);
+	m_VSCBuffer.Addresses[2] = m_VSCBuffer.Blending.Get();
+
 
 	m_pSRV_VS_FinalBoneTransforms = KhanDx::CreateSRV_StaticStructBuf(m_pDevice.Get(), m_FinalBoneTransforms.data(), sizeof(DirectX::XMMATRIX), static_cast<uint32_t>(m_FinalBoneTransforms.size()));
 
@@ -347,25 +349,25 @@ void KhanRender::SkeletalMeshRenderer::Update(DirectX::XMMATRIX const& viewProjM
 	XMMATRIX viewProjMatTransposed = XMMatrixTranspose(viewProjMat);
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource{};
-	m_pDeviceContext->Map(m_pCBuf_VS_ViewProjection.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	m_pDeviceContext->Map(m_VSCBuffer.ViewProjection.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	std::memcpy(mappedResource.pData, &viewProjMatTransposed, sizeof(XMMATRIX));
-	m_pDeviceContext->Unmap(m_pCBuf_VS_ViewProjection.Get(), 0);
+	m_pDeviceContext->Unmap(m_VSCBuffer.ViewProjection.Get(), 0);
 
 
 	// ConstantBuffer for World matrices. These matrices are used for instancing
 	m_NumInstances = static_cast<uint32_t>(m_InstanceWorldMatrices.size());
 
 	mappedResource = {};
-	m_pDeviceContext->Map(m_pCBuf_VS_Worlds.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	m_pDeviceContext->Map(m_VSCBuffer.Worlds.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	std::memcpy(mappedResource.pData, m_InstanceWorldMatrices.data(), sizeof(XMMATRIX) * m_NumInstances);
-	m_pDeviceContext->Unmap(m_pCBuf_VS_Worlds.Get(), 0);
+	m_pDeviceContext->Unmap(m_VSCBuffer.Worlds.Get(), 0);
 
 
 
 	mappedResource = {};
-	m_pDeviceContext->Map(m_pCBuf_VS_Blending.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	m_pDeviceContext->Map(m_VSCBuffer.Blending.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	std::memcpy(mappedResource.pData, m_InstanceBoneTransformStartLocations.data(), sizeof(uint32_t[4]) * m_NumInstances);
-	m_pDeviceContext->Unmap(m_pCBuf_VS_Blending.Get(), 0);
+	m_pDeviceContext->Unmap(m_VSCBuffer.Blending.Get(), 0);
 
 	m_InstanceWorldMatrices.resize(0);
 	m_InstanceBoneTransformStartLocations.resize(0);
@@ -373,13 +375,13 @@ void KhanRender::SkeletalMeshRenderer::Update(DirectX::XMMATRIX const& viewProjM
 
 void KhanRender::SkeletalMeshRenderer::Render()
 {
-	m_pDeviceContext->IASetVertexBuffers(0, NUM_VERTEX_ELEMENTS, m_VBuf_Ptrs.data(), m_VBuf_Strides.data(), m_VBuf_Offsets.data());
+	m_pDeviceContext->IASetVertexBuffers(0, NUM_VERTEX_ELEMENTS, m_VBuffer.Addresses.data(), m_VBuffer.Strides.data(), m_VBuffer.Offsets.data());
 	m_pDeviceContext->IASetInputLayout(m_pInputLayout.Get());
 	m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_pDeviceContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 	m_pDeviceContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
-	m_pDeviceContext->VSSetConstantBuffers(0, static_cast<uint32_t>(m_CBuf_VS_Ptrs.size()), m_CBuf_VS_Ptrs.data());
+	m_pDeviceContext->VSSetConstantBuffers(0, static_cast<UINT>(m_VSCBuffer.Addresses.size()), m_VSCBuffer.Addresses.data());
 	m_pDeviceContext->VSSetShaderResources(0, 1, m_pSRV_VS_FinalBoneTransforms.GetAddressOf());
 
 	m_pDeviceContext->RSSetState(m_pRasterizerState.Get());
@@ -395,6 +397,4 @@ void KhanRender::SkeletalMeshRenderer::Render()
 		m_pDeviceContext->PSSetShaderResources(0, 1, meshInfo.m_pSRV.GetAddressOf());
 		m_pDeviceContext->DrawIndexedInstanced(meshInfo.NumIndices, m_NumInstances, meshInfo.StartIndexLocation, meshInfo.BaseVertexLocation, 0);
 	}
-
-
 }

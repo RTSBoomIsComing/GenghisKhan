@@ -65,8 +65,8 @@ void Game2::Run()
 	ProcessInput();
 	
 
-	KhanECS::System::SetCameraRotation(m_reg, m_cameraRotation);
-	KhanECS::System::MouseEdgeScroll(m_reg, m_cameraVelocity);
+	KhanECS::System::SetCameraRotation(m_reg, m_GameInfo.CameraRotation);
+	KhanECS::System::MouseEdgeScroll(m_reg, m_GameInfo.CameraVelocity);
 
 	m_GridFloorRenderer->Update(XMMatrixInverse(nullptr, KhanECS::System::GetViewProjectionMatrix(m_reg)));
 	m_SkeletalMeshRenderSystem->Update(deltaTime.count(), m_reg);
@@ -75,21 +75,19 @@ void Game2::Run()
 	m_SkeletalMeshRenderer_Archer->Update(KhanECS::System::GetViewProjectionMatrix(m_reg));
 
 	// start rendering
-	m_mainRenderer.RenderBegin(clear_color);
+	m_mainRenderer.RenderBegin(m_GameInfo.clear_color);
 	m_SkeletalMeshRenderer_Archer->Render();
 	m_GridFloorRenderer->Render();
 
 	static auto selectionRect_renderer = KhanRender::SelectionRectRenderer(m_mainRenderer);
-	if (m_isSelectionRectDrawing && m_isMouseLocked)
+	if (m_GameInfo.bIsSelectionRectDrawing && m_isMouseLocked)
 	{
-		selectionRect_renderer.Update(selectionRect, m_window_width, m_window_height);
+		selectionRect_renderer.Update(m_GameInfo.SelectionRect, m_window_width, m_window_height);
 		selectionRect_renderer.Render();
 	}
 
 	m_imGuiRenderer->Render();
 	m_mainRenderer.RenderEnd();
-
-	m_input.EndFrame();
 }
 
 void Game2::OnResizeWindow(UINT width, UINT height) noexcept
@@ -129,8 +127,8 @@ void Game2::OnImGuiRender()
 		ImGui::Checkbox("Another Window", &show_another_window);
 
 		ImGui::SliderFloat("DebugScalar", &DEBUGSCALAR, 0.0F, 500.F);
-		ImGui::SliderFloat3("camera rot", reinterpret_cast<float*>(&m_cameraRotation), -XM_PI, XM_PI);
-		ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+		ImGui::SliderFloat3("camera rot", reinterpret_cast<float*>(&m_GameInfo.CameraRotation), -XM_PI, XM_PI);
+		ImGui::ColorEdit3("clear color", (float*)&m_GameInfo.clear_color); // Edit 3 floats representing a color
 
 		if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
 			counter++;
@@ -159,11 +157,11 @@ void Game2::BindActionsToInput() noexcept
 
 	m_input.mouse.OnLeftButtonDown.DefaultFn = [&](int x, int y) {
 		KHAN_INFO(std::format("LBD: {:d}, {:d}", x, y));
-		m_isSelectionRectDrawing = true;
+		m_GameInfo.bIsSelectionRectDrawing = true;
 	};
 	m_input.mouse.OnLeftButtonUp.DefaultFn = [&](int x, int y) {
 		KHAN_INFO(std::format("LBU: {:d}, {:d}", x, y));
-		m_isSelectionRectDrawing = false;
+		m_GameInfo.bIsSelectionRectDrawing = false;
 	};
 	m_input.mouse.OnRightButtonDown.DefaultFn = [&](int x, int y) {
 		KHAN_INFO(std::format("RBD: {:d}, {:d}", x, y));
@@ -171,30 +169,35 @@ void Game2::BindActionsToInput() noexcept
 	m_input.mouse.OnRightButtonUp.DefaultFn = [&](int x, int y) {
 		KHAN_INFO(std::format("RBU: {:d}, {:d}", x, y));
 	};
-	m_input.mouse.OnLeftButtonDown.InstantFn = [&](int x, int y) {
-		KHAN_ERROR(std::format("LBD: {:d}, {:d}", x, y));
-		m_input.mouse.OnLeftButtonDown.InstantFn = nullptr;
+
+	m_input.mouse.OnMouseRawInput.DefaultFn = [&](int x, int y) {
+		m_GameInfo.MouseMoveRelative.x = +x;
+		m_GameInfo.MouseMoveRelative.y = +y;
 	};
-	m_input.mouse.OnRightButtonDown.InstantFn = [&](int x, int y) {
-		KHAN_ERROR(std::format("RBD: {:d}, {:d}", x, y));
-		m_input.mouse.OnRightButtonDown.InstantFn = nullptr;
-	};
-	m_input.mouse.OnLeftButtonUp.InstantFn = [&](int x, int y) {
-		KHAN_ERROR(std::format("LBU: {:d}, {:d}", x, y));
-		m_input.mouse.OnLeftButtonUp.InstantFn = nullptr;
-	};
-	m_input.mouse.OnRightButtonUp.InstantFn = [&](int x, int y) {
-		KHAN_ERROR(std::format("RBU: {:d}, {:d}", x, y));
-		m_input.mouse.OnRightButtonUp.InstantFn = nullptr;
-	};
+
+	//m_input.mouse.OnLeftButtonDown.InstantFn = [&](int x, int y) {
+	//	KHAN_ERROR(std::format("LBD: {:d}, {:d}", x, y));
+	//	m_input.mouse.OnLeftButtonDown.InstantFn = nullptr;
+	//};
+	//m_input.mouse.OnRightButtonDown.InstantFn = [&](int x, int y) {
+	//	KHAN_ERROR(std::format("RBD: {:d}, {:d}", x, y));
+	//	m_input.mouse.OnRightButtonDown.InstantFn = nullptr;
+	//};
+	//m_input.mouse.OnLeftButtonUp.InstantFn = [&](int x, int y) {
+	//	KHAN_ERROR(std::format("LBU: {:d}, {:d}", x, y));
+	//	m_input.mouse.OnLeftButtonUp.InstantFn = nullptr;
+	//};
+	//m_input.mouse.OnRightButtonUp.InstantFn = [&](int x, int y) {
+	//	KHAN_ERROR(std::format("RBU: {:d}, {:d}", x, y));
+	//	m_input.mouse.OnRightButtonUp.InstantFn = nullptr;
+	//};
+
+
 
 	m_input.keyboard.OnKeyDown[VK_MENU].DefaultFn = [&]() {
 		while (::ShowCursor(false) >= 0);
 	};
 	m_input.keyboard.OnKeyUp[VK_MENU].DefaultFn = [&]() {
-		POINT pt = m_MouseCursorPos;
-		::ClientToScreen(m_window_handle, &pt);
-		::SetCursorPos(pt.x, pt.y);
 		while (::ShowCursor(true) < 0);
 	};
 }
@@ -202,40 +205,41 @@ void Game2::BindActionsToInput() noexcept
 void Game2::ProcessInput() noexcept
 {
 	POINT pt = m_input.mouse.GetPosition<MouseEvent::LEFT_DOWN>();
-	selectionRect.left = pt.x;
-	selectionRect.top = pt.y;
-
-	m_MouseMoveRelative = m_input.mouse.GetPosition<MouseEvent::RelativeMove>();
+	m_GameInfo.SelectionRect.left = pt.x;
+	m_GameInfo.SelectionRect.top = pt.y;
 
 	// camera control by mouse
-	m_cameraVelocity = {};
-	if (m_input.keyboard.KeyStates[VK_MENU])
+	m_GameInfo.CameraVelocity = {};
+	if (m_input.keyboard.KeyStates[VK_MENU] && m_isMouseLocked)
 	{
-		pt = m_MouseCursorPos;
+		m_GameInfo.bIsSelectionRectDrawing = false;
+		m_GameInfo.CameraRotation.x += m_GameInfo.MouseMoveRelative.y * 0.004F;
+		m_GameInfo.CameraRotation.y += m_GameInfo.MouseMoveRelative.x * 0.002F;
+
+		POINT pt = m_GameInfo.LastMousePos;
 		::ClientToScreen(m_window_handle, &pt);
 		::SetCursorPos(pt.x, pt.y);
-		m_isSelectionRectDrawing = false;
-		m_cameraRotation.x += m_MouseMoveRelative.y * 0.002F;
-		m_cameraRotation.y += m_MouseMoveRelative.x * 0.001F;
 	}
 	else
 	{
-		m_MouseCursorPos = m_input.mouse.GetPosition<MouseEvent::MOVE>();
-		selectionRect.right = m_MouseCursorPos.x;
-		selectionRect.bottom = m_MouseCursorPos.y;
+		m_GameInfo.LastMousePos = m_input.mouse.GetPosition<MouseEvent::MOVE>();
+		m_GameInfo.SelectionRect.right = m_GameInfo.LastMousePos.x;
+		m_GameInfo.SelectionRect.bottom = m_GameInfo.LastMousePos.y;
 
 		if (m_isMouseLocked)
 		{
-			if (m_MouseCursorPos.x == 0) { m_cameraVelocity.x += -1.0F; }
-			if (m_MouseCursorPos.y == 0) { m_cameraVelocity.y += +1.0F; }
-			if (m_MouseCursorPos.x == m_window_width - 1) { m_cameraVelocity.x += +1.0F; }
-			if (m_MouseCursorPos.y == m_window_height - 1) { m_cameraVelocity.y += -1.0F; }
+			if (m_GameInfo.LastMousePos.x == 0) { m_GameInfo.CameraVelocity.x += -1.0F; }
+			if (m_GameInfo.LastMousePos.y == 0) { m_GameInfo.CameraVelocity.y += +1.0F; }
+			if (m_GameInfo.LastMousePos.x == m_window_width - 1) { m_GameInfo.CameraVelocity.x += +1.0F; }
+			if (m_GameInfo.LastMousePos.y == m_window_height - 1) { m_GameInfo.CameraVelocity.y += -1.0F; }
 		}
 	}
 
 	// camera control by keyboard
-	if (m_input.keyboard.KeyStates['A']) { m_cameraVelocity.x += -1.0F; }
-	if (m_input.keyboard.KeyStates['D']) { m_cameraVelocity.x += +1.0F; }
-	if (m_input.keyboard.KeyStates['S']) { m_cameraVelocity.y += -1.0F; }
-	if (m_input.keyboard.KeyStates['W']) { m_cameraVelocity.y += +1.0F; }
+	if (m_input.keyboard.KeyStates['A']) { m_GameInfo.CameraVelocity.x += -1.0F; }
+	if (m_input.keyboard.KeyStates['D']) { m_GameInfo.CameraVelocity.x += +1.0F; }
+	if (m_input.keyboard.KeyStates['S']) { m_GameInfo.CameraVelocity.y += -1.0F; }
+	if (m_input.keyboard.KeyStates['W']) { m_GameInfo.CameraVelocity.y += +1.0F; }
+
+	m_GameInfo.MouseMoveRelative = {};
 }

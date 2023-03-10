@@ -13,11 +13,6 @@ namespace KhanApp
 	class InputManager
 	{
 		friend LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-	public:
-		void EndFrame() noexcept
-		{
-			mouse.EndFrame();
-		}
 
 	public:
 		Mouse mouse;

@@ -35,7 +35,8 @@ namespace KhanRender
 		size_t AddInstance(DirectX::XMMATRIX const& worldMatrix, const uint32_t AnimationId, const float runningTime);
 		void Update(DirectX::XMMATRIX const& viewProjMat);
 		void Render();
-	private: // about vertex buffer
+
+	private: // about vertex buffer and input elements
 		enum class VertexElement
 		{
 			POSITION, TEXCOORD, NORMAL, BLENDINDICES, BLENDWEIGHT, MAX
@@ -51,13 +52,14 @@ namespace KhanRender
 			{ "BLENDWEIGHT",	0, DXGI_FORMAT_R32G32B32A32_FLOAT,	static_cast<int>(VertexElement::BLENDWEIGHT),	0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		std::array<unsigned int, NUM_VERTEX_ELEMENTS>  m_VBuf_Strides
+		struct // vertex buffer
 		{
-			12, 12, 12, 16, 16
-		};
-		std::array<unsigned int, NUM_VERTEX_ELEMENTS>			m_VBuf_Offsets{};
-		std::array<ID3D11Buffer*, NUM_VERTEX_ELEMENTS>			m_VBuf_Ptrs{};
-		std::array<ComPtr<ID3D11Buffer>, NUM_VERTEX_ELEMENTS>	m_pVBufs{};
+			using D3DX11Buffer = ComPtr<ID3D11Buffer>;
+			std::array<unsigned int, NUM_VERTEX_ELEMENTS>	Strides{ 12, 12, 12, 16, 16 };
+			std::array<unsigned int, NUM_VERTEX_ELEMENTS>	Offsets{};
+			std::array<ID3D11Buffer*, NUM_VERTEX_ELEMENTS>	Addresses{};
+			std::array<D3DX11Buffer, NUM_VERTEX_ELEMENTS>	Bufs{};
+		} m_VBuffer;
 
 	private: // about rendering infomations
 		static constexpr unsigned int MAX_NUM_BONES{ 100 }; // I think maybe the number of bones are not more than 100
@@ -72,11 +74,15 @@ namespace KhanRender
 		std::vector<DirectX::XMMATRIX> m_InstanceWorldMatrices;
 		std::vector<unsigned int> m_InstanceBoneTransformStartLocations;
 
-	private: // about constant buffer
-		ComPtr<ID3D11Buffer> m_pCBuf_VS_Worlds;
-		ComPtr<ID3D11Buffer> m_pCBuf_VS_ViewProjection;
-		ComPtr<ID3D11Buffer> m_pCBuf_VS_Blending;
-		std::array<ID3D11Buffer*, 3> m_CBuf_VS_Ptrs;
+	private: 
+		struct // constant buffer for vertex shader stage
+		{
+			ComPtr<ID3D11Buffer> Worlds;
+			ComPtr<ID3D11Buffer> ViewProjection;
+			ComPtr<ID3D11Buffer> Blending;
+			std::array<ID3D11Buffer*, 3> Addresses{};
+		} m_VSCBuffer;
+
 
 	private: // about directx 11 components
 		ComPtr<ID3D11Buffer>			m_pIndexBuffer;
