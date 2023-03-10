@@ -174,17 +174,20 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 		idPerNode[pNode] = i;
 	}
 
-	std::array<DirectX::XMMATRIX, MAX_NUM_BONES>	defaultBoneTransforms{};
-	std::array<DirectX::XMMATRIX, MAX_NUM_BONES>	boneOffsets{};
-	std::array<std::string, MAX_NUM_BONES>			nodeNames{};
-	std::array<unsigned int, MAX_NUM_BONES>			parentNodes{};
+	std::vector<unsigned int>		parentNodes(m_TotalNumBones, -1);
+	std::vector<DirectX::XMMATRIX>	defaultBoneTransforms;
+	std::vector<DirectX::XMMATRIX>	boneOffsets;
+	std::vector<std::string>		nodeNames;
+	defaultBoneTransforms.reserve(m_TotalNumBones);
+	boneOffsets.reserve(m_TotalNumBones);
+	nodeNames.reserve(m_TotalNumBones);
 
-	parentNodes.fill(-1);
+
 	for (unsigned int i{}; i < m_TotalNumBones; i++)
 	{
-		boneOffsets[i] = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&bones[i]->mOffsetMatrix));
-		defaultBoneTransforms[i] = XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&bones[i]->mNode->mTransformation));
-		nodeNames[i] = bones[i]->mName.C_Str();
+		boneOffsets.push_back(XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(&bones[i]->mOffsetMatrix)));
+		defaultBoneTransforms.push_back(XMLoadFloat4x4(reinterpret_cast<XMFLOAT4X4*>(&bones[i]->mNode->mTransformation)));
+		nodeNames.push_back(bones[i]->mName.C_Str());
 		if (idPerNode.contains(bones[i]->mNode->mParent))
 		{
 			parentNodes[i] = idPerNode[bones[i]->mNode->mParent];
