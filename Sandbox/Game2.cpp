@@ -88,6 +88,9 @@ void Game2::Run()
 
 	m_imGuiRenderer->Render();
 	m_mainRenderer.RenderEnd();
+
+	m_GameInfo.CameraVelocity = {};
+
 }
 
 void Game2::OnResizeWindow(UINT width, UINT height) noexcept
@@ -175,6 +178,9 @@ void Game2::BindActionsToInput() noexcept
 		m_GameInfo.MouseMoveRelative.y = +y;
 	};
 
+	m_input.mouse.OnMouseWheel.DefaultFn = [&](int x, int y, int delta) {
+		m_GameInfo.CameraVelocity.z += static_cast<float>(delta) / 120;
+	};
 	//m_input.mouse.OnLeftButtonDown.InstantFn = [&](int x, int y) {
 	//	KHAN_ERROR(std::format("LBD: {:d}, {:d}", x, y));
 	//	m_input.mouse.OnLeftButtonDown.InstantFn = nullptr;
@@ -209,7 +215,7 @@ void Game2::ProcessInput() noexcept
 	m_GameInfo.SelectionRect.top = pt.y;
 
 	// camera control by mouse
-	m_GameInfo.CameraVelocity = {};
+
 	if (m_input.keyboard.KeyStates[VK_MENU] && m_isMouseLocked)
 	{
 		m_GameInfo.bIsSelectionRectDrawing = false;

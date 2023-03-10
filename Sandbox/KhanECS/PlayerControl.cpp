@@ -12,13 +12,11 @@ void KhanECS::System::MouseEdgeScroll(entt::registry& reg, DirectX::XMFLOAT3 vel
 	for (entt::entity const e : view)
 	{
 		XMFLOAT3& rot = view.get<Rotation>(e);
-		XMVECTOR forwardVector{};
-		XMVECTOR rightVector{};
 		XMMATRIX tramsform = XMMatrixRotationY(rot.y);
-		forwardVector = XMVector3Transform({ 0.0F, 0.0F, 1.0F }, tramsform);
-		rightVector = XMVector3Transform({ 1.0F, 0.0F, 0.0F }, tramsform);
+		XMVECTOR forwardVector = XMVector3Transform({ 0.0F, 0.0F, 1.0F }, tramsform);
+		XMVECTOR rightVector = XMVector3Transform({ 1.0F, 0.0F, 0.0F }, tramsform);
 		XMFLOAT3& pos = view.get<Position>(e);
-		XMVECTOR newPos = XMLoadFloat3(&pos) + forwardVector * velocity.y * 10.0F + rightVector * velocity.x * 10.0F;
+		XMVECTOR newPos = XMLoadFloat3(&pos) + forwardVector * velocity.y * 10.0F + rightVector * velocity.x * 10.0F + XMVECTOR{0.0F, -20.0F * velocity.z, 0.0F, 0.0F};
 		XMStoreFloat3(&pos, newPos);
 	}
 }

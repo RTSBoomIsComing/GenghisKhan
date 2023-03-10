@@ -24,6 +24,8 @@ namespace KhanApp
 		Delegate<int, int> OnMouseMove{};
 		Delegate<int, int> OnMouseRawInput{};
 
+		Delegate<int, int, int> OnMouseWheel{};
+
 	private:
 		POINTS Positions[static_cast<int>(MouseEvent::MAX)]{};
 

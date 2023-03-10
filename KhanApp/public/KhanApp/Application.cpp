@@ -143,14 +143,18 @@ namespace KhanApp
 			app->m_input.mouse.OnRightButtonUp(pos.x, pos.y);
 			return 0;
 		}
+		case WM_MOUSEWHEEL:
+		{
+			const POINTS pt = MAKEPOINTS(lparam);
+			const int delta = GET_WHEEL_DELTA_WPARAM(wparam);
+			app->m_input.mouse.OnMouseWheel(pt.x, pt.y, delta);
+			return 0;
+		}
 		//case WM_MBUTTONDOWN:
 		//case WM_MBUTTONUP:
-		//case WM_MOUSEWHEEL:
 		//case WM_XBUTTONDOWN:
 		//case WM_XBUTTONUP:
 		//case WM_MOUSEHOVER:
-		//	//DirectX::Mouse::ProcessMessage(msg, wparam, lparam);
-		//	//return 0u;
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
 		{
