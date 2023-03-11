@@ -4,6 +4,9 @@
 #include "KhanECS/SkeletalMeshRenderSystem.h"
 
 #include <KhanTools/Log.h>
+
+#include <KhanRender/NearPlaneRenderer.h>
+
 #include <KhanRender/SelectionRectRenderer.h>
 #include <KhanRender/CubeRenderer.h>
 #include <KhanRender/ImGuiRenderer.h>
@@ -29,12 +32,14 @@ Game2::Game2()
 	BindActionsToInput();
 	
 	m_SkeletalMeshRenderer_Archer = std::make_shared<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Archer\\Erika Archer With Bow Arrow.fbx");
-	m_GridFloorRenderer = std::make_unique<KhanRender::GridFloorRenderer>(m_mainRenderer);
 	m_imGuiRenderer = std::make_unique<KhanRender::ImGuiRenderer>(m_window_handle, m_mainRenderer, std::bind(&Game2::OnImGuiRender, this));
 
-	m_SkeletalMeshRenderSystem = std::make_unique<KhanECS::System::SkeletalMeshRenderSystem>();
-
+	KhanRender::NearPlaneRenderer nearPlaneRenderer(m_mainRenderer);
+	m_GridFloorRenderer = std::make_unique<KhanRender::GridFloorRenderer>(nearPlaneRenderer);
 	//m_cubeRenderer = std::make_unique<KhanRender::CubeRenderer>(m_mainRenderer);
+	
+	
+	m_SkeletalMeshRenderSystem = std::make_unique<KhanECS::System::SkeletalMeshRenderSystem>();
 
 	auto entity = KhanECS::Entity::MakeCamera(m_reg);
 

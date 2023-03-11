@@ -1,16 +1,16 @@
 #include "pch.h"
-#include "GridFloorRenderer.h"
+#include "LaserRenderer.h"
 #include "KhanDx/KhanDxComponents.h"
 
-KhanRender::GridFloorRenderer::GridFloorRenderer(const NearPlaneRenderer& renderer)
+KhanRender::LaserRenderer::LaserRenderer(const NearPlaneRenderer& renderer)
 	:
-	NearPlaneRenderer(renderer)
+	NearPlaneRenderer(renderer) 
 {
-	m_pPixelShader = KhanDx::CreatePixelShader(m_pDevice.Get(), "PS_GridFloor");
+	m_pPixelShader = KhanDx::CreatePixelShader(m_pDevice.Get(), "PS_Laser");
 	m_pPSDynConstBuf = KhanDx::CreateDynConstBuf(m_pDevice.Get(), sizeof(DirectX::XMFLOAT4X4), 1);
 }
 
-void KhanRender::GridFloorRenderer::Render()
+void KhanRender::LaserRenderer::Render()
 {
 	m_pDeviceContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &VERTEX_STRIDE, &VERTEX_OFFSET);
 	m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -27,7 +27,7 @@ void KhanRender::GridFloorRenderer::Render()
 	m_pDeviceContext->Draw(ARRAYSIZE(vertices), 0);
 }
 
-void KhanRender::GridFloorRenderer::Update(DirectX::XMMATRIX const& inverseViewProjMat)
+void KhanRender::LaserRenderer::Update(DirectX::XMMATRIX const& inverseViewProjMat)
 {
 	using namespace DirectX;
 
@@ -38,3 +38,5 @@ void KhanRender::GridFloorRenderer::Update(DirectX::XMMATRIX const& inverseViewP
 	std::memcpy(mappedResource.pData, &inverseViewProjMat_transposed, sizeof(inverseViewProjMat_transposed));
 	m_pDeviceContext->Unmap(m_pPSDynConstBuf.Get(), 0);
 }
+
+

@@ -294,10 +294,10 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 	m_pIndexBuffer = KhanDx::CreateIndexBuffer(m_pDevice.Get(), m_indices.data(), (uint32_t)m_indices.size() * sizeof(m_indices[0]));
 
 	// Create Pixel shader
-	m_pPixelShader = KhanDx::CreatePixelShader(m_pDevice.Get(), "SkeletalMesh_PS");
+	m_pPixelShader = KhanDx::CreatePixelShader(m_pDevice.Get(), "PS_SkeletalMesh");
 
 	// Create Vertex shader and Input layout
-	ComPtr<ID3DBlob> pBlob = KhanDx::CreateShaderBlob("SkeletalMesh_VS");
+	ComPtr<ID3DBlob> pBlob = KhanDx::CreateShaderBlob("VS_SkeletalMesh");
 	m_pVertexShader = KhanDx::CreateVertexShader(m_pDevice.Get(), pBlob.Get());
 	m_pInputLayout = KhanDx::CreateInputLayout(m_pDevice.Get(), pBlob.Get(), m_elementDescs, NUM_VERTEX_ELEMENTS);
 

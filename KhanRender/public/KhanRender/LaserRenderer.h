@@ -1,16 +1,14 @@
 #pragma once
-#include "KhanRender/NearPlaneRenderer.h"
-#include <DirectXMath.h>
+#include "NearPlaneRenderer.h"
 
 namespace KhanRender
 {
-	class GridFloorRenderer : public NearPlaneRenderer
+	class LaserRenderer : public NearPlaneRenderer
 	{
 	public:
-		GridFloorRenderer(const NearPlaneRenderer& renderer);
+		LaserRenderer(const NearPlaneRenderer& renderer);
 		void Render();
 		void Update(DirectX::XMMATRIX const& inverseViewProjMat);
-
 	private:
 		ComPtr<ID3D11PixelShader>	m_pPixelShader;
 		ComPtr<ID3D11Buffer>		m_pPSDynConstBuf;
