@@ -65,9 +65,6 @@
     <ClInclude Include="KhanECS\Components.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="KhanECS\Systems.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="KhanECS\Character.h">
       <Filter>Header Files</Filter>
     </ClInclude>
