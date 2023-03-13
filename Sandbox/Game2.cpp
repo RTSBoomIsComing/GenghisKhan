@@ -13,12 +13,12 @@
 #include <KhanRender/GridFloorRenderer.h>
 #include <KhanRender/MeshRenderer.h>
 #include <KhanRender/SkeletalMeshRenderer.h>
+#include <KhanRender/LaserRenderer.h>
 
 #include <KhanECS/Camera.h>
 #include <KhanECS/Cube.h>
 #include <KhanECS/PlayerControl.h>
 #include <KhanECS/Character.h>
-#include <KhanECS/Systems.h>
 
 // standard libraries
 #include <random>
@@ -32,6 +32,7 @@ Game2::Game2()
 	BindActionsToInput();
 	
 	m_SkeletalMeshRenderer_Archer = std::make_shared<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Archer\\Erika Archer With Bow Arrow.fbx");
+	m_LaserRenderer = std::make_unique<KhanRender::LaserRenderer>(m_mainRenderer);
 	m_imGuiRenderer = std::make_unique<KhanRender::ImGuiRenderer>(m_window_handle, m_mainRenderer, std::bind(&Game2::OnImGuiRender, this));
 
 	KhanRender::NearPlaneRenderer nearPlaneRenderer(m_mainRenderer);
@@ -52,6 +53,10 @@ Game2::Game2()
 		m_reg.emplace<KhanECS::Component::Archer>(e);
 		m_reg.emplace<KhanECS::Component::SkeletalMeshComponent>(e, m_SkeletalMeshRenderer_Archer);	
 	}
+
+	// for test
+	m_LaserRenderer->GetVertices().emplace_back(XMFLOAT3{ 300.0F, 300.0F, 300.0F }, XMFLOAT3{ 0.0F, 0.0F, 0.0F });
+	m_LaserRenderer->GetVertices().emplace_back(XMFLOAT3{ 500.0F, 300.0F, 300.0F }, XMFLOAT3{ 0.0F, 0.0F, 0.0F });
 }
 
 Game2::~Game2() noexcept
@@ -68,21 +73,21 @@ void Game2::Run()
 	prevTimePoint = currTimePoint;
 
 	ProcessInput();
-	
-
 	KhanECS::System::SetCameraRotation(m_reg, m_GameInfo.CameraRotation);
 	KhanECS::System::MouseEdgeScroll(m_reg, m_GameInfo.CameraVelocity);
 
 	m_GridFloorRenderer->Update(XMMatrixInverse(nullptr, KhanECS::System::GetViewProjectionMatrix(m_reg)));
 	m_SkeletalMeshRenderSystem->Update(deltaTime.count(), m_reg);
-
+	
 	// update renderer, upload data from cpu(system memory) to gpu(video memory)
 	m_SkeletalMeshRenderer_Archer->Update(KhanECS::System::GetViewProjectionMatrix(m_reg));
+	m_LaserRenderer->Update(KhanECS::System::GetViewProjectionMatrix(m_reg));
 
 	// start rendering
 	m_mainRenderer.RenderBegin(m_GameInfo.clear_color);
 	m_SkeletalMeshRenderer_Archer->Render();
 	m_GridFloorRenderer->Render();
+	m_LaserRenderer->Render();
 
 	static auto selectionRect_renderer = KhanRender::SelectionRectRenderer(m_mainRenderer);
 	if (m_GameInfo.bIsSelectionRectDrawing && m_isMouseLocked)

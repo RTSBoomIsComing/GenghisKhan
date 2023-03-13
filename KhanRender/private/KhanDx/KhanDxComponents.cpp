@@ -79,23 +79,53 @@ ComPtr<ID3D11DepthStencilState> KhanDx::CreateDepthStencilState_Default(ID3D11De
 
 ComPtr<ID3D11Buffer> KhanDx::CreateVertexBuffer(ID3D11Device* pDevice, const void* pSysMem, UINT byteWidth) noexcept
 {
-	// Fill in the subresource data.
-	D3D11_SUBRESOURCE_DATA InitVertexData{};
-	InitVertexData.pSysMem = pSysMem;
-	InitVertexData.SysMemPitch = 0U; // not used 
-	InitVertexData.SysMemSlicePitch = 0U; // not used
-
 	// Fill in a buffer description.
-	D3D11_BUFFER_DESC vertexbufferDesc{};
-	vertexbufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexbufferDesc.ByteWidth = byteWidth;
-	vertexbufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexbufferDesc.CPUAccessFlags = 0U;
-	vertexbufferDesc.MiscFlags = 0U;
+	D3D11_BUFFER_DESC vertexBufferDesc{};
+	vertexBufferDesc.ByteWidth = byteWidth;
+	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexBufferDesc.CPUAccessFlags = 0;
+	vertexBufferDesc.MiscFlags = 0;
+	vertexBufferDesc.StructureByteStride = 0;
+
+	// Fill in the subresource data.
+	D3D11_SUBRESOURCE_DATA vertexBufferData{};
+	vertexBufferData.pSysMem = pSysMem;
+	vertexBufferData.SysMemPitch = 0;		// not required 
+	vertexBufferData.SysMemSlicePitch = 0;	// not required
 
 	ComPtr<ID3D11Buffer> vertexBuffer;
-	ThrowIfFailed(pDevice->CreateBuffer(&vertexbufferDesc, &InitVertexData, &vertexBuffer),
-		"failed to create vertex buffer");
+	HRESULT hr = pDevice->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &vertexBuffer);
+	ThrowIfFailed(hr, "Failed to create vertex buffer");
+
+	return vertexBuffer;
+}
+
+ComPtr<ID3D11Buffer> KhanDx::CreateDynVertexBuffer(ID3D11Device* pDevice, const void* pSysMem, UINT byteWidth) noexcept
+{
+	D3D11_BUFFER_DESC vertexBufferDesc{};
+	vertexBufferDesc.ByteWidth = byteWidth;
+	vertexBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	vertexBufferDesc.MiscFlags = 0;
+	vertexBufferDesc.StructureByteStride = 0;
+
+	ComPtr<ID3D11Buffer> vertexBuffer;
+	if (pSysMem)
+	{
+		D3D11_SUBRESOURCE_DATA vertexBufferData{};
+		vertexBufferData.pSysMem = pSysMem;
+		vertexBufferData.SysMemPitch = 0;		// not required
+		vertexBufferData.SysMemSlicePitch = 0;	// not required
+		HRESULT hr = pDevice->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &vertexBuffer);
+		ThrowIfFailed(hr, "Failed to create vertex buffer");
+	}
+	else
+	{
+		HRESULT hr = pDevice->CreateBuffer(&vertexBufferDesc, nullptr, &vertexBuffer);
+		ThrowIfFailed(hr, "Failed to create vertex buffer");
+	}
 
 	return vertexBuffer;
 }

@@ -20,6 +20,7 @@ namespace KhanDx
 	
 	
 	ComPtr<ID3D11Buffer> CreateVertexBuffer(ID3D11Device* pDevice, const void* pSysMem, UINT byteWidth) noexcept;
+	ComPtr<ID3D11Buffer> CreateDynVertexBuffer(ID3D11Device* pDevice, const void* pSysMem, UINT byteWidth) noexcept;
 	ComPtr<ID3D11Buffer> CreateIndexBuffer(ID3D11Device* pDevice, const void* pSysMem, UINT byteWidth) noexcept;
 
 	ComPtr<ID3DBlob> CreateShaderBlob(std::string_view shaderName);

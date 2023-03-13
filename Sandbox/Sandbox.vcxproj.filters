@@ -71,6 +71,9 @@
     <ClInclude Include="KhanECS\SkeletalMeshRenderSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="KhanECS\RayCasting.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\VertexShader.hlsl" />
@@ -86,5 +89,6 @@
     <FxCompile Include="Shader\PS_GridFloor.hlsl" />
     <FxCompile Include="Shader\VS_NearPlane.hlsl" />
     <FxCompile Include="Shader\PS_Laser.hlsl" />
+    <FxCompile Include="Shader\VS_Laser.hlsl" />
   </ItemGroup>
 </Project>
