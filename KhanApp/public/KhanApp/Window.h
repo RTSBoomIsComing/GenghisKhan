@@ -9,7 +9,8 @@ namespace KhanApp
 		Window(int width = 1024, int height = 768, std::wstring name = L"window");
 		virtual ~Window() noexcept;
 		void EnableMouseLockToWindow();
-		void DisableMouseLockToWindow();
+		void EnableMouseLockAtPoint(int x, int y);
+		void DisableMouseLock();
 	private:
 		std::wstring m_name;
 		std::wstring m_class_name = L"MainWindow";

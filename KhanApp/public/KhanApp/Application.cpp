@@ -85,8 +85,7 @@ namespace KhanApp
 			::PostQuitMessage(0);
 			return 0;
 		case WM_KILLFOCUS:	// I think it would be better than using WM_ACTIVATE
-			app->DisableMouseLockToWindow();
-			app->m_input.mouse.ButtonStates.reset();
+			app->DisableMouseLock();
 			app->m_input.keyboard.KeyStates.reset();
 			while (::ShowCursor(true) < 0);
 			return 0;
@@ -94,7 +93,6 @@ namespace KhanApp
 		case WM_MOUSEMOVE:
 		{
 			const POINTS pos = MAKEPOINTS(lparam);
-			app->m_input.mouse.Positions[static_cast<int>(MouseEvent::MOVE)] = pos;
 			app->m_input.mouse.OnMouseMove(pos.x, pos.y);
 
 			return 0;
@@ -104,20 +102,16 @@ namespace KhanApp
 			app->EnableMouseLockToWindow();
 			if (ImGui::GetIO().WantCaptureMouse) return 192U;
 
-			app->m_input.mouse.ButtonStates[static_cast<int>(Mouse::ButtonType::LEFT)] = true;
 
 			const POINTS pos = MAKEPOINTS(lparam);
-			app->m_input.mouse.Positions[static_cast<int>(MouseEvent::LEFT_DOWN)] = pos;
 			app->m_input.mouse.OnLeftButtonDown(pos.x, pos.y);
 			return 0;
 		}
 		case WM_LBUTTONUP:
 		{
 			if (ImGui::GetIO().WantCaptureMouse) return 192U;
-			app->m_input.mouse.ButtonStates[static_cast<int>(Mouse::ButtonType::LEFT)] = false;
 
 			const POINTS pos = MAKEPOINTS(lparam);
-			app->m_input.mouse.Positions[static_cast<int>(MouseEvent::LEFT_UP)] = pos;
 			app->m_input.mouse.OnLeftButtonUp(pos.x, pos.y);
 			return 0;
 		}
@@ -126,20 +120,16 @@ namespace KhanApp
 			app->EnableMouseLockToWindow();
 			if (ImGui::GetIO().WantCaptureMouse) return 192U;
 
-			app->m_input.mouse.ButtonStates[static_cast<int>(Mouse::ButtonType::RIGHT)] = true;
 
 			const POINTS pos = MAKEPOINTS(lparam);
-			app->m_input.mouse.Positions[static_cast<int>(MouseEvent::RIGHT_DOWN)] = pos;
 			app->m_input.mouse.OnRightButtonDown(pos.x, pos.y);
 			return 0u;
 		}
 		case WM_RBUTTONUP:
 		{
 			if (ImGui::GetIO().WantCaptureMouse) return 192U;
-			app->m_input.mouse.ButtonStates[static_cast<int>(Mouse::ButtonType::RIGHT)] = false;
 
 			const POINTS pos = MAKEPOINTS(lparam);
-			app->m_input.mouse.Positions[static_cast<int>(MouseEvent::RIGHT_UP)] = pos;
 			app->m_input.mouse.OnRightButtonUp(pos.x, pos.y);
 			return 0;
 		}

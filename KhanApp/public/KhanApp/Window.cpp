@@ -69,7 +69,27 @@ void KhanApp::Window::EnableMouseLockToWindow()
 	m_isMouseLocked = true;
 }
 
-void KhanApp::Window::DisableMouseLockToWindow()
+void KhanApp::Window::EnableMouseLockAtPoint(int x, int y)
+{
+	POINT screenCoords{ x, y };
+	if (!::ClientToScreen(m_window_handle, &screenCoords))
+	{
+		KHAN_ERROR("failed to get screen coord");
+		throw ::GetLastError();
+	}
+
+	RECT confiningRect{ screenCoords.x, screenCoords.y,
+		screenCoords.x, screenCoords.y };
+	if (!::ClipCursor(&confiningRect))
+	{
+		KHAN_ERROR("failed to clip cursor");
+		throw ::GetLastError();
+	}
+
+	m_isMouseLocked = true;
+}
+
+void KhanApp::Window::DisableMouseLock()
 {
 	if (!::ClipCursor(nullptr))
 	{

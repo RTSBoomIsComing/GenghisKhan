@@ -40,14 +40,14 @@ void KhanRender::SelectionRectRenderer::Render()
 	m_pDeviceContext->Draw(ARRAYSIZE(vertices), 0U);
 }
 
-void KhanRender::SelectionRectRenderer::Update(const RECT& rect, UINT m_screenWidth, UINT m_screenHeight)
+void KhanRender::SelectionRectRenderer::Update(DirectX::XMINT4 const& rect, UINT m_screenWidth, UINT m_screenHeight)
 {
 	using namespace DirectX;
 
-	int x1 = rect.left;
-	int x2 = rect.right;
-	int y1 = rect.top;
-	int y2 = rect.bottom;
+	int x1 = rect.x;
+	int y1 = rect.y;
+	int x2 = rect.z;
+	int y2 = rect.w;
 	// normalize the rectangle (x1 < x2, y1 < y2) 
 	if (x1 > x2)
 	{

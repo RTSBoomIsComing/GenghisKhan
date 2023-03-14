@@ -9,7 +9,7 @@ namespace KhanRender
 	public:
 		SelectionRectRenderer(const Renderer& renderer);
 		void Render();
-		void Update(const RECT& rect, UINT m_screenWidth, UINT m_screenHeight);
+		void Update(DirectX::XMINT4 const& rect, UINT m_screenWidth, UINT m_screenHeight);
 
 	private:
 		ComPtr<ID3D11Buffer>		    m_pVertexBuffer;

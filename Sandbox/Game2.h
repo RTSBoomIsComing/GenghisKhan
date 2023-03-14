@@ -3,6 +3,7 @@
 #include <KhanRender/MainRenderer.h>
 // standard libraries
 #include <memory>
+#include <optional>
 
 // additional dependencies
 #include <entt/fwd.hpp>
@@ -55,13 +56,18 @@ protected:
 		DirectX::XMFLOAT3 CameraVelocity{};
 		DirectX::XMFLOAT3 CameraRotation{};
 		float clear_color[4]{};
-		RECT SelectionRect{};
+		DirectX::XMINT4 SelectionRect{};
 		bool bIsCameraMoving{};
-		bool bIsSelectionRectDrawing{};
-
-		POINT LastMousePos{};
-		POINT MouseMoveRelative{};
 	} m_GameInfo;
 
+	struct
+	{
+		DirectX::XMINT2 MouseMove{};
+		DirectX::XMINT2 MouseMoveRelative{};
+		std::optional<DirectX::XMINT2> LButtonDown{};
+		std::optional<DirectX::XMINT2> RButtonDown{};
+		std::vector<DirectX::XMINT4> DraggingRects;
+		std::vector<DirectX::XMINT2> ClickingPoints; // need to reset every frame
+	} m_PlayerController;
 };
 
