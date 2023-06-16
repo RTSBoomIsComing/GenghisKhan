@@ -222,7 +222,7 @@ KhanRender::SkeletalMeshRenderer::SkeletalMeshRenderer(const Renderer& renderer,
 		}
 	}
 	unsigned int accNumBoneTransforms{};
-	KhanAnim::SkeletalAnimation animation{ "D:\\Assets\\Mixamo\\Archer\\standing draw arrow.fbx" };
+	KhanAnim::SkeletalAnimation animation{ "..\\Assets\\standing draw arrow.fbx" };
 	m_AnimationInfos.emplace_back(accNumBoneTransforms, animation.m_Duration, animation.m_TicksPerSecond);
 	accNumBoneTransforms += animation.m_Duration * m_TotalNumBones;
 

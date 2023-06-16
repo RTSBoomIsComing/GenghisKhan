@@ -31,7 +31,7 @@ Game2::Game2()
 {
 	BindActionsToInput();
 
-	m_SkeletalMeshRenderer_Archer = std::make_shared<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "D:\\Assets\\Mixamo\\Archer\\Erika Archer With Bow Arrow.fbx");
+	m_SkeletalMeshRenderer_Archer = std::make_shared<KhanRender::SkeletalMeshRenderer>(m_mainRenderer, "..\\Assets\\Erika Archer With Bow Arrow.fbx");
 	m_LaserRenderer = std::make_unique<KhanRender::LaserRenderer>(m_mainRenderer);
 	m_imGuiRenderer = std::make_unique<KhanRender::ImGuiRenderer>(m_window_handle, m_mainRenderer, std::bind(&Game2::OnImGuiRender, this));
 

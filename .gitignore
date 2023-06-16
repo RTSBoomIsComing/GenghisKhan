@@ -400,3 +400,4 @@ FodyWeavers.xsd
 # added by me
 bin-int/
 vcpkg_installed/
+Assets/

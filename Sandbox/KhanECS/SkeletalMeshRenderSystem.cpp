@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "SkeletalMeshRenderSystem.h"
 #include "Camera.h"
-#include "Systems.h"
+//#include "Systems.h"
 #include "Character.h"
 
 #include <KhanRender/SkeletalMeshRenderer.h>
