@@ -25,7 +25,8 @@ Once you build visual studio solution all the libraries installed automatically.
 
 ## Results of work so far
 ![Results](https://user-images.githubusercontent.com/61501369/219645756-42cc0112-e808-413d-9d1b-8a2f19794e43.png)
-It was really hard work...
+![Results](https://github.com/yudaegam/GenghisKhan/assets/61501369/cb33f54e-4e9b-4ee7-a434-b4b5ed2484cd)
+
 
 ## Done
 - Input binding with keyboard and mouse
